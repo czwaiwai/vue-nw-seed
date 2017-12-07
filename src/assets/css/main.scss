@@ -1,0 +1,11 @@
+//@import '~foundation-sites';
+@import 'settings';
+@import '../../../node_modules/foundation-sites/scss/foundation';
+@include foundation-everything;
+*,html{
+  padding:0;
+  margin:0;
+}
+html,body{
+  height:100%;
+}

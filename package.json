@@ -1,6 +1,6 @@
 {
-  "name": "vue-nw-seed",
-  "appName": "应用的中文别名",
+  "name": "fcz_application",
+  "appName": "飞常赞应用",
   "version": "0.1.1",
   "description": "A seed project with Vue.js and Nw.js",
   "author": "anchengjian <anchengjian@gmail.com>",
@@ -11,10 +11,15 @@
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
+    "axios": "^0.17.1",
+    "escpos": "^2.4.5",
+    "foundation-sites": "^6.4.4-rc1",
     "node-webkit-updater": "^0.3.3",
     "nw": "0.14.7-sdk",
+    "qs": "^6.5.1",
     "vue": "^2.2.2",
-    "vue-router": "^2.2.0"
+    "vue-router": "^2.2.0",
+    "vuex": "^3.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.2",
@@ -45,10 +50,12 @@
     "http-proxy-middleware": "^0.17.3",
     "iconv-lite": "^0.4.15",
     "innosetup-compiler": "^5.5.9",
+    "node-sass": "^4.7.2",
     "nw-builder": "^3.4.1",
     "optimize-css-assets-webpack-plugin": "^1.3.0",
     "ora": "^1.1.0",
     "rimraf": "^2.6.0",
+    "sass-loader": "^6.0.6",
     "semver": "^5.3.0",
     "url-loader": "^0.5.7",
     "vue-loader": "^11.1.4",
