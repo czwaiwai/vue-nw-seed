@@ -4,7 +4,9 @@ var fs = require('fs')
 var nwPath = require('nw').findpath()
 var rootPath = path.resolve(__dirname, '../')
 var packageJsonPath = path.resolve(rootPath, './package.json')
-
+console.log(nwPath);
+nwPath="nw"
+console.log(nwPath);
 module.exports = runNwDev
 
 function runNwDev(uri = '') {

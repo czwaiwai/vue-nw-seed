@@ -11,12 +11,14 @@
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {
+    "aws-sdk": "^2.166.0",
     "axios": "^0.17.1",
     "escpos": "^2.4.5",
     "foundation-sites": "^6.4.4-rc1",
     "node-webkit-updater": "^0.3.3",
     "nw": "0.14.7-sdk",
     "qs": "^6.5.1",
+    "usb": "^1.4.0",
     "vue": "^2.2.2",
     "vue-router": "^2.2.0",
     "vuex": "^3.0.1"

@@ -34,12 +34,18 @@ axios.interceptors.response.use(function (response) {
   // 对响应数据做点什么
   console.log(response)
   if (response.data) {
-    let { cfgInfo } = response.data
+    let { cfgInfo, data } = response.data
+    let userInfo = null
     if (cfgInfo) {
-      store.commit('setUser', cfgInfo.UserInfo)
+      userInfo = cfgInfo.UserInfo
+    }
+    if (data && data.UserInfo) {
+      userInfo = data.UserInfo
+    }
+    if (userInfo) {
+      store.commit('setUser', userInfo)
     }
   }
-
   return response
 }, function (error) {
   // 对响应错误做点什么

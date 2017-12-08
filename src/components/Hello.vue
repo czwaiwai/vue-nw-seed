@@ -23,7 +23,7 @@
 </template>
 
 <script>
-var escpos = require('escpos')
+
 import Vue from 'vue'
 const bus = new Vue()
 export default {
@@ -35,6 +35,7 @@ export default {
   },
   methods: {
     init () {
+      var escpos = require('escpos')
       this.deviceIp = '192.168.2.126'
       this.device = new escpos.Network(this.deviceIp)
       this.printer = new escpos.Printer(this.device)
