@@ -1,7 +1,10 @@
-//@import '~foundation-sites';
 @import 'settings';
 @import '../../../node_modules/foundation-sites/scss/foundation';
 @include foundation-everything;
+@import 'tool';
+$button-palette: map-merge($foundation-palette, (
+  purple: #bb00ff
+)) !default;
 *,html{
   padding:0;
   margin:0;
@@ -9,3 +12,4 @@
 html,body{
   height:100%;
 }
+

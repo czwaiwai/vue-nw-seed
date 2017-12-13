@@ -2,7 +2,7 @@ var path = require('path')
 var utils = require('./utils')
 var config = require('../config')
 var vueLoaderConfig = require('./vue-loader.conf')
-
+var fs = require('fs')
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
@@ -18,6 +18,18 @@ module.exports = {
       ? config.build.assetsPublicPath
       : config.dev.assetsPublicPath
   },
+  externals:[
+    function() {
+    var exts = {}
+    var lis=['chn-escpos','printer'];
+    fs.readdirSync(path.join(__dirname, '../node_modules')).forEach(function(item) { // 我没有使用es6
+      if(item.indexOf('.') === 0) return
+      if(lis.indexOf(item)>-1){
+        exts[item] = 'commonjs ' + item
+      }
+    })
+    return exts
+  } ()],
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     alias: {
@@ -61,6 +73,10 @@ module.exports = {
           limit: 10000,
           name: utils.assetsPath('fonts/[name].[hash:7].[ext]')
         }
+      },
+      {
+        test:/\.node$/,
+        loader: 'node-loader'
       }
     ]
   },

@@ -28,7 +28,7 @@
   </div>
 </template>
 <style lang="scss" >
-  .login_block{
+  .login_block {
     max-width:400px;
     margin:0 auto;
     padding:20px;
@@ -54,7 +54,7 @@
         this.$http.post('/doLogin', this.formObj).then(res => {
           let data = res.data
           console.log(data)
-          this.$router.push('/Home')
+          this.$router.push('/Main')
           console.log(res)
         })
       }

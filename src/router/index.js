@@ -4,6 +4,9 @@ import Router from 'vue-router'
 import Update from '@/components/Update'
 import Login from '@/views/Login'
 import Home from '@/views/Home'
+import Main from '@/views/Main'
+import Printers from '@/views/Printers'
+import OtherFn from '@/views/otherFn/OtherFn'
 Vue.use(Router)
 
 export default new Router({
@@ -20,6 +23,16 @@ export default new Router({
       component: Login
     },
     {
+      path: '/main',
+      name: 'Main',
+      component: Main,
+      children: [{
+        path: 'otherFn',
+        name: 'OtherFn',
+        component: OtherFn
+      }]
+    },
+    {
       path: '/home',
       name: 'Home',
       component: Home
@@ -28,6 +41,16 @@ export default new Router({
       path: '/update',
       name: 'Update',
       component: Update
+    },
+    {
+      path: '/printers',
+      name: 'Printers',
+      component: Printers
     }
+    // {
+    //   path: '/otherFn',
+    //   name: 'OtherFn',
+    //   component: OtherFn
+    // }
   ]
 })

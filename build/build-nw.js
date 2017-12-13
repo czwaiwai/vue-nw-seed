@@ -18,13 +18,19 @@ var manifestPath = path.resolve(config.build.assetsRoot, './package.json')
 // manifest for `./dist/package.json`
 var manifest = {}
 config.build.nw.manifest.forEach(function(v, i) {
+  console.log(v);
   if (util.isString(v)) manifest[v] = tmpJson[v]
   else if (util.isObject(v)) manifest = util._extend(manifest, v)
 })
-
+config.build.nw.manifestModules.forEach(function(v,i){
+  console.log(v);
+  if(!manifest['dependencies']){
+    manifest['dependencies']={};
+  }
+  manifest['dependencies'][v]=tmpJson['dependencies'][v]
+})
 fs.writeFile(manifestPath, JSON.stringify(manifest, null, '  '), 'utf-8', function(err) {
   if (err) throw err
-
   // start build app
   if (!config.build.nw.builder) return
   var NwBuilder = require('nw-builder')

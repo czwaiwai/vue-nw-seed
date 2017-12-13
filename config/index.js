@@ -17,7 +17,7 @@ module.exports = {
     index: resolve('./dist/index.html'),
     assetsRoot: resolve('./dist'),
     assetsSubDirectory: 'static',
-    assetsPublicPath: '/',
+    assetsPublicPath: './',
     productionSourceMap: false,
     // Gzip off by default as many popular static hosts such as
     // Surge or Netlify already gzip all static assets for you.
@@ -39,13 +39,15 @@ module.exports = {
       // the fileds will merge with `./package.json` and build to `./dist/package.json` for NW.js
       // Manifest Format: http://docs.nwjs.io/en/latest/References/Manifest%20Format/
       manifest: ['name', 'appName', 'version', 'description', 'author', { main: './index.html' }, 'manifestUrl', 'window', 'nodejs', 'js-flags', 'node-remote'],
+
+      manifestModules: ['chn-escpos','printer'],
       // see document: https://github.com/nwjs/nw-builder
       builder: {
         files: [resolve('./dist/**')],
         // platforms: ['win32', 'win64', 'osx64'],
         platforms: ['win32', 'win64'],
         version: '0.14.7',
-        flavor: 'normal',
+        flavor: 'sdk',
         cacheDir: resolve('./node_modules/_nw-builder-cache/'),
         buildDir: resolve('./releases'),
         winIco: resolve('./build/setup_resources/logo.ico'),
@@ -82,9 +84,9 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/api':{
-        //target:'http://www.fcz360.com',//官网
+        target:'http://www.fcz360.com',//官网
         // target:'http://192.168.2.106:88',//钟老师电脑
-        target:'http://192.168.2.107:8080',//小婷电脑
+        //target:'http://192.168.2.107:8080',//小婷电脑
         //target:'http://192.168.2.113:88/',//
         changeOrigin:true,
         pathRewrite:{

@@ -4,10 +4,14 @@ import Vue from 'vue'
 import qs from 'qs'
 import App from './App'
 import store from './store'
+import ElementUI from 'element-ui'
 import { webUrl } from './utils/env'
+
 import axios from 'axios'
 import router from './router'
 import './assets/css/main.scss'
+import 'element-ui/lib/theme-chalk/index.css'
+Vue.use(ElementUI)
 Vue.config.productionTip = false
 axios.defaults.baseURL = webUrl
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'

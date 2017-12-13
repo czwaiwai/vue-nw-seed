@@ -4,7 +4,7 @@
 let baseUrl
 let webUrl
 let imgUrl
-let http = location.protocol
+let http = 'http:'
 const domainServer = 'www.fcz360.com'
 const imgDomainServer = 'http://www.fcz360.com'
 if (process.env.NODE_ENV === 'development') {
@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === 'development') {
   webUrl = '/api'
   imgUrl = '/api'
 } else {
-  http = location.protocol
+  // http = location.protocol
   baseUrl = http + '//' + domainServer
   webUrl = http + '//' + domainServer
   imgUrl = imgDomainServer
