@@ -62,46 +62,46 @@
             <router-view></router-view>
           </keep-alive>
         </el-main>
-        <el-footer  style="height:auto;">
+        <el-footer  style="height:auto;padding:3px;">
           <div class="grid-container full">
-            <div class="grid-x grid-margin-x">
+            <div class="grid-x food_buttons">
               <div class="cell small-2">
-                <button type="button" class="button purple  expanded   margin5   ">修改人数</button>
+                <button type="button" class="button light  expanded   margin5   ">修改人数</button>
               </div>
               <div class="cell small-2">
-                <button type="button" class="button   expanded  margin5   ">上一页</button>
+                <button type="button" class="button  light expanded  margin5   ">上一页</button>
               </div>
               <div class="cell small-2">
-                <button type="button" class="button   expanded  margin5   ">新单</button>
+                <button type="button" class="button  light  expanded  margin5   ">新单</button>
               </div>
               <div class="cell small-2">
-                <button type="button"  class="button   expanded  margin5   ">点菜</button>
+                <button type="button"  class="button light  expanded  margin5   ">点菜</button>
               </div>
               <div class="cell small-2">
-                <button type="button"  class="button   expanded  margin5   ">交班</button>
+                <button type="button"  class="button light  expanded  margin5   ">交班</button>
               </div>
               <div class="cell small-2">
-                <button type="button"  class="button   expanded  margin5   ">结账</button>
+                <button type="button"  class="button  light expanded  margin5   ">结账</button>
               </div>
             </div>
-            <div class="grid-x grid-margin-x">
+            <div class="grid-x food_buttons">
               <div class="cell small-2">
-                <button type="button" @click="moreFnClickHandler"  class="button   expanded  margin5   ">{{isMoreFn?'返回':'更多功能'}}</button>
+                <button type="button" @click="moreFnClickHandler"  class="button  light expanded  margin5   ">{{isMoreFn?'返回':'更多功能'}}</button>
               </div>
               <div class="cell small-2">
-                <button  type="button" class="button   expanded  margin5   ">下一页</button>
+                <button  type="button" class="button light  expanded  margin5   ">下一页</button>
               </div>
               <div class="cell small-2">
-                <button  type="button"  class="button   expanded  margin5   ">打包</button>
+                <button  type="button"  class="button light  expanded  margin5   ">打包</button>
               </div>
               <div class="cell small-2">
-                <button  type="button"  class="button   expanded  margin5   ">撤销结账</button>
+                <button  type="button"  class="button  light expanded  margin5   ">撤销结账</button>
               </div>
               <div class="cell small-2">
-                <button  type="button"  class="button   expanded  margin5   ">并单结账</button>
+                <button  type="button"  class="button light   expanded  margin5   ">并单结账</button>
               </div>
               <div class="cell small-2">
-                <button   type="button" class="button   expanded  margin5   ">注销</button>
+                <button   type="button" @click="logoutClickHandle" class="button light  expanded  margin5   ">注销</button>
               </div>
             </div>
           </div>
@@ -111,6 +111,7 @@
   </el-container>
 </template>
 <style rel="stylesheet/scss" lang="scss">
+
   .main{
     height:100%;
   }
@@ -120,6 +121,17 @@
   }
   .logo_time{
     color:#FFF;
+  }
+  .food_buttons .cell{
+    padding:0px 3px;
+  }
+  @media (max-width:1010px){
+    .food_buttons .button{
+      font-size:13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
   .aside-footer{
     padding:5px;
@@ -211,6 +223,9 @@
           this.isMoreFn = true
           this.$router.push({name: 'OtherFn'})
         }
+      },
+      logoutClickHandle () {
+        this.$router.replace({name: 'Login'})
       }
     },
     components: {
