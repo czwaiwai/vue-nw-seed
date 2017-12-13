@@ -165,7 +165,7 @@
     data () {
       return {
         currentTime: '',
-        now:moment(new Date()).format("YYYY-MM-DD"),
+        now: moment(new Date()).format('YYYY-MM-DD'),
         tableData: [{
           status: '分单',
           name: '牛肉烧饼',
@@ -216,8 +216,9 @@
     components: {
     },
     created () {
-      this.round = roundTime(() => {
-          console.log("haha")
+      this.round = roundTime((next) => {
+        console.log('haha')
+        next()
       }, 10000, false)
       this.round.start()
 
@@ -226,6 +227,7 @@
       }, 1000)
     },
     destroyed () {
+      this.round.stop()
       clearInterval(timer)
     }
   }
