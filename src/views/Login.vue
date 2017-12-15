@@ -24,10 +24,11 @@
           </div>
         </form>
       </div>
+      <vir-key-board v-model="formObj.mobile" ></vir-key-board>
     </div>
   </div>
 </template>
-<style lang="scss" >
+<style lang="scss" type="text/scss" >
   .login_block {
     max-width:400px;
     margin:0 auto;
@@ -40,6 +41,7 @@
   }
 </style>
 <script>
+  import virKeyBoard from '@/components/virKeyboard'
   export default {
     data () {
       return {
@@ -49,13 +51,23 @@
         }
       }
     },
+    components: {
+      virKeyBoard
+    },
     methods: {
       submitHandler () {
-        this.$http.post('/doLogin', this.formObj).then(res => {
+        this.$http.post('/ycLogin/doPCLogin', this.formObj).then(res => {
           let data = res.data
-          console.log(data)
-          this.$router.push('/Main')
-          console.log(res)
+          let {UserInfo, restShop} = data.data
+          //  console.log(UserInfo, '-----')
+          if (!UserInfo.fnShopAssist) {
+            return this.$message.error('你不是店员不能登录飞常赞')
+          } else {
+            this.$store.commit('setShopUser', UserInfo.fnShopAssist)
+            this.$store.commit('setShop', restShop)
+            this.$router.push('/Main/newOrder')
+//            this.$router.push('/Home')
+          }
         })
       }
     },

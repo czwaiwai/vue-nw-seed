@@ -6,6 +6,7 @@ import Login from '@/views/Login'
 import Home from '@/views/Home'
 import Main from '@/views/Main'
 import Printers from '@/views/Printers'
+import NewOrder from '@/views/order/NewOrder'
 import OtherFn from '@/views/otherFn/OtherFn'
 Vue.use(Router)
 
@@ -30,6 +31,14 @@ export default new Router({
         path: 'otherFn',
         name: 'OtherFn',
         component: OtherFn
+      }, {
+        path: 'printers',
+        name: 'Printers',
+        component: Printers
+      }, {
+        path: 'newOrder',
+        name: 'NewOrder',
+        component: NewOrder
       }]
     },
     {
@@ -41,11 +50,6 @@ export default new Router({
       path: '/update',
       name: 'Update',
       component: Update
-    },
-    {
-      path: '/printers',
-      name: 'Printers',
-      component: Printers
     }
     // {
     //   path: '/otherFn',

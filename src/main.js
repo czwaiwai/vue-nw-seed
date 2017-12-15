@@ -6,14 +6,16 @@ import App from './App'
 import store from './store'
 import ElementUI from 'element-ui'
 import { webUrl } from './utils/env'
-
+import filter from './filter/'
 import axios from 'axios'
 import router from './router'
 import './assets/css/main.scss'
 import 'element-ui/lib/theme-chalk/index.css'
+filter(Vue)
 Vue.use(ElementUI)
 Vue.config.productionTip = false
 axios.defaults.baseURL = webUrl
+axios.defaults.headers['X-Requested-With'] = 'XMLHttpRequest'
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
 axios.defaults.transformRequest = [function (data) {
   console.log('data', data)
