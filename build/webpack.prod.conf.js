@@ -8,6 +8,7 @@ var CopyWebpackPlugin = require('copy-webpack-plugin')
 var HtmlWebpackPlugin = require('html-webpack-plugin')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var OptimizeCSSPlugin = require('optimize-css-assets-webpack-plugin')
+var LodashWebpackPlugin = require('lodash-webpack-plugin')
 
 var env = config.build.env
 
@@ -29,6 +30,7 @@ var webpackConfig = merge(baseWebpackConfig, {
     new webpack.DefinePlugin({
       'process.env': env
     }),
+    new LodashWebpackPlugin(),
     new webpack.optimize.UglifyJsPlugin({
       compress: {
         warnings: false

@@ -58,6 +58,7 @@ axios.interceptors.response.use(function (response) {
   return Promise.reject(error)
 })
 Vue.prototype.$http = axios
+Vue.http = axios
 // for auto update
 import { checkUpdate } from '@/utils/update.js'
 checkUpdate()

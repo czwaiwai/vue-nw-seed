@@ -1,21 +1,7 @@
 /**
  * Created by Administrator on 2017/12/15 0015.
  */
-import bus from './bus'
-import Vue from 'vue'
-function PrintTpl (name, tpl) {
-  this.name = name
-  this.tpl = tpl
-}
-
-function printTplFactory () {
-  this.tplCache = {}
-}
-printTplFactory.prototype.setTicket = function (tickets) {}
-printTplFactory.prototype.addTpl = function (printTplObj) {
-  this.tplCache[printTplObj.name] = printTplObj
-}
-
+import _ from 'lodash'
 let handoverTpl = `<% setAlign:c %><% setSize:2 %><% setStyle:B %>宝山茶楼\n
 <% setSize:1 %>================================================\n
 <% setAlign:l %>营业时间：2017-12-14 13:19\n
@@ -57,8 +43,55 @@ ________________________________________________\n
 ------------------------------------------------\n
 小计：                        x42         1109\n
 `
-new PrintTpl('handover',handoverTpl,)
-
+export function handoverTplFn (obj) {
+  console.log(obj)
+}
+let dayPaperTpl = `<% setAlign:c %><% setSize:2 %>日报\n
+<% setAlign:l %><% setSize:1 %>店铺：宝山茶楼\n
+统计开始日期：2017-12-14 13:19\n
+统计结束日期：2017-12-14 15:47\n
+------------------------------------------------\n
+已支付：12笔      实收金额：1049.00\n
+------------------------------------------------\n
+现金支付：953.00\n
+线上支付：96\n
+飞常赞支付：0.00\n
+________________________________________________\n
+此小票为日报，请妥善保管\n
+`
+export function dayPaperTplFn (obj) {
+  console.log(obj)
+}
+let jiezhangTpl = `<% setAlign:c %><% setSize:2 %>乐稻港式餐厅（结账单）【重打】\n
+<% setSize:1 %>================================================\n
+<% setAlign:l %>账单：201712140031
+台号：<% setSize:2 %><% setStyle:BU %>14号桌\n
+<% setSize:1 %><% setStyle:NORMAL %>收银员：曹正\n
+支付方式：<% setSize:2 %><% setStyle:BU %>线上支付\n
+<% setSize:1 %><% setStyle:NORMAL %>
+________________________________________________\n
+------------------------------------------------\n
+行      菜品/数量         单价           金额
+<% setAlign:l %>1  茄子肉末饭\n
+          X1              45             45\n
+<% setAlign:l %>2  茄子肉末饭\n
+          X1              45             45\n
+<% setAlign:l %>3  茄子肉末饭\n
+          X1             100             45\n
+________________________________________________\n
+------------------------------------------------\n
+<% setAlign:l %>原价合计：161元\n
+实际支付金额：151元\n
+已优惠：10元\n
+线上支付：151元\n
+<% setSize:2 %><% setStyle:BU %>交易单号：105570043895201712142110716802\n
+<% setSize:1 %><% setStyle:NORMAL %>________________________________________________\n
+来源：飞常赞\n
+下单时间：12-14 12:34:35\n
+打印时间：12-14 13:35:37\n
+地址：广州市花都区白云国际机场候机楼一楼C8111店\n
+电话：020-36067837\n
+`
 
 /*
 printTplFactory
