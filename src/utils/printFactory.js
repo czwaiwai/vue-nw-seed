@@ -23,18 +23,20 @@ let printFactory = {
   //  创建打印机对象，如果存在返回打印对象
   createPrinter (cb) {
     let i = 0
+    let self = this
     if (this.priArr.every(item => item.chnPrinter)) {
       cb(null, this.priArr)
     } else {
       this.priArr.forEach(priOne => {
+        console.log(priOne, i, 'priOne')
         new ChnPrinter(priOne.name, function (err, msg) {
           if (err) {
             return cb(new Error('打印机初始化出错'))
           }
           i++
           priOne.chnPrinter = this
-          if (i === this.priArr.length) {
-            cb(null, this.priArr)
+          if (i === self.priArr.length) {
+            cb(null, self.priArr)
           }
         })
       })
@@ -44,14 +46,20 @@ let printFactory = {
   tickPrint (ticket, priArr, cb) {
     let arr = priArr.filter(item => ticket.printName === item.name)
     let printTmp = arr[0]
-    let chnObject = printTmp.chnPrinter
-    chnObject.compile(ticket.tpl).print(function (err, msg) {
-      if (err) {
-        return cb(err)
-      } else {
-        return cb(err, msg)
-      }
-    })
+    if (printTmp) {
+      let chnObject = printTmp.chnPrinter
+      chnObject.compile(ticket.tpl).print(function (err, msg) {
+        console.log(msg)
+        chnObject.empty()
+        if (msg === 'Print successed') {
+          return cb(err, msg)
+        } else {
+          return cb(new Error('调用打印机报错'))
+        }
+      })
+    } else {
+      cb(null, '当前订单没有找到指定打印机')
+    }
   },
   //  更具小票块循环输出进行打印
   printProcess (tickets, priArr, cb) {
@@ -72,9 +80,13 @@ let printFactory = {
   send (tickets, cb) {
     let self = this
     this.createPrinter(function (err, priArr) {
+      console.log('priArr', priArr)
       if (err) {
         cb(err)
       }
+      console.log(self)
+      console.log('tickets', tickets)
+      // cb(null, '测试订单完成')
       self.printProcess(tickets, priArr, cb)
     })
   },
@@ -95,35 +107,36 @@ let printFactory = {
     })
     return arr
   },
+  //  去除重复项
+  validName (valids, item) {
+    if (!valids.some(sdata => sdata.name === item.name)) {
+      return {name: item.name, nameMd5: md5(item.name)}
+    }
+    return null
+  },
   //  获取有效的打印机
   getRunPrinters (webPrint) {
     let prints = [...webPrint]
     let valids = []
     prints.forEach(item => {
       if (item.name) {
-        if (!valids.some(sdata => sdata.name === item.name)) {
-          return valids.push({
-            name: item.name,
-            nameMd5: md5(item.name)
-          })
+        let valid = this.validName(valids, item)
+        if (valid) {
+          valids.push(valid)
         }
       }
       if (item.btn) {
         if (Array.isArray(item.print)) {
           item.print.forEach(pitem => {
-            if (!valids.some(sdata => sdata.name === pitem.name)) {
-              return valids.push({
-                name: pitem.name,
-                nameMd5: md5(pitem.name)
-              })
+            let valid = this.validName(valids, pitem)
+            if (valid) {
+              valids.push(valid)
             }
           })
         } else {
-          if (!valids.some(sdata => sdata.name === item.name)) {
-            return valids.push({
-              name: item.name,
-              nameMd5: md5(item.name)
-            })
+          let valid = this.validName(valids, {name: item.print})
+          if (valid) {
+            valids.push(valid)
           }
         }
       }

@@ -78,16 +78,16 @@ module.exports = {
   },
   dev: {
     env: require('./dev.env'),
-    port: 8080,
+    port: 8081,
     autoOpenBrowser: true,
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
       '/api':{
-        target:'http://www.fcz360.com',//官网
+        //target:'http://www.fcz360.com',//官网
         // target:'http://192.168.2.106:88',//钟老师电脑
         //target:'http://192.168.2.107:8080',//小婷电脑
-        //target:'http://192.168.2.113:88/',//
+        target:'http://192.168.2.105:8080',//
         changeOrigin:true,
         pathRewrite:{
           '^/api':'/'
@@ -102,6 +102,10 @@ module.exports = {
               proxyReq.setHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8')
               proxyReq.setHeader('content-length', body.length)
               proxyReq.setHeader('Accept', 'application/json')
+              proxyReq.setHeader('Referer','https://www.fcz360.com/app/index.html?path=/home')
+              //Referer:https://www.fcz360.com/app/index.html?path=/home
+              proxyReq.setHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36')
+              // User-Agent:Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36
               proxyReq.write(body)
               proxyReq.end()
             }

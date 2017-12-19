@@ -50,8 +50,8 @@
           <div class="row ">
             <div>
               <button type="button" class="button light">上行</button>
-              <button type="button" class="button light">数量</button>
               <button @click="changeAmtClickHandler" type="button" class="button light">改价</button>
+              <button @click="cancelOrder" type="button" class="button light">取消</button>
               <button @click="printClickHandler" type="button"  class="button light">打印</button>
             </div>
             <div>
@@ -82,10 +82,10 @@
                 <button type="button" class="button  light expanded  margin5   ">上一页</button>
               </div>
               <div class="cell small-2">
-                <button type="button" class="button  light  expanded  margin5   ">新单</button>
+                <button type="button" class="button  light  expanded  margin5   ">当日打印</button>
               </div>
               <div class="cell small-2">
-                <button type="button" class="button light  expanded  margin5   ">点菜</button>
+                <button type="button" @click="workClickRecordHandler" class="button light  expanded  margin5   ">打卡记录</button>
               </div>
               <div class="cell small-2">
                 <button type="button" @click="workClickHandler" class="button light   expanded  margin5   ">打卡</button>
@@ -140,7 +140,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="changeAmtVisible = false">取 消</el-button>
-        <el-button type="primary" @click="printHandover">确定</el-button>
+        <el-button type="primary" @click="changeAmtConfirm">确定</el-button>
       </span>
     </el-dialog>
 
@@ -161,7 +161,7 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="backAmtVisible = false">取 消</el-button>
-        <el-button type="primary" @click="backAmtClickHandler">确定</el-button>
+        <el-button type="primary" @click="backAmtConfirm">确定</el-button>
       </span>
     </el-dialog>
 
@@ -194,17 +194,29 @@
 
 
     <el-dialog title="日报预览" :visible.sync="dayDialogVisible" width="600px">
+      <div class="block padding-bottom15">
+        <span class="demonstration">日期</span>
+        <el-date-picker
+          v-model="dateRange"
+          type="datetimerange"
+          time-arrow-control
+          @change="dayPaperChange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期">
+        </el-date-picker>
+      </div>
       <div class="day_paper">
         <h5>日报</h5>
-        <p>店铺：乐稻港式餐厅</p>
-        <p>统计开始日期：2017-12-15 00:00:00</p>
-        <p>统计结束日期：2017-12-15 10:27:16</p>
+        <p>店铺：{{shop.restName}}</p>
+        <p>统计开始日期：{{dateRange[0]}}</p>
+        <p>统计结束日期：{{dateRange[1]}}</p>
         <hr/>
-        <p>已支付：63笔 <span style="float:right">实收金额：4004.00</span></p>
+        <p>已支付：{{dayPaperData.count}}笔 <span style="float:right">实收金额：{{dayPaperData.actualAmt}}</span></p>
         <hr/>
-        <p>现金支付：2016.00</p>
-        <p>线上支付：2024.00</p>
-        <p>飞常赞支付：0.00</p>
+        <p>现金支付：{{dayPaperData.actOfflpayAmt}}</p>
+        <p>线上支付：{{dayPaperData.actBankpayAmt}}</p>
+        <p>飞常赞支付：{{dayPaperData.actAcctpayAmt}}</p>
         <hr/>
         <p>此小票为日报，请妥善保管</p>
       </div>
@@ -216,33 +228,37 @@
 
 
     <el-dialog title="交班单" :visible.sync="handoverDialogVisible" width="600px">
-      <div class="block">
-        <span class="demonstration">选择日期</span>
+      <div class="block padding-bottom15">
+        <span class="demonstration">日期</span>
         <el-date-picker
-          v-model="value1"
-          type="datetime"
-          placeholder="选择日期时间">
+          v-model="dateRange"
+          type="datetimerange"
+          @change="handoverChange"
+          time-arrow-control
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期">
         </el-date-picker>
       </div>
       <div class="handover">
         <div class="grid-container full">
           <div class="grid-x grid-margin-x">
-            <div class="cell small-4"><span class="handover_label">账单数：</span><span class="ho_text">70</span></div>
-            <div class="cell small-4"><span class="handover_label">消费额：</span><span class="ho_text">4696.00</span></div>
-            <div class="cell small-4"><span class="handover_label">优惠券：</span><span class="ho_text">0.00</span></div>
+            <div class="cell small-4"><span class="handover_label">账单数：</span><span class="ho_text">{{dayPaperData.count}}</span></div>
+            <div class="cell small-4"><span class="handover_label">消费额：</span><span class="ho_text">{{dayPaperData.totalAmt}}</span></div>
+            <div class="cell small-4"><span class="handover_label">优惠券：</span><span class="ho_text">{{dayPaperData.couponAmt}}</span></div>
           </div>
           <div class="grid-x grid-margin-x">
-            <div class="cell small-4"><span class="handover_label">改价折扣金额：</span><span class="ho_text">0.00</span></div>
-            <div class="cell small-4"><span class="handover_label">退款金额：</span><span class="ho_text">0.00</span></div>
-            <div class="cell small-4"><span class="handover_label">实收金额：</span><span class="ho_text">4516.00</span>
+            <div class="cell small-4"><span class="handover_label">改价折扣金额：</span><span class="ho_text">{{dayPaperData.saveAmt}}</span></div>
+            <div class="cell small-4"><span class="handover_label">退款金额：</span><span class="ho_text">{{dayPaperData.refundAmt}}</span></div>
+            <div class="cell small-4"><span class="handover_label">实收金额：</span><span class="ho_text">{{dayPaperData.actualAmt}}</span>
             </div>
           </div>
           <div class="grid-x grid-margin-x">
-            <div class="cell small-4"><span class="handover_label">用餐人数：</span><span class="ho_text">23</span></div>
+            <div class="cell small-4"><span class="handover_label">用餐人数：</span><span class="ho_text">{{dayPaperData.restPerson}}</span></div>
           </div>
         </div>
         <div class="handover_all_amount">
-          <span class="handover_label">收款明细（70笔)：</span><span class="alert  ho_text">4516.00</span>
+          <span class="handover_label">收款明细（{{dayPaperData.count}}笔)：</span><span class="alert  ho_text" style="color:red;">{{dayPaperData.actualAmt}}</span>
         </div>
       </div>
       <span slot="footer" class="dialog-footer">
@@ -251,7 +267,27 @@
       </span>
     </el-dialog>
 
-
+    <el-dialog title="打卡记录" :visible.sync="hitRcodeVisible" width="600px">
+      <div class="block">
+        <span class="demonstration">日期选择</span>
+        <el-date-picker
+          v-model="hitDate"
+          type="date"
+          placeholder="选择日期" @change="hitDateChange">
+        </el-date-picker>
+      </div>
+      <div class="hit_record">
+        <el-table   height="250" :data="hitRecordTable">
+          <el-table-column type="index"  label="序号" width="50"></el-table-column>
+          <el-table-column property="saleName" label="姓名" width="100"></el-table-column>
+          <el-table-column property="buildTime" label="打卡时间"></el-table-column>
+          <el-table-column property="remark" label="打卡类型"></el-table-column>
+        </el-table>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="hitRcodeVisible = false">关 闭</el-button>
+      </span>
+    </el-dialog>
   </el-container>
 </template>
 <style rel="stylesheet/scss" type="text/scss" lang="scss">
@@ -359,37 +395,27 @@
   import moment from 'moment'
   import roundTime from '../utils/roundTime'
   import { mapGetters } from 'vuex'
-  import MyPrinter from '../utils/myPrinter'
   import bus from '../utils/bus'
   let timer
+  let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
     data () {
       return {
-        value1: '',
+        dateRange: [],
+        dayPaperData: {},
+        handoverData: {},
         //  打卡
         hitCard: 0,
+        hitRcodeVisible: false, //  打卡记录
         workDialogVisible: false,
         handoverDialogVisible: false,
         dayDialogVisible: false, // 日报对话框
+
+        hitDate: now,
+        hitRecordTable: [], // 打卡记录
         currentTime: '',
-        now: moment(new Date()).format('YYYY-MM-DD'),
-        gridData: [{
-          date: '2016-05-02',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-04',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1518 弄'
-        }],
+        now: now,
+
         //  改价form
         changeAmtVisible: false,
         changeAmtForm: {
@@ -419,31 +445,6 @@
           resource: '',
           desc: ''
         },
-        tableData: [{
-          status: '分单',
-          name: '牛肉烧饼',
-          num: 1,
-          amount: 12,
-          allAmount: 12
-        }, {
-          status: '分单',
-          name: '牛肉烧饼',
-          num: 1,
-          amount: 12,
-          allAmount: 12
-        }, {
-          status: '分单',
-          name: '牛肉烧饼',
-          num: 1,
-          amount: 12,
-          allAmount: 12
-        }, {
-          status: '分单',
-          name: '牛肉烧饼',
-          num: 1,
-          amount: 12,
-          allAmount: 12
-        }],
         currentRow: null,
         isMoreFn: false,
         payType: {
@@ -471,6 +472,8 @@
       ...mapGetters({
         'isLogin': 'isLogin',
         'user': 'user',
+        'isAuto': 'isAuto',
+        'printTpl': 'printTpl',
         'shop': 'shop',
         'shopUser': 'shopUser',
         'shopPrint': 'shopPrint',
@@ -503,7 +506,27 @@
       //  手动打印
       printClickHandler () {
         if (this.isActiveOrder()) {
-          console.log('手动打印')
+          this.printService.add(this.activeOrder)
+        }
+      },
+      //  取消订单
+      cancelOrder () {
+        if (this.isActiveOrder()) {
+          if (this.activeOrder.status !== 9) {
+            return this.$message({
+              message: '只有未收款订单可以取消订单',
+              type: 'warning'
+            })
+          }
+          this.$http.post('/ycRest/cancelRestOrder', {id: this.activeOrder.id}).then(res => {
+            let resData = res.data
+            console.log(resData)
+            this.$store.commit('removeActiveOrder')
+            this.$message({
+              message: '取消订单成功',
+              type: 'success'
+            })
+          })
         }
       },
       //  清空activeOrder
@@ -534,13 +557,37 @@
       },
       //   上班打卡
       workClickHandler () {
+        this.hitCard = 0
         this.workDialogVisible = true
       },
       hitCardClickHandler () {
-        this.workDialogVisible = false
+        this.$http.post('/ycRest/assistantSign', {signType: this.hitCard}).then((res) => {
+          this.$message({
+            message: '你已打卡成功',
+            type: 'success'
+          })
+          this.workDialogVisible = false
+        })
       },
-
+      //  上班打卡记录
+      workClickRecordHandler (e) {
+        //  /ycRest/assistantSignRecord
+        this.hitDate = now
+        if (typeof e === 'string') {
+          this.hitDate = e
+        }
+        this.$http.post('/ycRest/assistantSignRecord', {buildTime: this.hitDate}).then(res => {
+          this.hitRcodeVisible = true
+          let resData = res.data
+          this.hitRecordTable = resData.data
+        })
+      },
+      hitDateChange (val) {
+        let curr = moment(val).format('YYYY-MM-DD')
+        this.workClickRecordHandler(curr)
+      },
       handleCurrentChange (val) {
+        console.log('选中', val)
         this.currentRow = val
       },
       // 改价显示
@@ -549,6 +596,17 @@
           this.changeAmtForm.adjAmt = this.activeOrder.totalAmt
           this.changeAmtVisible = true
         }
+//      /ycRest/correctAmout
+      },
+      changeAmtConfirm () {
+        let params = Object.assign({id: this.activeOrder.id, adjOpuser: this.shopUser.saleId}, this.changeAmtForm)
+        this.$http.post('/ycRest/correctAmout', params).then((res) => {
+          let resData = res.data
+          let {adjAmt, orderStatus} = resData.data
+          this.changeAmtVisible = false
+          this.activeOrder.status = orderStatus
+          this.activeOrder.adjAmt = adjAmt
+        })
       },
       // 退单显示
       backAmtClickHandler () {
@@ -559,38 +617,94 @@
 //          this.$http.post()
         }
       },
-      backAmtComfirm () {
+      backAmtConfirm () {
         this.$http.post('/ycRest/refundRestOrder', this.backAmtForm).then((res) => {
-          let data = res.data.data
-          console.log(data)
+          let resData = res.data
+          let {restOrder} = resData.data
+          console.log(restOrder)
+//          this.printService.add(restOrder)
+          console.log(resData)
         }, err => {
           console.log(err)
         })
       },
       //  日报显示
       showDayClickHandler () {
-        this.dayDialogVisible = true
+        this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id, returnType: 1}).then(res => {
+          this.dayDialogVisible = true
+          let resData = res.data
+          let {data, saleBeginTime, saleEndTime} = resData.data
+          this.dateRange = [saleBeginTime, saleEndTime]
+          data.saleBeginTime = saleBeginTime
+          data.saleEndTime = saleEndTime
+          this.dayPaperData = data
+          console.log(resData, '日报--------', data)
+        })
+      },
+      dayPaperChange (e) {
+        let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
+        let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
+        this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, restShopId: this.shop.id}).then(res => {
+          let resData = res.data
+          let {data, saleBeginTime, saleEndTime} = resData.data
+          this.dateRange = [saleBeginTime, saleEndTime]
+          data.saleBeginTime = saleBeginTime
+          data.saleEndTime = saleEndTime
+          this.dayPaperData = data
+        })
+      },
+      printDayPaper () {
+        console.log(bus)
+        let dayPaperData = Object.assign({tplName: 'dayPaper', restName: this.shop.restName}, this.dayPaperData)
+        this.printService.add(dayPaperData)
+        this.dayDialogVisible = false
+      },
+      //  交办单日期变更
+      handoverChange () {
+        let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
+        let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
+        this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, restShopId: this.shop.id}).then(res => {
+          this.handoverDialogVisible = true
+          let resData = res.data
+          let {data, saleBeginTime, saleEndTime} = resData.data
+          this.dateRange = [saleBeginTime, saleEndTime]
+          data.saleBeginTime = saleBeginTime
+          data.saleEndTime = saleEndTime
+          this.dayPaperData = data
+          this.handoverData = resData.data
+        })
       },
       //  交办单显示
       showHandoverClickHandler () {
-        this.handoverDialogVisible = true
-      },
-      printDayPaper () {
-        bus.$emit('print')
-        console.log('打印日报')
-        this.dayDialogVisible = false
+        this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id}).then(res => {
+          this.handoverDialogVisible = true
+          let resData = res.data
+          let {data, saleBeginTime, saleEndTime} = resData.data
+          this.dateRange = [saleBeginTime, saleEndTime]
+          data.saleBeginTime = saleBeginTime
+          data.saleEndTime = saleEndTime
+          this.dayPaperData = data
+          this.handoverData = resData.data
+        })
       },
       printHandover () {
+        let handoverData = Object.assign({tplName: 'handover', restName: this.shop.restName}, this.handoverData)
+        this.printService.add(handoverData)
+        this.handoverDialogVisible = false
         console.log('打印交班单')
       },
       moreFnClickHandler () {
-        if (this.$route.path === '/main/otherFn') {
-          this.isMoreFn = false
-          this.$router.back()
-        } else {
-          this.isMoreFn = true
-          this.$router.push({name: 'OtherFn'})
-        }
+        return this.$message({
+          message: '当前功能暂未完善，待完善或开放',
+          type: 'warning'
+        })
+//        if (this.$route.path === '/main/otherFn') {
+//          this.isMoreFn = false
+//          this.$router.back()
+//        } else {
+//          this.isMoreFn = true
+//          this.$router.push({name: 'OtherFn'})
+//        }
       },
       logoutClickHandle () {
         this.$http.post('/doLogout').then((res) => {
@@ -600,17 +714,73 @@
           }
         })
       },
-      getPageData () {
-        this.$http.post('/account/my').then((res) => {
-          console.log(res)
+      //  叫轮询的数据标记为订单
+      orderSign (list) {
+        list.forEach(item => {
+          item.isOrder = true
+          item.isPrinting = false
+          if (item.accountPrintCount + item.consumePrintCount + item.kitchenPrintCount) {
+            item.isPrint = true
+          } else {
+            item.isPrint = false
+          }
         })
       }
+//      getPageData () {
+//        this.$http.post('/account/my').then((res) => {
+//          console.log(res)
+//        })
+//      }
     },
     components: {},
     created () {
-      this.myPrinter = new MyPrinter([])
-      this.myPrinter.testStart(this)
-      this.getPageData()
+      this.$store.commit('printInit', {
+        vue: this,
+        shop: this.shop,
+        shopPrint: this.shopPrint,
+        user: this.user
+      })
+      this.printService = this.$store.getters.printService
+//      this.printService = new OrderSave(this, this.shop, this.shopPrint, this.user)
+      let self = this
+      this.printService.listen({
+        start () {
+          console.log(self)
+          console.log('---------------------打印已经开始了-----------------------------------')
+        },
+        before (obj) {
+//          if (obj.isOrder) {
+//            console.log('---------------------正在开始打印的订单Obj:', obj.id)
+//          }
+        },
+        after (obj) {
+          if (obj.isOrder) {
+            try {
+              self.$store.commit('setFinshPrintOrder', obj)
+              self.$store.commit('removeOrder', obj)
+            } catch (e) {
+              console.log(e)
+            }
+            console.log('---------------------结束打印的订单Obj:', obj.id)
+          }
+        },
+        error (err, obj, next) {
+          console.log(err, '-------------')
+          self.$http.post('/feeback/save', {
+            title: '打印回调内错误',
+            content: '出现的错误：' + JSON.stringify(err) + '错误对象' + JSON.stringify(obj)
+          })
+          next(true) // 为轮询是否就继续
+        },
+        //  这个对象放弃打印
+        giveup (obj) {
+          console.log('---------------------这个订单被放弃了:', obj.id)
+        },
+        done () {
+          console.log('---------------------打印已经完成')
+        }
+      })
+      console.log(this.printService, 'printService')
       this.round = roundTime((next) => {
         var paramObj = {
           id: '',
@@ -620,7 +790,7 @@
           tableNum: '',
           orderIdOrName: '',
           userMobile: '',
-          restShopId: '3594464964428800',
+          restShopId: this.shop.id,
           startDate: this.now,
           endDate: this.now
         }
@@ -630,7 +800,13 @@
           let {restOrderList} = data
           console.log(restOrderList, '-------------')
           if (restOrderList && restOrderList.length > 0) {
-            this.$store.commit('orderPush', restOrderList)
+            this.orderSign(restOrderList)
+            this.$store.dispatch('pushAction', {list: restOrderList}).then((newData) => {
+              console.log(newData)
+              if (this.isAuto) {
+                this.printService.add(newData)
+              }
+            })
           }
         }, err => {
           next(false)
@@ -639,7 +815,6 @@
         next()
       }, 10000, false)
       this.round.start()
-
       timer = setInterval(() => {
         this.currentTime = moment().format('YYYY年MM月DD日 HH:mm:ss')
       }, 1000)

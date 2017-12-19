@@ -20,12 +20,13 @@ export default {
   mutations: {
     setShop (state, shop) {
       state.shop = shop
+      console.log(shop.printerName, 'printerName')
       if (shop.printerName) {
-        let tmp = {}
+        let tmp = []
         try {
-          tmp = shop.JSON.parse(shop.printerName)
+          tmp = JSON.parse(shop.printerName)
         } catch (e) {
-          tmp = {}
+          tmp = []
         }
         state.shopPrint = tmp
       }

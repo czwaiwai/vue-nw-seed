@@ -2,97 +2,153 @@
  * Created by Administrator on 2017/12/15 0015.
  */
 import _ from 'lodash'
-let handoverTpl = `<% setAlign:c %><% setSize:2 %><% setStyle:B %>宝山茶楼\n
+_.templateSettings.escape = /<@-([\s\S]+?)@>/g
+_.templateSettings.evaluate = /<@([\s\S]+?)@>/g
+_.templateSettings.interpolate = /<@=([\s\S]+?)@>/g
+var tplObj = {
+  handoverTpl: `<% setAlign:c %><% setSize:2 %><% setStyle:B %><@=restName @>（交班单）\n
 <% setSize:1 %>================================================\n
-<% setAlign:l %>营业时间：2017-12-14 13:19\n
-结束时间：2017-12-14 15:53\n
+<% setAlign:l %>营业时间：<@=saleBeginTime @>\n
+结束时间：<@=saleEndTime @>\n
 收银员：歪歪\n
 <% setSize:2 %><% setStyle:B %>账单汇总\n
 <% setSize:1 %><% setStyle:NORMARL %>
 ________________________________________________\n
-账单总数：12\n
-用餐人数：4\n
-账单总额：1109.00\n
-实收总额：1049.00\n
-优惠券总额:0.00\n
-折扣（改价）优惠总额:0.00\n
-活动优惠总额：70.00\n
-退款总额：-10.00\n
+账单总数：<@=data.count @>\n
+用餐人数：<@=data.restPerson || 0 @>\n
+账单总额：<@=data.totalAmt @>\n
+实收总额：<@=data.actualAmt @>\n
+优惠券总额:<@=data.couponAmt @>\n
+折扣（改价）优惠总额:<@=data.saveAmt @>\n
+活动优惠总额：<@=data.przAmt @>\n
+退款总额：<@=data.refundAmt @>\n
 <% setSize:2 %><% setStyle:B %>营业收款明细\n
 <% setSize:1 %><% setStyle:NORMARL %>
 ________________________________________________\n
-现金支付总额：953.00\n
-飞常赞支付总额：0.00\n
-线上支付总额：96.00\n
+现金支付总额：(<@=data.offlPayCount @>)笔<@=data.actOfflpayAmt @>\n
+飞常赞支付总额：(<@=data.fczPayCount @>)笔<@=data.actAcctpayAmt @>\n
+线上支付总额：(<@=data.onlinePayCount @>)笔<@=data.actBankpayAmt @>\n
 ------------------------------------------------\n
-合计：（12笔）1049.00\n
+合计：（<@=data.count @>笔）<@=data.actualAmt @>\n
 \n\t
 <% setSize:2 %><% setStyle:B %>菜品销售汇总\n
 <% setSize:1 %><% setStyle:NORMARL %>
 ________________________________________________\n
-刀叉套餐送8款点心             x4           0
+<@ sortList.forEach(function(item){ @>
+<@=item.sortName @>             X<@=item.fnCount @>           <@=item.fnAmount @>\n
+<@ }) @>
 ------------------------------------------------\n
-小计：                        x42         1109
+小计：                        X<@=totalCount @>         <@=totalAmount @>
 \n\t
 <% setSize:2 %><% setStyle:B %>菜品销售明细\n
 <% setSize:1 %><% setStyle:NORMARL %>
 ================================================\n
-<% setStyle:B %>道茶套餐送8款点心\n
+<@ sortList.forEach(function(item){ @>
+<@ if(item.fnCount){ @>
+<% setStyle:B %><@=item.sortName @>\n
 <% setStyle:NORMARL %>________________________________________________\n
-叉烧小笼包（送）               x1          0\n
+<@ item.fnAttach.forEach(function(items){ @>
+<@=items.restProName @>               x<@=items.buyCount @>          <@=items.amount @>\n
+<@ }) @>
 ------------------------------------------------\n
-小计：                        x42         1109\n
-`
-export function handoverTplFn (obj) {
-  console.log(obj)
-}
-let dayPaperTpl = `<% setAlign:c %><% setSize:2 %>日报\n
-<% setAlign:l %><% setSize:1 %>店铺：宝山茶楼\n
-统计开始日期：2017-12-14 13:19\n
-统计结束日期：2017-12-14 15:47\n
+小计：                        x<@=item.fnCount @>         <@=item.fnAmount @>\n
+<@ } @>
+<@ }) @>
+`,
+  dayPaperTpl: `<% setAlign:c %><% setSize:2 %>日报\n
+<% setAlign:l %><% setSize:1 %>店铺：<@=restName @>\n
+统计开始日期：<@=saleBeginTime @>\n
+统计结束日期：<@=saleEndTime @>\n
 ------------------------------------------------\n
-已支付：12笔      实收金额：1049.00\n
+已支付：<@= count @>笔      实收金额：<@=actualAmt @>\n
 ------------------------------------------------\n
-现金支付：953.00\n
-线上支付：96\n
-飞常赞支付：0.00\n
+现金支付：<@=actOfflpayAmt @>\n
+线上支付：<@=actBankpayAmt @>\n
+飞常赞支付：<@=actAcctpayAmt @>\n
 ________________________________________________\n
 此小票为日报，请妥善保管\n
-`
-export function dayPaperTplFn (obj) {
-  console.log(obj)
-}
-let jiezhangTpl = `<% setAlign:c %><% setSize:2 %>乐稻港式餐厅（结账单）【重打】\n
+`,
+  consumptionTpl: `<% setAlign:c %><% setSize:2 %><@=restShopName @>（消费单）\n
 <% setSize:1 %>================================================\n
-<% setAlign:l %>账单：201712140031
-台号：<% setSize:2 %><% setStyle:BU %>14号桌\n
-<% setSize:1 %><% setStyle:NORMAL %>收银员：曹正\n
-支付方式：<% setSize:2 %><% setStyle:BU %>线上支付\n
+<% setAlign:l %>桌号：<% setSize:2 %><% setStyle:BU %><@=tableNum @>\n
+<% setSize:1 %><% setStyle:NORMAL %>账单：<@=vOrderNo @>\n
+收款员：<@=userName @>\n
+日期：<@=buildTime @> \n
+来源：飞常赞 \n
+支付方式：<% setStyle:B %><% setSize:2 %><@=payText  @> \n
+<% setAlign:l %><% setStyle:NORMAL %><% setSize:1 %>
+_______________________________________________\n
+<@ fnAttach.forEach(function(item,index){  @>
+<@=item.restProName @><@=item.attr?"["+item.attr+"]":"" @>\n
+<@=item.perCash @>           X<@=item.buyCount @>                  <@=item.amount @>\n
+<@ }) @>
+原价合计：<@=totalAmt @>元\n
+实际支付金额：<@=fnActPayAmount @>元 \n
+<@ if(userRemark){ @>用户备注：<@=userRemark @>\n<@ } @>
+<@ if(couponAmt){ @>优惠券抵扣：<@=couponAmt @>元\n><@ } @>
+<@ if(fczPrzAmt){ @>已优惠：<@=fczPrzAmt @>元\n<@ } @>
+<@=payFormat @>
+<@ if(refundAmt){ @>退款金额：<@= refundAmt @>元<@ } @>
+------------------------------------------------\n
+地址：<@= restShop.address @>\n
+电话：<@= restShop.telephone @>\n
+<% setAlign:c %>请保存好本小票，作为退换货依据\n
+`,
+  billingTpl: `<% setAlign:c %><% setSize:2 %><@= restShopName @><@ if(refundAmt){ @>（撤销单）<@ }else{ @>（结账单）<@ } @>\n
+<% setSize:1 %>================================================\n
+<% setAlign:l %>账单：<@=vOrderNo @>\n
+台号：<% setSize:2 %><% setStyle:BU %><@=tableNum @>\n
+<% setSize:1 %><% setStyle:NORMAL %>收银员：<@=userName @>\n
+支付方式：<% setSize:2 %><% setStyle:BU %><@=payText  @>\n
 <% setSize:1 %><% setStyle:NORMAL %>
 ________________________________________________\n
 ------------------------------------------------\n
-行      菜品/数量         单价           金额
-<% setAlign:l %>1  茄子肉末饭\n
-          X1              45             45\n
-<% setAlign:l %>2  茄子肉末饭\n
-          X1              45             45\n
-<% setAlign:l %>3  茄子肉末饭\n
-          X1             100             45\n
+行      菜品/数量         单价           金额\n
+<@ fnAttach.forEach(function(item,index){  @>
+<% setAlign:l %><@=index+1 @>  <@=item.restProName @><@=item.attr?"["+item.attr+"]":"" @>\n
+          X<@=item.buyCount @>             <@=item.perCash @>             <@=item.amount @>\n
+<@ }) @>
 ________________________________________________\n
 ------------------------------------------------\n
-<% setAlign:l %>原价合计：161元\n
-实际支付金额：151元\n
-已优惠：10元\n
-线上支付：151元\n
-<% setSize:2 %><% setStyle:BU %>交易单号：105570043895201712142110716802\n
+<@ if(userRemark){ @>用户备注：<@=userRemark @><@ } @>\n
+<% setAlign:l %>原价合计：<@=totalAmt @>元\n
+实际支付金额：<@=fnActPayAmount @>元\n
+<@ if(couponAmt){ @>优惠券抵扣：<@=couponAmt @>元 <@ } @>\n
+<@ if(fczPrzAmt){ @>已优惠：<@=fczPrzAmt @>元 <@ } @>\n
+<@=payFormat @>
+<@ if(refundAmt){ @>退款金额：<@= refundAmt @>元<@ } @>
 <% setSize:1 %><% setStyle:NORMAL %>________________________________________________\n
 来源：飞常赞\n
-下单时间：12-14 12:34:35\n
-打印时间：12-14 13:35:37\n
-地址：广州市花都区白云国际机场候机楼一楼C8111店\n
-电话：020-36067837\n
+下单时间：<@=buildTime @>\n
+打印时间：<@=printTime @>\n
+地址：<@=restShop.address @>\n
+<@ if(restShop.telephone){ @>电话：<@= restShop.telephone @><@ } @>\n
+`,
+  kitchenTpl: `<% setAlign:l %><% setSize:1 %><@=restShopName @>（<@=typeName @>）\n
+<@ if(isBack){ @><% setAlign:r %><% setSize:3 %><% setStyle:B %>  *退菜*\n<@ } @>
+<% setAlign:l %><% setSize:3 %><% setStyle:B %>台：<@=tableNum @>\n
+<% setAlign:l %> <@=restProName @>\n
+<% setAlign:r %>x<@=buyCount || 1 @>\n
+<% setAlign:l %> <@= attr?"["+attr+"]":"" @>\n
+<% setSize:1 %><% setStyle:NORMAL %>________________________________________________\n
+<@ if(userRemark){ @><% setSize:3 %><% setStyle:B %>用户备注：<@=userRemark @>\n<@ } @>
+<% setSize:1 %><% setStyle:NORMAL %>账单：<@=vOrderNo @>\n
+收银员：<@=userName @>\n
+来源：飞常赞\n
+下单：<@=buildTime @>\n
+打印：<@=printTime @>\n
 `
+}
+//  服务器提供的webTpl
+export function webTplFn (tpl) {
+  return function (obj) {
+    let compile = _.template(tpl[obj.tplName + 'Tpl'])
+    return compile(obj)
+  }
+}
+// 本地提供的tpl
+export function tplFn (obj) {
+  let compile = _.template(tplObj[obj.tplName + 'Tpl'])
+  return compile(obj)
+}
 
-/*
-printTplFactory
- */

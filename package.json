@@ -85,7 +85,7 @@
   "browserslist": [
     "last 2 Chrome versions"
   ],
-  "main": "http://localhost:8080",
+  "main": "http://localhost:8081",
   "manifestUrl": "http://localhost:8080/releases/upgrade.json",
   "window": {
     "title": "vue-nw-seed",
@@ -100,6 +100,7 @@
     "icon": "/static/logo.png",
     "show_in_taskbar": true
   },
+  "chromium-args": "--enable-logging",
   "nodejs": true,
   "js-flags": "--harmony",
   "node-remote": "<all_urls>"

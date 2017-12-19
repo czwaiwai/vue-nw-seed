@@ -63,10 +63,14 @@
           if (!UserInfo.fnShopAssist) {
             return this.$message.error('你不是店员不能登录飞常赞')
           } else {
-            this.$store.commit('setShopUser', UserInfo.fnShopAssist)
-            this.$store.commit('setShop', restShop)
-            this.$router.push('/Main/newOrder')
-//            this.$router.push('/Home')
+            this.$http.post('/ycRest/getPrintTpl').then(res => {
+              let resData = res.data
+              let {printTpl} = resData.data
+              this.$store.commit('setTpl', printTpl)
+              this.$store.commit('setShopUser', UserInfo.fnShopAssist)
+              this.$store.commit('setShop', restShop)
+              this.$router.push('/Main/newOrder')
+            })
           }
         })
       }

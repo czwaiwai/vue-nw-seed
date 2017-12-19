@@ -59,6 +59,22 @@ axios.interceptors.response.use(function (response) {
 })
 Vue.prototype.$http = axios
 Vue.http = axios
+
+Vue.config.errorHandler = (function () {
+  let i = 0
+  return function (err, vm) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(err.message, '\n', err.stack)
+    } else {
+      if (i < 1) {
+        i++
+        Vue.http.post('/feeback/save', {title: '前端js异常', content: '' + err.message + '路由地址：' + location.href + '\n\r' + err.stack}).then(() => {
+          i = 0
+        })
+      }
+    }
+  }
+})()
 // for auto update
 import { checkUpdate } from '@/utils/update.js'
 checkUpdate()

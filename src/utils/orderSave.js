@@ -3,13 +3,32 @@
  */
 import order2tickets from './order2tickets'
 import printFactory from './printFactory'
-function orderSave () {
+function orderSave (vue, restShop, webPrint, user) {
+  this.$vue = vue
+  let printTpl = this.$vue.$store.getters.printTpl
+  console.log(this.printTpl, '----printTpl--------')
   this.orderList = []
   this.status = 'start'
-  order2tickets.init()
-  printFactory.init()
+  this.myEvent = {
+    start: this.loop,
+    before: this.loop,
+    after: this.loop,
+    change: this.loop,
+    giveup: this.loop,
+    error: this.loop,
+    done: this.loop
+  }
+  if (!Array.isArray(webPrint)) {
+    throw new Error('没有获取到配置打印机的信息')
+  }
+  order2tickets.init(webPrint, restShop, user, printTpl)
+  printFactory.init(webPrint)
 }
 orderSave.prototype = {
+  listen: function (orderStateObj) {
+    Object.assign(this.myEvent, orderStateObj)
+  },
+  loop: function () {},
   add: function (obj2list) {
     if (Array.isArray(obj2list)) {
       this.addOrder(obj2list)
@@ -24,30 +43,63 @@ orderSave.prototype = {
   addOrder: function (list) {
     this.orderList.push(...list)
   },
-  send: function () {
-    let self = this
-    if (this.status === 'start') {
-      this.status = 'waiting'
-      let obj = this.orderList.shift()
-      //   取出一个order对象或打印对象
-      order2tickets.toList(obj, function (err, tickets) {
-        if (err) {
-          console.log(err)
-        }
-        printFactory.send(tickets, function (err, msg) {
-          if (err) {
-            console.log(err)
-          }
-          if (self.isEmptyList()) {
-            this.status = 'start'
-          } else {
-            this.send()
-          }
-        })
-      })
+  errTimes: function (obj) {
+    if (!obj.tryNum) {
+      obj.tryNum = 1
+    } else {
+      obj.tryNum ++
     }
+  },
+  errNext (obj) {
+    let self = this
+    return function (isContinue = true, times = 5) {
+      self.errTimes(obj)
+      if (isContinue) {
+        if (obj.tryNum > times) {
+          // 放弃这个打印对象
+          self.myEvent.giveup(obj)
+        } else {
+          //  网络错误将这个对象重新加入到队列中
+          self.orderList.push(obj)
+        }
+        self.send()
+      }
+    }
+  },
+  send: function () {
+    if (this.status === 'start') {
+      this.sendProcess()
+    }
+  },
+  sendProcess () {
+    let self = this
+    this.myEvent.start(this.status)
+    this.status = 'waiting'
+    let obj = this.orderList.shift()
+    this.myEvent.before(obj)
+    //   取出一个order对象或打印对象
+    order2tickets.toList(obj, function (err, tickets) {
+      if (err) {
+        return self.myEvent.error(err, obj, self.errNext(obj))
+      }
+      // 发送到打印机
+      printFactory.send(tickets, function (err, msg) {
+        if (err) {
+          return self.myEvent.error(err, obj, self.errNext(obj))
+        }
+        if (self.isEmptyList()) {
+          self.myEvent.after(obj)
+          self.status = 'start'
+          self.myEvent.done(self.status)
+        } else {
+          self.myEvent.after(obj)
+          self.sendProcess()
+        }
+      })
+    })
   },
   isEmptyList () {
     return this.orderList.length === 0
   }
 }
+export default orderSave

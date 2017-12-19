@@ -22,6 +22,10 @@ module.exports = {
     'arrow-parens': 0,
     // allow async-await
     'generator-star-spacing': 0,
+    // 控制逗号前后的空格
+    'comma-spacing': [2, {'before': false, 'after': true}],
+    //中缀操作符周围要不要有空格
+    // "space-infix-ops": 1,
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
   }
