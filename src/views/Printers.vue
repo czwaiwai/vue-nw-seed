@@ -15,6 +15,7 @@
 </style>
 <script type="text/ecmascript-6">
   var printer = require('printer')
+  import {mapGetters} from 'vuex'
   export default{
     data () {
       return {
@@ -22,8 +23,24 @@
         printers: null
       }
     },
+    computed: {
+      ...mapGetters({
+        'printOrders': 'printOrders'
+      })
+    },
+    watch: {
+      'printOrder' (newVal, oldVal) {
+        console.log(newVal, oldVal, '数组变化')
+      }
+    },
+    activated () {
+      let printers = printer.getPrinters()
+      console.log(JSON.stringify(printers))
+    },
     created () {
-      this.printers = printer.getPrinters()
+      let printers = printer.getPrinters()
+      console.log(printers)
+      this.printers = printers
       console.log(this.printers)
     }
   }

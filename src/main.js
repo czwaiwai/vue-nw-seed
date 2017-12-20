@@ -11,6 +11,11 @@ import axios from 'axios'
 import router from './router'
 import './assets/css/main.scss'
 import 'element-ui/lib/theme-chalk/index.css'
+import config from './utils/getConfig'
+import logger from './utils/logs'
+console.log(logger)
+console.log(config)
+console.log('sdfskldfjlsdjfklsjdfklj=-============================')
 filter(Vue)
 Vue.use(ElementUI)
 Vue.config.productionTip = false
@@ -26,10 +31,15 @@ axios.interceptors.request.use(function (config) {
   //  在发送请求之前做某事
   if (isFirst) {
     isFirst = false
-    config.data.appCfg = 1
-    console.log('configData', config.data)
-    console.log('config', config)
+    if (config.data) {
+      config.data.appCfg = 1
+    } else {
+      config.data = {
+        appCfg: 1
+      }
+    }
   }
+  console.log('请求数据', config.data)
   return config
 }, function (error) {
   //  请求错误时做些事
@@ -66,6 +76,7 @@ Vue.config.errorHandler = (function () {
     if (process.env.NODE_ENV === 'development') {
       console.error(err.message, '\n', err.stack)
     } else {
+      console.error(err.message, '\n', err.stack)
       if (i < 1) {
         i++
         Vue.http.post('/feeback/save', {title: '前端js异常', content: '' + err.message + '路由地址：' + location.href + '\n\r' + err.stack}).then(() => {

@@ -19,6 +19,7 @@
     "foundation-sites": "^6.4.4-rc1",
     "jquery": "^3.2.1",
     "lodash": "^4.17.4",
+    "log4js": "^2.4.1",
     "moment": "^2.19.4",
     "node-webkit-updater": "^0.3.3",
     "nw": "0.14.7-sdk",
@@ -88,7 +89,7 @@
   "main": "http://localhost:8081",
   "manifestUrl": "http://localhost:8080/releases/upgrade.json",
   "window": {
-    "title": "vue-nw-seed",
+    "title": "飞常赞商家管理平台",
     "toolbar": false,
     "width": 800,
     "height": 500,
@@ -100,7 +101,6 @@
     "icon": "/static/logo.png",
     "show_in_taskbar": true
   },
-  "chromium-args": "--enable-logging",
   "nodejs": true,
   "js-flags": "--harmony",
   "node-remote": "<all_urls>"

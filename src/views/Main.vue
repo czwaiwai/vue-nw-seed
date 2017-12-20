@@ -76,10 +76,10 @@
           <div class="grid-container full">
             <div class="grid-x food_buttons">
               <div class="cell small-2">
-                <button type="button" class="button light  expanded   margin5   ">修改人数</button>
+                <button type="button" @click="test" class="button light  expanded   margin5   ">修改人数</button>
               </div>
               <div class="cell small-2">
-                <button type="button" class="button  light expanded  margin5   ">上一页</button>
+                <button type="button"  class="button  light expanded  margin5   ">上一页</button>
               </div>
               <div class="cell small-2">
                 <button type="button" class="button  light  expanded  margin5   ">当日打印</button>
@@ -396,6 +396,7 @@
   import roundTime from '../utils/roundTime'
   import { mapGetters } from 'vuex'
   import bus from '../utils/bus'
+  import uploadLogs from '../utils/uploadLogs'
   let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
@@ -468,6 +469,11 @@
         }
       }
     },
+//    watch: {
+//      'printOrder' (newVal, oldVal) {
+//        console.log(newVal, oldVal, '数组变化')
+//      }
+//    },
     computed: {
       ...mapGetters({
         'isLogin': 'isLogin',
@@ -477,6 +483,7 @@
         'shop': 'shop',
         'shopUser': 'shopUser',
         'shopPrint': 'shopPrint',
+        'printOrder': 'printOrder',
         'activeOrder': 'activeOrder'
       }),
       activeOrderData () {
@@ -493,6 +500,9 @@
       }
     },
     methods: {
+      test () {
+        console.log('测试', this.shop.id)
+      },
       isActiveOrder () {
         if (!this.activeOrder) {
           this.$message({
@@ -694,17 +704,17 @@
         console.log('打印交班单')
       },
       moreFnClickHandler () {
-        return this.$message({
-          message: '当前功能暂未完善，待完善或开放',
-          type: 'warning'
-        })
-//        if (this.$route.path === '/main/otherFn') {
-//          this.isMoreFn = false
-//          this.$router.back()
-//        } else {
-//          this.isMoreFn = true
-//          this.$router.push({name: 'OtherFn'})
-//        }
+//        return this.$message({
+//          message: '当前功能暂未完善，待完善或开放',
+//          type: 'warning'
+//        })
+        if (this.$route.path === '/main/otherFn') {
+          this.isMoreFn = false
+          this.$router.back()
+        } else {
+          this.isMoreFn = true
+          this.$router.push({name: 'OtherFn'})
+        }
       },
       logoutClickHandle () {
         this.$http.post('/doLogout').then((res) => {
@@ -725,12 +735,12 @@
             item.isPrint = false
           }
         })
+      },
+      upLogs (date) {
+        if (date) {
+          uploadLogs(this, this.shop.id, date)
+        }
       }
-//      getPageData () {
-//        this.$http.post('/account/my').then((res) => {
-//          console.log(res)
-//        })
-//      }
     },
     components: {},
     created () {
@@ -745,13 +755,14 @@
       let self = this
       this.printService.listen({
         start () {
-          console.log(self)
-          console.log('---------------------打印已经开始了-----------------------------------')
+          console.log('----------打印已经开始了---------------')
         },
         before (obj) {
-//          if (obj.isOrder) {
-//            console.log('---------------------正在开始打印的订单Obj:', obj.id)
-//          }
+          if (obj.isOrder) {
+            console.log('--------正在开始打印的订单Obj:', obj.id, '------------')
+          } else {
+            console.log('--------普通打印')
+          }
         },
         after (obj) {
           if (obj.isOrder) {
@@ -770,14 +781,20 @@
             title: '打印回调内错误',
             content: '出现的错误：' + JSON.stringify(err) + '错误对象' + JSON.stringify(obj)
           })
-          next(true) // 为轮询是否就继续
+          self.$confirm('打印出错是否继续', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            next(true) // 为轮询是否就继续
+          }).catch(() => {})
         },
         //  这个对象放弃打印
         giveup (obj) {
-          console.log('---------------------这个订单被放弃了:', obj.id)
+          console.log('----------这个订单被放弃了:', obj.id)
         },
         done () {
-          console.log('---------------------打印已经完成')
+          console.log('-----------打印已经完成--------------')
         }
       })
       console.log(this.printService, 'printService')
@@ -796,6 +813,9 @@
         }
         this.$http.post('/ycRest/restOrderList', paramObj).then(res => {
           let data = res.data.data
+          if (data.updLog) {
+            this.upLogs(data.updLog)
+          }
           console.log('返回的结果', data)
           let {restOrderList} = data
           console.log(restOrderList, '-------------')

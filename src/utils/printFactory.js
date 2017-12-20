@@ -80,7 +80,6 @@ let printFactory = {
   send (tickets, cb) {
     let self = this
     this.createPrinter(function (err, priArr) {
-      console.log('priArr', priArr)
       if (err) {
         cb(err)
       }

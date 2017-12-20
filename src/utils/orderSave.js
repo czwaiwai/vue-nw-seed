@@ -62,18 +62,18 @@ orderSave.prototype = {
           //  网络错误将这个对象重新加入到队列中
           self.orderList.push(obj)
         }
-        self.send()
+        self.finsh2Continue()
       }
     }
   },
   send: function () {
     if (this.status === 'start') {
+      this.myEvent.start(this.status)
       this.sendProcess()
     }
   },
   sendProcess () {
     let self = this
-    this.myEvent.start(this.status)
     this.status = 'waiting'
     let obj = this.orderList.shift()
     this.myEvent.before(obj)
@@ -87,16 +87,18 @@ orderSave.prototype = {
         if (err) {
           return self.myEvent.error(err, obj, self.errNext(obj))
         }
-        if (self.isEmptyList()) {
-          self.myEvent.after(obj)
-          self.status = 'start'
-          self.myEvent.done(self.status)
-        } else {
-          self.myEvent.after(obj)
-          self.sendProcess()
-        }
+        self.myEvent.after(obj)
+        self.finsh2Continue()
       })
     })
+  },
+  finsh2Continue () {
+    if (!this.isEmptyList()) {
+      this.sendProcess()
+    } else {
+      this.status = 'start'
+      this.myEvent.done(this.status)
+    }
   },
   isEmptyList () {
     return this.orderList.length === 0

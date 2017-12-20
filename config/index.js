@@ -40,7 +40,7 @@ module.exports = {
       // Manifest Format: http://docs.nwjs.io/en/latest/References/Manifest%20Format/
       manifest: ['name', 'appName', 'version', 'description', 'author', { main: './index.html' }, 'manifestUrl', 'window', 'nodejs', 'js-flags', 'node-remote'],
 
-      manifestModules: ['chn-escpos','printer'],
+      manifestModules: ['chn-escpos','printer','log4js'],
       // see document: https://github.com/nwjs/nw-builder
       builder: {
         files: [resolve('./dist/**')],
