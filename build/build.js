@@ -35,6 +35,6 @@ rm(path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => {
     ))
 
     // start build nw.js app
-    require('./build-nw.js')
+     require('./build-nw.js')
   })
 })

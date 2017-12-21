@@ -29,6 +29,7 @@ config.build.nw.manifestModules.forEach(function(v,i){
   }
   manifest['dependencies'][v]=tmpJson['dependencies'][v]
 })
+
 fs.writeFile(manifestPath, JSON.stringify(manifest, null, '  '), 'utf-8', function(err) {
   if (err) throw err
   // start build app

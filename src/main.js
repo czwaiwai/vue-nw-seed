@@ -11,11 +11,8 @@ import axios from 'axios'
 import router from './router'
 import './assets/css/main.scss'
 import 'element-ui/lib/theme-chalk/index.css'
-import config from './utils/getConfig'
-import logger from './utils/logs'
-console.log(logger)
-console.log(config)
-console.log('sdfskldfjlsdjfklsjdfklj=-============================')
+import getLogger from './utils/logs'
+getLogger()
 filter(Vue)
 Vue.use(ElementUI)
 Vue.config.productionTip = false

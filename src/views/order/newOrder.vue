@@ -30,10 +30,7 @@
     border-radius:5px;
     box-shadow:0 3px 6px rgba(0, 0, 0, 0.53);
   }
-  .order_item.no_pay{
-    background:#0E72BF;
-    border:2px solid #0E72BF;
-  }
+
   .order_item:hover{
     color:#FFF;
     border:2px solid #349612;

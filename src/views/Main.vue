@@ -2,7 +2,7 @@
   <el-container class="main">
     <el-header style="height:44px;">
       <div class="grid-x">
-        <div class="logo cell small-6">飞常赞餐饮系统 v0.1.0 ({{shop.restName}})</div>
+        <div class="logo cell small-6">飞常赞餐饮系统 v{{appVersion}} ({{shop.restName}})</div>
         <div class="cell small-6 text-right"><span class="logo_time">{{currentTime}}</span></div>
       </div>
     </el-header>
@@ -10,23 +10,23 @@
       <el-aside class="el-container  is-vertical" width="400px" style="max-width:400px;">
         <div class="food_mode_quick flex_item" style="width:400px;">
           <div class="padding">
-            <h5>快餐模式</h5>
+            <!--<h5>快餐模式</h5>-->
             <div class="grid-x ">
               <div class="cell small-6 bold">订单：{{activeOrd.vOrderNo}}</div>
               <div class="cell small-6 bold">桌号：{{activeOrd.tableNum}}</div>
             </div>
             <div class="grid-x ">
               <div class="cell small-6">人数：{{activeOrd.restPerson?activeOrd.restPerson+'位':'1位'}}</div>
-              <div class="cell small-6">班次：</div>
+              <div class="cell small-6">下单人：{{activeOrd.assistantOp===1?'店员':'客户'}}</div>
             </div>
             <div class="grid-x ">
               <div class="cell small-6">状态：{{ orderStatus[activeOrd.status]}}</div>
-              <div class="cell small-6">支付方式：{{payType[activeOrd.payType]}}</div>
+              <div class="cell small-6">支付方式：<span class="fs13">{{payType[activeOrd.payType]}}</span></div>
             </div>
             <div class="grid-x ">
               <div class="cell small-6">下单时间：<span class="fs14">{{activeOrd.buildTime && activeOrd.buildTime.substr(5) }}</span>
               </div>
-              <div class="cell small-6 bold">合计：{{activeOrd.totalAmt | currency}}</div>
+              <div class="cell small-6 bold">合计：{{activeOrd.fnActPayAmount | currency}}</div>
             </div>
             <div class="grid-x ">
               <div class="cell small-12">用户备注：<span class="fs14">{{activeOrd.userRemark }}</span>
@@ -46,22 +46,24 @@
           <!--<el-button @click="setCurrent()">取消选择</el-button>-->
           <!--</div>-->
         </div>
-        <div class="aside-footer flex_box">
-          <div class="row ">
-            <div>
-              <button type="button" class="button light">上行</button>
-              <button @click="changeAmtClickHandler" type="button" class="button light">改价</button>
-              <button @click="cancelOrder" type="button" class="button light">取消</button>
-              <button @click="printClickHandler" type="button"  class="button light">打印</button>
+        <div class="aside-footer ">
+          <div class="flex_box">
+            <div class="row ">
+              <div>
+                <!--<button type="button" class="button light">上行</button>-->
+                <button @click="changeAmtClickHandler" type="button" class="button  light">改价</button>
+                <button @click="cancelOrder" type="button" class="button light">取消</button>
+                <button @click="printClickHandler" type="button"  class="button light">打印</button>
+              </div>
+              <div>
+                <!--<button type="button" class="button light">下行</button>-->
+                <button @click="backAmtClickHandler" type="button" class="button light">退单</button>
+                <button @click="backCaiClickHandler" type="button" class="button light">退菜</button>
+                <button @click="clearActiveOrder" type="button" class="button light">清空</button>
+              </div>
             </div>
-            <div>
-              <button type="button" class="button light">下行</button>
-              <button @click="backAmtClickHandler" type="button" class="button light">退单</button>
-              <button type="button" class="button light">退菜</button>
-              <button @click="clearActiveOrder" type="button" class="button light">清空</button>
-            </div>
+            <a @click="confirmPayCashHandler" class="button fcz margin5 flex_item fs20 alert " style="max-width:128px;color:#FFF;">确认线下付款</a>
           </div>
-          <a class="button fcz margin5 flex_item fs25 " style="color:#FFF;">下单</a>
         </div>
       </el-aside>
       <el-container>
@@ -76,13 +78,13 @@
           <div class="grid-container full">
             <div class="grid-x food_buttons">
               <div class="cell small-2">
-                <button type="button" @click="test" class="button light  expanded   margin5   ">修改人数</button>
+                <button @click="newOrderHandler" type="button"  class="button light  expanded   margin5   ">新订单</button>
               </div>
               <div class="cell small-2">
-                <button type="button"  class="button  light expanded  margin5   ">上一页</button>
+                <button @click="printedOrderHandler"  type="button" class="button  light expanded  margin5   ">已打印单</button>
               </div>
               <div class="cell small-2">
-                <button type="button" class="button  light  expanded  margin5   ">当日打印</button>
+                <button @click="histOrderHandler" type="button" class="button  light  expanded  margin5  ">历史订单</button>
               </div>
               <div class="cell small-2">
                 <button type="button" @click="workClickRecordHandler" class="button light  expanded  margin5   ">打卡记录</button>
@@ -119,10 +121,33 @@
               </div>
             </div>
           </div>
+
         </el-footer>
       </el-container>
     </el-container>
 
+    <el-dialog title="退菜" :visible.sync="backCaiVisible" width="600px">
+      <el-table :data="backCaiList" border style="width: 100%">
+        <el-table-column prop="restProName" label="菜名"></el-table-column>
+        <el-table-column label="数量" width="120">
+          <template slot-scope="scope">
+            <span class="padding-right">{{scope.row.buyCount}}</span>  <span v-show="scope.row.tuiNum" class="alert label">退菜 -{{scope.row.tuiNum}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="80">
+          <template slot-scope="scope">
+            <el-button size="mini" :disabled="scope.row.btnDisabled" @click="tuiCaiBtnHandle(scope.$index, scope.row)">退菜</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="padding-top5">
+        <el-autocomplete class="inline-input" v-model="backCaiForm.remark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="backCaiVisible = false">取 消</el-button>
+        <el-button type="primary" @click="backCaiConfirm">确定</el-button>
+      </span>
+    </el-dialog>
 
     <el-dialog title="改价" :visible.sync="changeAmtVisible" width="600px">
       <el-form :model="changeAmtForm" label-width="120px">
@@ -294,9 +319,7 @@
   .el-dialog .el-input{
     width:200px;
   }
-  input[type=text]{
-    margin:0;
-  }
+
   .handover {
     font-size: 14px;
     & .handover_label {
@@ -386,7 +409,10 @@
     background-color: #E9EEF3;
     color: #333;
   }
-
+  .order_item.no_pay{
+    background:#0E72BF;
+    border:2px solid #0E72BF;
+  }
   .scroll_content {
     height: 100%;
   }
@@ -397,16 +423,21 @@
   import { mapGetters } from 'vuex'
   import bus from '../utils/bus'
   import uploadLogs from '../utils/uploadLogs'
+  import getConfig from '../utils/getConfig'
   let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
     data () {
       return {
+        appVersion: '',
         dateRange: [],
+        backCaiList: [],  //  退菜List
+        isNewPrintState: true, // 正在打印和已打印切换
         dayPaperData: {},
         handoverData: {},
         //  打卡
         hitCard: 0,
+        backCaiVisible: false,  //  退菜visible
         hitRcodeVisible: false, //  打卡记录
         workDialogVisible: false,
         handoverDialogVisible: false,
@@ -422,6 +453,19 @@
         changeAmtForm: {
           adjAmt: '',
           adjRemark: ''
+        },
+        changeAmtRules: {
+          adjAmt: [
+            { required: true, message: '请选择活动区域', trigger: 'blur' }
+          ],
+          adjRemark: [
+            { required: true, message: '备注不能为空', trigger: 'blur' }
+          ]
+        },
+        //  退菜
+        backCaiForm: {
+          detailInfos: '',
+          remark: ''
         },
         //   退单form
         backAmtVisible: false,
@@ -484,7 +528,8 @@
         'shopUser': 'shopUser',
         'shopPrint': 'shopPrint',
         'printOrder': 'printOrder',
-        'activeOrder': 'activeOrder'
+        'activeOrder': 'activeOrder',
+        'loopTime': 'loopTime'
       }),
       activeOrderData () {
         if (this.activeOrder) {
@@ -500,8 +545,15 @@
       }
     },
     methods: {
-      test () {
-        console.log('测试', this.shop.id)
+      newOrderHandler () {
+        this.$router.push({name: 'NewOrder'})
+      },
+      // 切换打印中的订单和已打印订单
+      printedOrderHandler () {
+        this.$router.push({name: 'PrintedOrder'})
+      },
+      histOrderHandler () {
+        this.$router.replace({name: 'HistoryOrder'})
       },
       isActiveOrder () {
         if (!this.activeOrder) {
@@ -519,6 +571,70 @@
           this.printService.add(this.activeOrder)
         }
       },
+      //  退菜
+      backCaiClickHandler () {
+        if (this.isActiveOrder()) {
+          this.backCaiForm = {
+            detailInfos: '',
+            remark: ''
+          }
+          this.$http.post('/ycRest/getRestOrderRefundData', {orderId: this.activeOrder.id}).then(res => {
+            let resData = res.data
+            let {detailList} = resData.data
+            detailList.forEach(item => {
+              item.tuiNum = 0
+              item.btnDisabled = false
+            })
+            this.backCaiList = detailList
+            this.backCaiVisible = true
+          })
+        }
+      },
+      tuiCaiBtnHandle (index, item) {
+        item.tuiNum ++
+        if (item.tuiNum === item.buyCount) {
+          item.btnDisabled = true
+        }
+      },
+      backCaiConfirm () {
+        let tuiArr = this.backCaiList.map(item => {
+          if (item.tuiNum) {
+            return item.id + ';' + item.buyCount
+          }
+        })
+        this.backCaiForm.detailInfos = tuiArr.join('|')
+        this.$http.post('/ycRest/retreatFood', this.backCaiForm).then(res => {
+          let resData = res.data
+          let {restOrder} = resData.data
+          console.log(restOrder)
+          this.$message({
+            message: '退菜成功',
+            type: 'success'
+          })
+          this.backCaiVisible = false
+        })
+      },
+      confirmPayCashHandler () {
+        if (this.isActiveOrder()) {
+          this.$confirm('确认线下收款' + this.activeOrder.fnActPayAmount + '元', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'info '
+          }).then(() => {
+            let params = {
+              id: this.activeOrder.id,
+              adjOpuser: this.shopUser.saleId,
+              offlinePayAmt: this.activeOrder.actPayAmount
+            }
+            this.$http.post('/ycRest/confirmOfflinePay', params).then(res => {
+              this.$message({
+                message: '线下收款成功',
+                type: 'success'
+              })
+            })
+          }).catch(() => {})
+        }
+      },
       //  取消订单
       cancelOrder () {
         if (this.isActiveOrder()) {
@@ -528,15 +644,21 @@
               type: 'warning'
             })
           }
-          this.$http.post('/ycRest/cancelRestOrder', {id: this.activeOrder.id}).then(res => {
-            let resData = res.data
-            console.log(resData)
-            this.$store.commit('removeActiveOrder')
-            this.$message({
-              message: '取消订单成功',
-              type: 'success'
+          this.$confirm('你确定要取消订单吗', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.$http.post('/ycRest/cancelRestOrder', {id: this.activeOrder.id}).then(res => {
+              let resData = res.data
+              console.log(resData)
+              this.$store.commit('removeActiveOrder')
+              this.$message({
+                message: '取消订单成功',
+                type: 'success'
+              })
             })
-          })
+          }).catch(() => {})
         }
       },
       //  清空activeOrder
@@ -592,6 +714,7 @@
           this.hitRecordTable = resData.data
         })
       },
+
       hitDateChange (val) {
         let curr = moment(val).format('YYYY-MM-DD')
         this.workClickRecordHandler(curr)
@@ -603,7 +726,7 @@
       // 改价显示
       changeAmtClickHandler () {
         if (this.isActiveOrder()) {
-          this.changeAmtForm.adjAmt = this.activeOrder.totalAmt
+          this.changeAmtForm.adjAmt = this.activeOrder.fnActPayAmount
           this.changeAmtVisible = true
         }
 //      /ycRest/correctAmout
@@ -622,7 +745,7 @@
       backAmtClickHandler () {
         if (this.isActiveOrder()) {
           //  /ycRest/refundRestOrder
-          this.backAmtForm.refundAmt = this.activeOrder.totalAmt
+          this.backAmtForm.refundAmt = this.activeOrder.fnActPayAmount
           this.backAmtVisible = true
 //          this.$http.post()
         }
@@ -744,6 +867,9 @@
     },
     components: {},
     created () {
+      getConfig.then((json) => {
+        this.appVersion = json.version
+      })
       this.$store.commit('printInit', {
         vue: this,
         shop: this.shop,
@@ -769,6 +895,7 @@
             try {
               self.$store.commit('setFinshPrintOrder', obj)
               self.$store.commit('removeOrder', obj)
+              self.$store.commit('finishPrintOrder', obj)
             } catch (e) {
               console.log(e)
             }
@@ -833,7 +960,7 @@
           console.log(err)
         })
         next()
-      }, 10000, false)
+      }, this.loopTime || 10000, false)
       this.round.start()
       timer = setInterval(() => {
         this.currentTime = moment().format('YYYY年MM月DD日 HH:mm:ss')

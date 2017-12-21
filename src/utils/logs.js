@@ -2,7 +2,27 @@
  * Created by Administrator on 2017/12/20 0020.
  */
 var log4js = require('log4js')
-// var fs = require('fs')
+var os = require('os')
+var fs = require('fs')
+var path = require('path')
+var homePath = os.homedir()
+var tmpPath = path.join(homePath, '/tmp')
+
+var exists = fs.existsSync(tmpPath)
+if (!exists) {
+  fs.mkdir(tmpPath, function (err) {
+    if (err) {
+      console.log(err)
+    }
+  })
+}
+function getDir () {
+  var exists = fs.existsSync(tmpPath)
+  if (!exists) {
+    fs.mkdirSync(tmpPath)
+  }
+  return true
+}
 var logConfig = {
   appenders: {
     console: {
@@ -10,8 +30,8 @@ var logConfig = {
     },
     dateFile: {
       type: 'dateFile',
-      filename: 'c://tmp//fcz',
-      pattern: '-yyyy-MM-dd_hh.log',
+      filename: path.resolve(tmpPath, 'fcz.log'),
+      pattern: '_yyyyMMdd',
       alwaysIncludePattern: true,
       level: 'info',
       compress: true
@@ -21,10 +41,16 @@ var logConfig = {
     default: { appenders: ['console', 'dateFile'], level: 'debug' }
   }
 }
-log4js.configure(logConfig)
-const logger = log4js.getLogger('thing')
-logger.level = 'info'
-// console.log = logger.info.bind(logger)
-console.warn = logger.warn.bind(logger)
-console.error = logger.error.bind(logger)
-export default logger
+function getLogger () {
+  let logger = null
+  if (getDir()) {
+    log4js.configure(logConfig)
+    const logger = log4js.getLogger('thing')
+    logger.level = 'info'
+    // console.log = logger.info.bind(logger)
+    console.warn = logger.warn.bind(logger)
+    console.error = logger.error.bind(logger)
+  }
+  return logger
+}
+export default getLogger

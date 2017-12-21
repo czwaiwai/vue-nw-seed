@@ -4,6 +4,7 @@ import { App } from 'nw.gui'
 import fs from 'fs'
 import path from 'path'
 import http from 'http'
+import qs from 'qs'
 const events = require('events')
 
 const { manifest } = App
@@ -13,10 +14,11 @@ const options = { method: 'GET', mode: 'cors', credentials: 'include' }
 let tmpUpdateJson = null
 
 // get update.json
-export function getUpdateJson (noCache) {
+export function getUpdateJson (noCache, paramObj) {
   // if (!noCache && tmpUpdateJson) return new Promise((resolve, reject) => resolve(tmpUpdateJson))
   if (!noCache && tmpUpdateJson) return Promise.resolve(tmpUpdateJson)
-  return window.fetch(manifest.manifestUrl + '?' + new Date().getTime(), options)
+  let params = '&' + qs.stringify(paramObj)
+  return window.fetch(manifest.manifestUrl + '?' + new Date().getTime() + params, options)
     .then(resp => resp.json())
     .then(json => {
       tmpUpdateJson = json
@@ -32,8 +34,8 @@ export function parseName (json) {
 }
 
 // check version
-export function checkUpdate () {
-  getUpdateJson().then(json => {
+export function checkUpdate (params) {
+  getUpdateJson(null, params).then(json => {
     if (json.version === App.manifest.version) return
     window.location.hash = '/update'
   })

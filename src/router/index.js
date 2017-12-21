@@ -7,7 +7,9 @@ import Home from '@/views/Home'
 import Main from '@/views/Main'
 import Printers from '@/views/Printers'
 import NewOrder from '@/views/order/NewOrder'
+import PrintedOrder from '@/views/order/PrintedOrder'
 import OtherFn from '@/views/otherFn/OtherFn'
+import HistoryOrder from '@/views/order/historyOrder'
 Vue.use(Router)
 
 export default new Router({
@@ -39,6 +41,14 @@ export default new Router({
         path: 'newOrder',
         name: 'NewOrder',
         component: NewOrder
+      }, {
+        path: 'printedOrder',
+        name: 'PrintedOrder',
+        component: PrintedOrder
+      }, {
+        path: 'historyOrder',
+        name: 'HistoryOrder',
+        component: HistoryOrder
       }]
     },
     {

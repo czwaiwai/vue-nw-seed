@@ -10,8 +10,12 @@ $button-palette: map-merge($foundation-palette, (
 *,html{
   padding:0;
   margin:0;
+  font-family: 微软雅黑;
 }
 html,body{
   height:100%;
+}
+input[type=text],input[type=password]{
+  margin:0;
 }
 
