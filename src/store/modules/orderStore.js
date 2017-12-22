@@ -9,7 +9,7 @@ export default {
     hisOrders: [],
     hisOrderIds: [],
     activeOrder: null,
-    isAuto: false,
+    isAuto: true,
     printService: null,
     printTpl: null,
     loopTime: 10000,
@@ -31,9 +31,8 @@ export default {
       state.listOrder = list
     },
     updateOne (state, order) {
-      let myOrder = state.listOrder.find(item => item.id === order.id)
-      myOrder = orderSignOne(order)
-      console.log(myOrder)
+      let index = state.listOrder.findIndex(item => item.id === order.id)
+      state.listOrder[index] = orderSignOne(order)
     },
     removeOne (state, order) {
       let index = state.listOrder.findIndex(item => item.id === order.id)
@@ -45,8 +44,6 @@ export default {
     printInit (state, {vue, shop, shopPrint, user}) {
       if (!state.printService) {
         state.printService = new OrderSave(vue, shop, shopPrint, user)
-      } else {
-        state.printService
       }
     },
     printClose (state) {
@@ -63,8 +60,13 @@ export default {
       let printOrder = state.printOrders.find(item => item.id === order.id)
       printOrder.isPrinting = true
     },
+    updatePrintOrder (state, order) {
+      let index = state.printOrders.findIndex(item => item.id === order.id)
+      state.printOrders[index] = order
+    },
     setFinshPrintOrder (state, order) {
       let printOrder = state.printOrders.find(item => item.id === order.id)
+      printOrder.isPrint = true
       printOrder.isPrinting = false
     },
     removeOrder (state, order) {
@@ -72,11 +74,15 @@ export default {
       if (state.hisOrderIds.indexOf(order.id) === -1) {
         state.hisOrderIds.push(order.id)
       }
-      state.printOrders.splice(index, 1)
+      if (order.status !== 9) {
+        state.printOrders.splice(index, 1)
+      }
     },
     removeActiveOrder (state) {
       let index = state.printOrders.findIndex(item => item.id === state.activeOrder.id)
-      state.printOrders.splice(index, 1)
+      if (index >= 0) {
+        state.printOrders.splice(index, 1)
+      }
       state.activeOrder = null
     },
     setActiveOrder (state, order) {
@@ -91,6 +97,22 @@ export default {
     }
   },
   actions: {
+    orderBack ({state, commit}, {order}) {
+      order.isBack = true
+      let newOrder = orderSignOne(order)
+      commit('removeActiveOrder')
+      console.log('是否打印过这个订单', newOrder.isPrint)
+      if (newOrder.isPrint) {
+        return newOrder
+      }
+    },
+    setAndUpdateActive ({state, commit}, {order}) {
+      console.log(order)
+      let newOrder = orderSignOne(order)
+      commit('setActiveOrder', newOrder)
+      commit('updatePrintOrder', newOrder)
+      return newOrder
+    },
     //  查看订单是否在打印列表
     vaildOrderInHIs ({state}, {obj}) {
       return state.hisOrderIds.indexOf(obj.id) > -1

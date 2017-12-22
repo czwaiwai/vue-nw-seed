@@ -62,7 +62,7 @@ orderSave.prototype = {
           //  网络错误将这个对象重新加入到队列中
           self.orderList.push(obj)
         }
-        self.finsh2Continue()
+        self.finish2Continue()
       }
     }
   },
@@ -76,6 +76,15 @@ orderSave.prototype = {
     let self = this
     this.status = 'waiting'
     let obj = this.orderList.shift()
+    if (!obj) {
+      console.err('出现了空的打印对象，请检查代码逻辑！')
+      if (this.orderList.length === 0) {
+        this.status = 'start'
+        return
+      } else {
+        return this.sendProcess()
+      }
+    }
     this.myEvent.before(obj)
     //   取出一个order对象或打印对象
     order2tickets.toList(obj, function (err, tickets) {
@@ -88,11 +97,11 @@ orderSave.prototype = {
           return self.myEvent.error(err, obj, self.errNext(obj))
         }
         self.myEvent.after(obj)
-        self.finsh2Continue()
+        self.finish2Continue()
       })
     })
   },
-  finsh2Continue () {
+  finish2Continue () {
     if (!this.isEmptyList()) {
       this.sendProcess()
     } else {

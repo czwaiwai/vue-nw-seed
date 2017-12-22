@@ -7,7 +7,7 @@
             <p class="text-center">{{item.tableNum}}</p>
             <p class="fs14">流水号：{{item.vOrderNo}}</p>
             <p class="fs14"></p>
-            <p class="fs12">人数 {{item.restPerson?item.restPerson:'1'}}位</p>
+            <p class="fs12">人数 {{item.restPerson?item.restPerson:'1'}}位 <span v-show="item.isPrint" class="label alert">已打印</span></p>
           </a>
         </div>
       </div>

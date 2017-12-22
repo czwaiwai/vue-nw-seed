@@ -22,6 +22,9 @@ let order2tickets = {
       orderId: obj.id,
       printNum: 1
     }
+    if (obj.isBack) {
+      paramObj.refundDetailIds = obj.refundDetailIds
+    }
     Vue.http.post('/ycRest/printRestOrder', paramObj).then(res => {
       console.log(res)
       if (res.data) {
@@ -40,7 +43,7 @@ let order2tickets = {
         if (err) {
           cb(err)
         }
-        let tmpOrder = Object.assign({}, orderData, order)
+        let tmpOrder = Object.assign({}, order, orderData)
         console.log('tmpOrder', tmpOrder)
         this.orderChangeList(tmpOrder, cb)
       })

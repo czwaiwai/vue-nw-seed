@@ -1,5 +1,8 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+var gui = require('nw.gui')
+var win = gui.Window.get()
+win.show()
 import Vue from 'vue'
 import qs from 'qs'
 import App from './App'
@@ -48,6 +51,13 @@ axios.interceptors.response.use(function (response) {
   console.log(response)
   if (response.data) {
     let { cfgInfo, data } = response.data
+    if (response.data.retCode === -1) {
+      appVue.$message({
+        message: response.data.retMsg,
+        type: 'error'
+      })
+      return Promise.reject(response.data.retMsg)
+    }
     let userInfo = null
     if (cfgInfo) {
       userInfo = cfgInfo.UserInfo
@@ -88,7 +98,7 @@ import { checkUpdate } from '@/utils/update.js'
 checkUpdate()
 
 /* eslint-disable no-new */
-new Vue({
+let appVue = new Vue({
   el: '#app',
   router,
   store,

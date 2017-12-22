@@ -36,10 +36,14 @@
           <el-table ref="singleTable" size="small" :data="activeOrderData" highlight-current-row
                     @current-change="handleCurrentChange" style="width:400px;">
             <!--<el-table-column property="status" label="状态"></el-table-column>-->
-            <el-table-column property="restProName" label="菜品名称" width="150"></el-table-column>
+            <el-table-column property="restProName" label="菜品名称" ></el-table-column>
             <el-table-column property="buyCount" label="数量" width="60"></el-table-column>
-            <el-table-column property="amount" label="单价"></el-table-column>
-            <el-table-column property="allAmount" label="小计"></el-table-column>
+            <el-table-column property="amount" label="单价" width="80"></el-table-column>
+            <el-table-column label="小计" width="80">
+              <template slot-scope="scope">
+                {{(scope.row.buyCount * scope.row.amount) | currency}}
+              </template>
+            </el-table-column>
           </el-table>
           <!--<div style="margin-top: 20px">-->
           <!--<el-button @click="setCurrent(tableData[1])">选中第二行</el-button>-->
@@ -47,22 +51,23 @@
           <!--</div>-->
         </div>
         <div class="aside-footer ">
-          <div class="flex_box">
+          <div  class="flex_box">
             <div class="row ">
               <div>
                 <!--<button type="button" class="button light">上行</button>-->
-                <button @click="changeAmtClickHandler" type="button" class="button  light">改价</button>
-                <button @click="cancelOrder" type="button" class="button light">取消</button>
-                <button @click="printClickHandler" type="button"  class="button light">打印</button>
+                <button :disabled="changeAmtDisabled"  @click="changeAmtClickHandler" type="button" class="button  light">改价</button>
+                <button :disabled="cancelOrderDisabled" @click="cancelOrder" type="button" class="button light">取消</button>
+                <button :disabled="printClickDisabled"  @click="printClickHandler" type="button"  class="button light">打印</button>
               </div>
               <div>
                 <!--<button type="button" class="button light">下行</button>-->
-                <button @click="backAmtClickHandler" type="button" class="button light">退单</button>
-                <button @click="backCaiClickHandler" type="button" class="button light">退菜</button>
-                <button @click="clearActiveOrder" type="button" class="button light">清空</button>
+                <button :disabled="backAmtDisabled"  @click="backAmtClickHandler" type="button" class="button light">退单</button>
+                <button :disabled="backCaiDisabled"  @click="backCaiClickHandler" type="button" class="button light">退菜</button>
+                <button :disabled="clearActiveDisable"  @click="clearActiveOrder" type="button" class="button light">清空</button>
               </div>
             </div>
-            <a @click="confirmPayCashHandler" class="button fcz margin5 flex_item fs20 alert " style="max-width:128px;color:#FFF;">确认线下付款</a>
+            <a v-show="activeOrd.btnStatus === 'payByCash'" @click="confirmPayCashHandler" class="button fcz margin5 flex_item fs20 alert " style="max-width:128px;color:#FFF;">确认线下付款</a>
+            <a v-show="['confirmOrder','orderDone'].indexOf(activeOrd.btnStatus) > -1" :disabled="confirmBtnDisable" @click="confirmOrderFinishHandler" class="button info margin5 flex_item fs20 alert " style="max-width:128px;color:#FFF;">确认订单完成</a>
           </div>
         </div>
       </el-aside>
@@ -77,51 +82,44 @@
         <el-footer style="height:auto;padding:3px;">
           <div class="grid-container full">
             <div class="grid-x food_buttons">
-              <div class="cell small-2">
+              <div class="cell small-3">
                 <button @click="newOrderHandler" type="button"  class="button light  expanded   margin5   ">新订单</button>
               </div>
-              <div class="cell small-2">
+              <div class="cell small-3">
                 <button @click="printedOrderHandler"  type="button" class="button  light expanded  margin5   ">已打印单</button>
               </div>
-              <div class="cell small-2">
-                <button @click="histOrderHandler" type="button" class="button  light  expanded  margin5  ">历史订单</button>
-              </div>
-              <div class="cell small-2">
+              <div class="cell small-3">
                 <button type="button" @click="workClickRecordHandler" class="button light  expanded  margin5   ">打卡记录</button>
               </div>
-              <div class="cell small-2">
+              <div class="cell small-3">
                 <button type="button" @click="workClickHandler" class="button light   expanded  margin5   ">打卡</button>
               </div>
-              <div class="cell small-2">
-                <button type="button" class="button  warning expanded  margin5   ">结账</button>
-              </div>
+              <!--<div class="cell small-2">-->
+                <!--<button type="button" class="button  warning expanded  margin5   ">结账</button>-->
+              <!--</div>-->
             </div>
             <div class="grid-x food_buttons">
-              <div class="cell small-2">
+              <div class="cell small-3">
                 <button type="button" @click="moreFnClickHandler" class="button  light expanded  margin5   ">
                   {{isMoreFn?'返回':'更多功能'}}
                 </button>
               </div>
-              <div class="cell small-2">
-                <button type="button" class="button light  expanded  margin5   ">下一页</button>
+              <div class="cell small-3">
+                <button @click="histOrderHandler" type="button" class="button  light  expanded  margin5  ">历史订单</button>
               </div>
-              <div class="cell small-2">
-                <button type="button" class="button light  expanded  margin5   ">打包</button>
-              </div>
-              <div class="cell small-2">
+              <div class="cell small-3">
                 <button type="button" @click="showDayClickHandler" class="button  light expanded  margin5   ">日报
                 </button>
               </div>
-              <div class="cell small-2">
+              <div class="cell small-3">
                 <button type="button" @click="showHandoverClickHandler" class="button light  expanded  margin5   ">交班
                 </button>
               </div>
-              <div class="cell small-2">
-                <button type="button" @click="logoutClickHandle" class="button light  expanded  margin5   ">注销</button>
-              </div>
+              <!--<div class="cell small-2">-->
+                <!--<button type="button" @click="logoutClickHandle" class="button light  expanded  margin5   ">注销</button>-->
+              <!--</div>-->
             </div>
           </div>
-
         </el-footer>
       </el-container>
     </el-container>
@@ -470,6 +468,7 @@
         //   退单form
         backAmtVisible: false,
         backAmtForm: {
+          id: '',
           refundAmt: '',
           refundRemark: ''
         },
@@ -531,6 +530,50 @@
         'activeOrder': 'activeOrder',
         'loopTime': 'loopTime'
       }),
+//    <div>
+//    <!--<button type="button" class="button light">上行</button>-->
+//    <button :disabled="true"  @click="changeAmtClickHandler" type="button" class="button  light">改价</button>
+//    <button @click="cancelOrder" type="button" class="button light">取消</button>
+//    <button @click="printClickHandler" type="button"  class="button light">打印</button>
+//    </div>
+//    <div>
+//    <!--<button type="button" class="button light">下行</button>-->
+//    <button @click="backAmtClickHandler" type="button" class="button light">退单</button>
+//    <button @click="backCaiClickHandler" type="button" class="button light">退菜</button>
+//    <button @click="clearActiveOrder" type="button" class="button light">清空</button>
+//    </div>
+      changeAmtDisabled () {
+        return this.disableBtnBy(['onlyChangeAmt', 'payByCash'])
+      },
+      cancelOrderDisabled () {
+        return this.disableBtnBy(['payByCash'])
+      },
+      printClickDisabled () {
+        if (this.activeOrder) {
+          if (!this.activeOrder.isPrint) {
+            return false
+          }
+        }
+        return true
+      },
+      backAmtDisabled () {
+        if (this.activeOrder && this.activeOrder.status === 5) {
+          return true
+        }
+        return this.disableBtnBy(['confirmOrder'])
+      },
+      backCaiDisabled () {
+        return this.disableBtnBy(['confirmOrder'])
+      },
+      clearActiveDisable () {
+        if (this.activeOrder) {
+          return false
+        }
+        return true
+      },
+      confirmBtnDisable () {
+        return this.disableBtnBy(['confirmOrder'])
+      },
       activeOrderData () {
         if (this.activeOrder) {
           return this.activeOrder.fnAttach
@@ -545,13 +588,22 @@
       }
     },
     methods: {
+      disableBtnBy (arr) {
+        if (this.activeOrder) {
+          if (arr.indexOf(this.activeOrder.btnStatus) > -1) {
+            return false
+          }
+        }
+        return true
+      },
       newOrderHandler () {
         this.$router.push({name: 'NewOrder'})
       },
-      // 切换打印中的订单和已打印订单
+      // 已打印订单
       printedOrderHandler () {
         this.$router.push({name: 'PrintedOrder'})
       },
+      // 历史订单
       histOrderHandler () {
         this.$router.replace({name: 'HistoryOrder'})
       },
@@ -567,53 +619,38 @@
       },
       //  手动打印
       printClickHandler () {
+        console.log('手动打印', this.activeOrder)
         if (this.isActiveOrder()) {
           this.printService.add(this.activeOrder)
         }
       },
-      //  退菜
-      backCaiClickHandler () {
+      //  确认订单完成
+      confirmOrderFinishHandler () {
         if (this.isActiveOrder()) {
-          this.backCaiForm = {
-            detailInfos: '',
-            remark: ''
+          if (!this.isPrint) {
+            return this.$message({message: '当前订单还未打印', type: 'warn'})
           }
-          this.$http.post('/ycRest/getRestOrderRefundData', {orderId: this.activeOrder.id}).then(res => {
-            let resData = res.data
-            let {detailList} = resData.data
-            detailList.forEach(item => {
-              item.tuiNum = 0
-              item.btnDisabled = false
+          this.$confirm('确认订单已处理完成', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'info '
+          }).then(() => {
+            let params = {
+              id: this.activeOrder.id
+            }
+            return this.$http.post('/ycRest/checkDishes', params).then(res => {
+              let resData = res.data
+              console.log(resData)
+              this.$store.commit('removeActiveOrder')
+              this.$message({
+                message: '订单确认成功',
+                type: 'success'
+              })
             })
-            this.backCaiList = detailList
-            this.backCaiVisible = true
-          })
+          }).catch((res) => {})
         }
       },
-      tuiCaiBtnHandle (index, item) {
-        item.tuiNum ++
-        if (item.tuiNum === item.buyCount) {
-          item.btnDisabled = true
-        }
-      },
-      backCaiConfirm () {
-        let tuiArr = this.backCaiList.map(item => {
-          if (item.tuiNum) {
-            return item.id + ';' + item.buyCount
-          }
-        })
-        this.backCaiForm.detailInfos = tuiArr.join('|')
-        this.$http.post('/ycRest/retreatFood', this.backCaiForm).then(res => {
-          let resData = res.data
-          let {restOrder} = resData.data
-          console.log(restOrder)
-          this.$message({
-            message: '退菜成功',
-            type: 'success'
-          })
-          this.backCaiVisible = false
-        })
-      },
+      //  确定线下收款
       confirmPayCashHandler () {
         if (this.isActiveOrder()) {
           this.$confirm('确认线下收款' + this.activeOrder.fnActPayAmount + '元', '提示', {
@@ -624,12 +661,22 @@
             let params = {
               id: this.activeOrder.id,
               adjOpuser: this.shopUser.saleId,
-              offlinePayAmt: this.activeOrder.actPayAmount
+              offlinePayAmt: this.activeOrder.fnActPayAmount
             }
             this.$http.post('/ycRest/confirmOfflinePay', params).then(res => {
-              this.$message({
-                message: '线下收款成功',
-                type: 'success'
+              let resData = res.data
+              let restOrder = resData.data
+              this.$store.dispatch('setAndUpdateActive', {order: restOrder}).then((newOrder) => {
+                if (!newOrder.isPrint) {
+                  console.log(newOrder, '---------------怎么回事----')
+                  this.printService.add(newOrder)
+                } else {
+                  this.$store.commit('removeActiveOrder')
+                }
+                this.$message({
+                  message: '线下收款成功',
+                  type: 'success'
+                })
               })
             })
           }).catch(() => {})
@@ -744,21 +791,76 @@
       // 退单显示
       backAmtClickHandler () {
         if (this.isActiveOrder()) {
-          //  /ycRest/refundRestOrder
+          this.backAmtForm.id = this.activeOrder.id
           this.backAmtForm.refundAmt = this.activeOrder.fnActPayAmount
           this.backAmtVisible = true
-//          this.$http.post()
         }
       },
       backAmtConfirm () {
         this.$http.post('/ycRest/refundRestOrder', this.backAmtForm).then((res) => {
           let resData = res.data
-          let {restOrder} = resData.data
-          console.log(restOrder)
-//          this.printService.add(restOrder)
-          console.log(resData)
+          let {restOrder, refundDetailIds} = resData.data
+          this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+            this.backAmtVisible = false
+            if (newOrder) {
+              newOrder.refundDetailIds = refundDetailIds
+              this.printService.add(newOrder)
+            }
+          })
         }, err => {
           console.log(err)
+        })
+      },
+      //  退菜
+      backCaiClickHandler () {
+        if (this.isActiveOrder()) {
+          this.backCaiForm = {
+            detailInfos: '',
+            remark: ''
+          }
+          this.$http.post('/ycRest/getRestOrderRefundData', {orderId: this.activeOrder.id}).then(res => {
+            let resData = res.data
+            let {detailList} = resData.data
+            detailList.forEach(item => {
+              item.tuiNum = 0
+              if (item.buyCount === 0) {
+                item.btnDisabled = true
+              } else {
+                item.btnDisabled = false
+              }
+            })
+            this.backCaiList = detailList
+            this.backCaiVisible = true
+          })
+        }
+      },
+      tuiCaiBtnHandle (index, item) {
+        item.tuiNum ++
+        if (item.tuiNum === item.buyCount) {
+          item.btnDisabled = true
+        }
+      },
+      backCaiConfirm () {
+        let tuiArr = this.backCaiList.map(item => {
+          if (item.tuiNum) {
+            return item.id + ';' + item.tuiNum
+          }
+        })
+        this.backCaiForm.detailInfos = tuiArr.join('|')
+        this.$http.post('/ycRest/retreatFood', this.backCaiForm).then(res => {
+          let resData = res.data
+          let {restOrder, refundDetailIds} = resData.data
+          this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+            this.backCaiVisible = false
+            this.$message({
+              message: '退菜成功',
+              type: 'success'
+            })
+            if (newOrder) {
+              newOrder.refundDetailIds = refundDetailIds
+              this.printService.add(newOrder)
+            }
+          })
         })
       },
       //  日报显示
@@ -847,18 +949,6 @@
           }
         })
       },
-      //  叫轮询的数据标记为订单
-      orderSign (list) {
-        list.forEach(item => {
-          item.isOrder = true
-          item.isPrinting = false
-          if (item.accountPrintCount + item.consumePrintCount + item.kitchenPrintCount) {
-            item.isPrint = true
-          } else {
-            item.isPrint = false
-          }
-        })
-      },
       upLogs (date) {
         if (date) {
           uploadLogs(this, this.shop.id, date)
@@ -884,6 +974,8 @@
           console.log('----------打印已经开始了---------------')
         },
         before (obj) {
+          console.log(obj)
+          debugger
           if (obj.isOrder) {
             console.log('--------正在开始打印的订单Obj:', obj.id, '------------')
           } else {
@@ -947,10 +1039,9 @@
           let {restOrderList} = data
           console.log(restOrderList, '-------------')
           if (restOrderList && restOrderList.length > 0) {
-            this.orderSign(restOrderList)
             this.$store.dispatch('pushAction', {list: restOrderList}).then((newData) => {
-              console.log(newData)
-              if (this.isAuto) {
+              console.log('我不是空数组', newData)
+              if (this.isAuto && newData.length > 0) {
                 this.printService.add(newData)
               }
             })

@@ -10,16 +10,13 @@
         <el-form-item label="桌台号">
           <el-input v-model="orderForm.tableNum" placeholder="桌台号"></el-input>
         </el-form-item>
-        <div>
-          <el-form-item>
-            <el-button type="primary" @click="onSubmit">查询</el-button>
-          </el-form-item>
-          <button @click="upBtnHandler" class="button">上一页</button> <button @click="downBtnHandler" class="button">下一页</button>
-        </div>
+        <el-form-item>
+          <el-button type="primary" @click="onSubmit">查询</el-button>
+        </el-form-item>
       </el-form>
-
+      <el-pagination background @current-change="currentChangeHandler" layout="total , prev, pager, next" :page-size="orderForm.pageSize" :total="totalRecord"></el-pagination>
       <div class='grid-x  small-up-2  medium-up-3 large-up-8'>
-        <div v-for='item in list' :key='item.id' class='cell order_block'>
+        <div v-for='item in listOrder' :key='item.id' class='cell order_block'>
           <a class="order_item" :class="{'no_pay':item.status==9}"  @click="activeClickHandler(item)"  href="javascript:void(0)" >
             <p class="text-center">{{item.tableNum}}</p>
             <p class="fs14">流水号：{{item.vOrderNo}}</p>
@@ -51,12 +48,14 @@
           startDate: '',
           endDate: ''
         },
-        list: []
+        totalPage: 0,
+        totalRecord: 0
       }
     },
     computed: {
       ...mapGetters({
-        'shop': 'shop'
+        'shop': 'shop',
+        'listOrder': 'listOrder'
       })
     },
     methods: {
@@ -69,25 +68,9 @@
       activeClickHandler (item) {
         this.$store.commit('setActiveOrder', item)
       },
-      upBtnHandler () {
-        if (this.upBtn) return
-        this.upBtn = true
-        let page = this.orderForm.page
-        page--
-        this.orderForm.page = page < 1 ? 1 : page
-        this.getPageData().then(() => {
-          this.upBtn = false
-        })
-      },
-      downBtnHandler () {
-        if (this.downBtn) return
-        this.downBtn = true
-        let page = this.orderForm.page
-        page++
-        this.orderForm.page = page > this.totalPage ? this.totalPage : page
-        this.getPageData().then(() => {
-          this.downBtn = false
-        })
+      currentChangeHandler (val) {
+        this.orderForm.page = val
+        this.getPageData()
       },
       onSubmit () {
         this.pageInit()
@@ -95,17 +78,21 @@
       },
       pageInit () {
         this.orderForm.page = 1
-        this.orderForm.startDate = this.now
-        this.orderForm.endDate = this.now
-        this.orderForm.restShopId = this.shop.id
       },
       getPageData () {
-        return this.$http.post('/ycRest/restOrderList', this.orderForm).then(res => {
+        this.orderForm.startDate = this.now
+        this.orderForm.endDate = this.now
+        console.log('shop', this.shop)
+        this.orderForm.restShopId = this.shop.id
+        let params = Object.assign({}, this.orderForm)
+        return this.$http.post('/ycRest/restOrderList', params).then(res => {
           console.log(res)
           let resData = res.data
-          let {totalPage, restOrderList} = resData.data
+          let {totalPage, restOrderList, totalRecord} = resData.data
           this.totalPage = totalPage
-          this.list = restOrderList
+          this.totalRecord = totalRecord
+          console.log('当前总页数', this.totalPage)
+          this.$store.commit('setListOrder', restOrderList)
           return restOrderList
         })
       }
