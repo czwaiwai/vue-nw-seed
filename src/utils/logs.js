@@ -47,7 +47,7 @@ function getLogger () {
     log4js.configure(logConfig)
     const logger = log4js.getLogger('thing')
     logger.level = 'info'
-    // console.log = logger.info.bind(logger)
+    console.log = logger.info.bind(logger)
     console.warn = logger.warn.bind(logger)
     console.error = logger.error.bind(logger)
   }

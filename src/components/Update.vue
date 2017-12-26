@@ -1,16 +1,16 @@
 <template>
   <section class="body-container">
     <section class="update-container" v-if="!info && !jsonIsLoading">
-      <h2>The programmer peter is crazy overtime</h2>
-      <p>No update</p>
+      <h2>程序员小哥正在疯狂的加班</h2>
+      <p>暂无新版本</p>
     </section>
-    <section class="update-container" v-if="info">
-      <h2>New update <small>version: {{info.version}}</small></h2>
-      <button type="button" class="update-btn" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="showFileDialog">update</button>
+    <section class="update-container text-center" style="padding:40px;" v-if="info">
+      <h2>新版本 <small>版本号: {{info.version}}</small></h2>
+      <button type="button" class="update-btn" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="showFileDialog">点我更新</button>
       <input type="file" class="hidden" ref="fileInput" :nwsaveas="saveAsName" @change="startDownload">
     </section>
-    <p v-if="progress === -2">download error</p>
-    <p v-if="progress >= 0">Download: {{progress}} %</p>
+    <p v-if="progress === -2">下载错误 error</p>
+    <p v-if="progress >= 0">下载进度: {{progress}} %</p>
   </section>
 </template>
 
@@ -69,7 +69,7 @@
   .hidden {
     display: none;
   }
-  
+
   .update-btn {
     margin-bottom: 3em;
     padding: 8px 15px;
@@ -80,11 +80,11 @@
     opacity: .5;
     transition: opacity .5s;
   }
-  
+
   .update-btn:hover {
     opacity: 1;
   }
-  
+
   .download-progress {
     margin-bottom: 3em;
   }

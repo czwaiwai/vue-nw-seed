@@ -3,6 +3,8 @@
  */
 //  const printer = require('printer')
 var ChnPrinter = require('chn-escpos')
+var printHelper = require('./printHelper')
+printHelper(ChnPrinter)
 var crypto = require('crypto')
 var md5 = function (str) {
   var cryptoMd5 = crypto.createHash('md5')

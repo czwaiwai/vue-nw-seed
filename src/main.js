@@ -56,6 +56,13 @@ axios.interceptors.response.use(function (response) {
         message: response.data.retMsg,
         type: 'error'
       })
+      if (response.data.retMsg === '请先登录') {
+        appVue.$alert('您的登录已失效', '其实', {
+          confirmButtonText: '重新登录',
+          type: 'error',
+          callback: action => appVue.$router.replace({name: 'Login'})
+        })
+      }
       return Promise.reject(response.data.retMsg)
     }
     let userInfo = null

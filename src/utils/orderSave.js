@@ -18,6 +18,9 @@ function orderSave (vue, restShop, webPrint, user) {
     error: this.loop,
     done: this.loop
   }
+  // if (typeof this.printTpl === 'undefined') {
+  //   throw new Error('未能成功获取到打印模板')
+  // }
   if (!Array.isArray(webPrint)) {
     throw new Error('没有获取到配置打印机的信息')
   }

@@ -32,11 +32,24 @@ export default {
     },
     updateOne (state, order) {
       let index = state.listOrder.findIndex(item => item.id === order.id)
-      state.listOrder[index] = orderSignOne(order)
+      if (index > -1) {
+        state.listOrder.splice(index, 1, orderSignOne(order))
+      }
+    },
+    clearOrderList (state) {
+      state.listOrder = []
     },
     removeOne (state, order) {
       let index = state.listOrder.findIndex(item => item.id === order.id)
-      state.listOrder.splice(index, 1)
+      if (index > -1) {
+        state.listOrder.splice(index, 1)
+      }
+    },
+    removeOneById (state, id) {
+      let index = state.listOrder.findIndex(item => item.id === id)
+      if (index > -1) {
+        state.listOrder.splice(index, 1)
+      }
     },
     setLoopTime (state, time) {
       state.loopTime = time
@@ -61,20 +74,28 @@ export default {
       printOrder.isPrinting = true
     },
     updatePrintOrder (state, order) {
+      if (order.isOrder === undefined) {
+        orderSignOne(order)
+      }
       let index = state.printOrders.findIndex(item => item.id === order.id)
-      state.printOrders[index] = order
+      if (index > -1) {
+        state.printOrders.splice(index, 1, order)
+      }
+      console.log('更新后的state，printOrders', state.printOrders)
     },
     setFinshPrintOrder (state, order) {
       let printOrder = state.printOrders.find(item => item.id === order.id)
-      printOrder.isPrint = true
-      printOrder.isPrinting = false
+      if (printOrder) {
+        printOrder.isPrint = true
+        printOrder.isPrinting = false
+      }
     },
     removeOrder (state, order) {
       let index = state.printOrders.findIndex(item => item.id === order.id)
       if (state.hisOrderIds.indexOf(order.id) === -1) {
         state.hisOrderIds.push(order.id)
       }
-      if (order.status !== 9) {
+      if (index > -1 && order.status !== 9) {
         state.printOrders.splice(index, 1)
       }
     },
@@ -86,7 +107,9 @@ export default {
       state.activeOrder = null
     },
     setActiveOrder (state, order) {
-      console.log(Object.assign({}, order))
+      if (order.isOrder === undefined) {
+        orderSignOne(order)
+      }
       state.activeOrder = order
     },
     clearActiveOrder (state, order) {
@@ -97,6 +120,10 @@ export default {
     }
   },
   actions: {
+    isExsitPirntOrder ({state}, {order}) {
+      let index = state.printOrders.findIndex(item => item.id === order.id)
+      return index > -1
+    },
     orderBack ({state, commit}, {order}) {
       order.isBack = true
       let newOrder = orderSignOne(order)
@@ -106,10 +133,10 @@ export default {
         return newOrder
       }
     },
-    setAndUpdateActive ({state, commit}, {order}) {
+    setAndRemoreActive ({state, commit}, {order}) {
       console.log(order)
       let newOrder = orderSignOne(order)
-      commit('setActiveOrder', newOrder)
+      commit('removeActiveOrder', newOrder)
       commit('updatePrintOrder', newOrder)
       return newOrder
     },

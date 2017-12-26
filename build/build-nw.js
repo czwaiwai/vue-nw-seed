@@ -33,6 +33,7 @@ config.build.nw.manifestModules.forEach(function(v,i){
 fs.writeFile(manifestPath, JSON.stringify(manifest, null, '  '), 'utf-8', function(err) {
   if (err) throw err
   // start build app
+  // return
   if (!config.build.nw.builder) return
   var NwBuilder = require('nw-builder')
   var nw = new NwBuilder(config.build.nw.builder)

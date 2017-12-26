@@ -2,7 +2,7 @@
  * Created by czwaiwai on 17/12/16.
  */
 import Vue from 'vue'
-import {tplFn, webTplFn} from './printTpl'
+import {webTplFn} from './printTpl'
 import moment from 'moment'
 let order2tickets = {
   init: function (webPrint, restShop, user, printTpl) {
@@ -54,12 +54,20 @@ let order2tickets = {
   orderChangeList (order, cb) {
     let newOrder = order
     let consumptionOrder = this.createConsumptionOrder(newOrder)
-    console.log(consumptionOrder, 'consumptionOrder')
     let billingOrder = this.createBilling(newOrder)
     let kitchenOrders = this.createKitchen(newOrder)
-    console.log(consumptionOrder, kitchenOrders)
-    cb(null, [consumptionOrder, billingOrder, ...kitchenOrders])
-    //  cb(null, [billingOrder])
+    if (order.printSingleType) {
+      switch (order.printSingleType) {
+        case 1: cb(null, [consumptionOrder])
+          break
+        case 2: cb(null, [billingOrder])
+          break
+        case 3: cb(null, [...kitchenOrders])
+          break
+      }
+    } else {
+      cb(null, [consumptionOrder, billingOrder, ...kitchenOrders])
+    }
   },
   //  普通对象打印处理
   normalList (obj, cb) {
@@ -67,7 +75,7 @@ let order2tickets = {
       cb(new Error('普通打印，没有设定打印模板'))
     }
     let objNew = Object.assign({}, obj)
-    objNew.tpl = tplFn(objNew)
+    objNew.tpl = this.TplFn(objNew)
     console.log(objNew, '普通打印模板')
     objNew.printName = obj.printName || this.getDefaultPrintName()
     cb(null, [objNew])

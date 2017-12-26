@@ -32,6 +32,9 @@ export default new Router({
       children: [{
         path: 'otherFn',
         name: 'OtherFn',
+        meta: {
+          title: '其他功能'
+        },
         component: OtherFn
       }, {
         path: 'printers',
@@ -40,14 +43,23 @@ export default new Router({
       }, {
         path: 'newOrder',
         name: 'NewOrder',
+        meta: {
+          title: '新订单'
+        },
         component: NewOrder
       }, {
         path: 'printedOrder',
         name: 'PrintedOrder',
+        meta: {
+          title: '已打印订单'
+        },
         component: PrintedOrder
       }, {
         path: 'historyOrder',
         name: 'HistoryOrder',
+        meta: {
+          title: '历史订单'
+        },
         component: HistoryOrder
       }]
     },

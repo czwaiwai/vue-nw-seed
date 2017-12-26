@@ -85,7 +85,27 @@
       }
     },
     methods: {
+      submitValider () {
+        var valids = {
+          mobile: /^1\d{10}$/,
+          passWd: /\w{4,}/
+        }
+        var validsRule = {
+          mobile: '请输入正确的手机号',
+          passWd: '请输入有效的密码'
+        }
+        for (let key in valids) {
+          if (!valids[key].test(this.formObj[key])) {
+            return validsRule[key]
+          }
+          continue
+        }
+      },
       submitHandler () {
+        let validErr = this.submitValider()
+        if (validErr) {
+          return this.$message({message: validErr, type: 'error'})
+        }
         this.$http.post('/ycLogin/doPCLogin', this.formObj).then(res => {
           let data = res.data
           let {UserInfo, restShop} = data.data

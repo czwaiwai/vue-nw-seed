@@ -34,9 +34,7 @@ ________________________________________________\n
 <% setSize:2 %><% setStyle:B %>菜品销售汇总\n
 <% setSize:1 %><% setStyle:NORMARL %>
 ________________________________________________\n
-<@ sortList.forEach(function(item){ @>
-<@=item.sortName @>             X<@=item.fnCount @>           <@=item.fnAmount @>\n
-<@ }) @>
+<@ sortList.forEach(function(item){ @><@= simgleTextLine(item.sortName,'X'+item.fnCount,item.fnAmount) @><@ }) @>
 ------------------------------------------------\n
 小计：                        X<@=totalCount @>         <@=totalAmount @>
 \n\t
@@ -139,10 +137,11 @@ ________________________________________________\n
 打印：<@=printTime @>\n
 `
 }
+
 //  服务器提供的webTpl
 export function webTplFn (tpl) {
   return function (obj) {
-    let compile = _.template(tpl[obj.tplName + 'Tpl'])
+    let compile = _.template(tpl[obj.tplName + 'Tpl'], {'imports': {'simgleTextLine': simgleTextLine}})
     return compile(obj)
   }
 }
@@ -152,3 +151,76 @@ export function tplFn (obj) {
   return compile(obj)
 }
 
+function getLineText (val, callback) {
+  var len = 0
+  for (var i = 0; i < val.length; i++) {
+    var length = val.charCodeAt(i)
+    if (length >= 0 && length <= 128) {
+      len += 1
+      callback(1, len, i)
+    } else {
+      len += 2
+      callback(2, len, i)
+    }
+  }
+}
+
+export function centerLine (val, long) {
+  var valLen = val.length
+  var sp = parseInt((long - valLen) / 2)
+  var tmp = ''
+  for (var i = 0; i < sp; i++) {
+    tmp += ' '
+  }
+  var newStr = tmp + val + tmp
+  if (newStr.length < long) {
+    newStr = ' ' + newStr
+  }
+  return newStr
+}
+
+function rightLine (val, long) {
+  var valLen = (val + '').length
+  var sp = long - valLen
+  var newStr = ''
+  for (var i = 0; i < sp; i++) {
+    newStr += ' '
+  }
+  return (newStr += val)
+}
+
+function chineseLine (val, maxLen) {
+  var newStr = ''
+  var beforeLen = 0
+  var getLen = 0
+  getLineText(val, function (num, len, i) {
+    var lineLen = len - beforeLen
+    if ((lineLen) > maxLen) {
+      newStr += ' ,'
+      newStr += val[i]
+      beforeLen = len
+    } else if ((lineLen) === maxLen) {
+      newStr += val[i] + ','
+      beforeLen = len
+    } else {
+      newStr += val[i]
+    }
+    getLen = len
+  })
+  if (getLen < maxLen) {
+    for (var i = 0; i < maxLen - getLen; i++) {
+      newStr += ' '
+    }
+  }
+  return newStr.replace(/,$/, '').split(',')
+}
+
+function simgleTextLine (leftTxt, centerTxt, rightTxt) {
+  var arr = chineseLine(leftTxt, 24)
+  arr[0] = arr[0] + rightLine(centerTxt, 12) + rightLine(rightTxt, 12)
+  var resLine = ''
+  arr.forEach(item => {
+    resLine += item + '\n'
+  })
+  return resLine
+}

@@ -1,23 +1,28 @@
 /**
  * Created by Administrator on 2017/12/20 0020.
  */
-// var fs = require('fs')
+var fs = require('fs')
 var os = require('os')
 var path = require('path')
-var moment = require('moment')
+// var moment = require('moment')
 var Zip = require('node-native-zip')
 var tmpPath = path.join(os.homedir(), '/tmp')
 export default function uploadLogs (vue, shopId, date) {
   return new Promise((resolve, reject) => {
-    let nowDate = moment(new Date()).format('YYYYMMDD')
+    // let nowDate = moment(new Date()).format('YYYYMMDD')
     let fileName
     let filePath
-    if (date + '' === nowDate) {
-      fileName = 'fcz.log_' + date
+    fileName = 'fcz.log_' + date
+    let isExits = fs.existsSync(tmpPath + '/' + fileName)
+    if (isExits) {
       filePath = tmpPath + '/' + fileName
     } else {
       fileName = 'fcz.log_' + date + '.gz'
-      filePath = path.resolve(tmpPath, '/' + fileName)
+      if (fs.existsSync(path.resolve(tmpPath, '/' + fileName))) {
+        filePath = path.resolve(tmpPath, '/' + fileName)
+      } else {
+        reject('日志文件不存在' + date)
+      }
     }
     var archive = new Zip()
     archive.addFiles([

@@ -1,13 +1,13 @@
 <template>
     <div>
-      <el-checkbox v-model="isAutoCheck" @change="changeHandle" label="自动打印" border></el-checkbox>
+      <!--<el-checkbox v-model="isAutoCheck" @change="changeHandle" label="自动打印" border></el-checkbox>-->
       <div class="grid-x  small-up-2  medium-up-3 large-up-8">
         <div v-for="item in printOrders" :key="item.id" class="cell order_block">
           <a class="order_item" :class="{'no_pay':item.status==9}" @click="activeClickHandler(item)" href="javascript:void(0)">
             <p class="text-center">{{item.tableNum}}</p>
-            <p class="fs14">流水号：{{item.vOrderNo}}</p>
-            <p class="fs14"></p>
-            <p class="fs12">人数 {{item.restPerson?item.restPerson:'1'}}位 <span v-show="item.isPrint" class="label alert">已打印</span></p>
+            <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
+            <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span><span style="padding-left:20px">￥{{item.fnActPayAmount | currency}}</span></p>
+            <p class="fs14 text-center"><span class="label alert">{{itemStatus(item.status)}}</span></p>
           </a>
         </div>
       </div>
@@ -60,6 +60,23 @@
       })
     },
     methods: {
+      itemStatus (status) {
+        if ([7, 8].indexOf(status) > -1) {
+          return '已完成'
+        }
+        if (parseInt(status) === 1) {
+          return '已支付'
+        }
+        if ([0, 2, 9].indexOf(status) > -1) {
+          return '待收款'
+        }
+        if ([4, 5].indexOf(status) > -1) {
+          return '退单/退菜'
+        }
+        if ([-1].indexOf(status) > -1) {
+          return '订单已取消'
+        }
+      },
       changeHandle () {
         this.$store.commit('setAuto', this.isAutoCheck)
       },

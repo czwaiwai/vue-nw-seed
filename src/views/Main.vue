@@ -3,7 +3,8 @@
     <el-header style="height:44px;">
       <div class="grid-x">
         <div class="logo cell small-6">飞常赞餐饮系统 v{{appVersion}} ({{shop.restName}})</div>
-        <div class="cell small-6 text-right"><span class="logo_time">{{currentTime}}</span></div>
+        <div class="cell small-6 text-right"><span class="logo_time">{{currentTime}}</span>
+          <a @click="exitClickHandler" class="button small alert" href="javascript:void(0)" >退出系统</a></div>
       </div>
     </el-header>
     <el-container>
@@ -38,12 +39,8 @@
             <!--<el-table-column property="status" label="状态"></el-table-column>-->
             <el-table-column property="restProName" label="菜品名称" ></el-table-column>
             <el-table-column property="buyCount" label="数量" width="60"></el-table-column>
-            <el-table-column property="amount" label="单价" width="80"></el-table-column>
-            <el-table-column label="小计" width="80">
-              <template slot-scope="scope">
-                {{(scope.row.buyCount * scope.row.amount) | currency}}
-              </template>
-            </el-table-column>
+            <el-table-column property="perCash" label="单价" width="80"></el-table-column>
+            <el-table-column property="amount" label="小计" width="80"></el-table-column>
           </el-table>
           <!--<div style="margin-top: 20px">-->
           <!--<el-button @click="setCurrent(tableData[1])">选中第二行</el-button>-->
@@ -54,9 +51,10 @@
           <div  class="flex_box">
             <div class="row ">
               <div>
-                <!--<button type="button" class="button light">上行</button>-->
+
                 <button :disabled="changeAmtDisabled"  @click="changeAmtClickHandler" type="button" class="button  light">改价</button>
                 <button :disabled="cancelOrderDisabled" @click="cancelOrder" type="button" class="button light">取消</button>
+                <button :disabled="rePrintClickDisabled" @click="rePrintClickHandler" type="button" class="button light">补打</button>
                 <button :disabled="printClickDisabled"  @click="printClickHandler" type="button"  class="button light">打印</button>
               </div>
               <div>
@@ -72,6 +70,7 @@
         </div>
       </el-aside>
       <el-container>
+        <div class="unit_header padding15-h">{{$route.meta.title}}</div>
         <el-main>
           <!--<div class="scroll_content">-->
           <keep-alive>
@@ -83,7 +82,7 @@
           <div class="grid-container full">
             <div class="grid-x food_buttons">
               <div class="cell small-3">
-                <button @click="newOrderHandler" type="button"  class="button light  expanded   margin5   ">新订单</button>
+                <button @click="newOrderHandler" type="button"  class="button light  expanded   margin5   ">新订单<el-badge :value="badgePrint" style="height:12px;" ></el-badge></button>
               </div>
               <div class="cell small-3">
                 <button @click="printedOrderHandler"  type="button" class="button  light expanded  margin5   ">已打印单</button>
@@ -100,9 +99,7 @@
             </div>
             <div class="grid-x food_buttons">
               <div class="cell small-3">
-                <button type="button" @click="moreFnClickHandler" class="button  light expanded  margin5   ">
-                  {{isMoreFn?'返回':'更多功能'}}
-                </button>
+                <button type="button" @click="moreFnClickHandler" class="button  light expanded  margin5   ">其他功能</button>
               </div>
               <div class="cell small-3">
                 <button @click="histOrderHandler" type="button" class="button  light  expanded  margin5  ">历史订单</button>
@@ -138,68 +135,45 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="padding-top5">
-        <el-autocomplete class="inline-input" v-model="backCaiForm.remark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>
-      </div>
+      <el-form :model="backCaiForm" :rules="backCaiRules" ref="backCaiForm" label-width="120px">
+        <el-form-item label="备注" prop="remark" style="margin-bottom:0;padding-top:15px;">
+          <el-autocomplete class="inline-input" v-model="backCaiForm.remark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>
+        </el-form-item>
+      </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="backCaiVisible = false">取 消</el-button>
-        <el-button type="primary" @click="backCaiConfirm">确定</el-button>
+        <el-button type="primary" @click="backCaiConfirm('backCaiForm')">确定</el-button>
       </span>
     </el-dialog>
 
     <el-dialog title="改价" :visible.sync="changeAmtVisible" width="600px">
-      <el-form :model="changeAmtForm" label-width="120px">
-        <el-form-item label="实际支付金额"  placeholder="请填写金额">
+      <el-form :model="changeAmtForm" :rules="changeAmtRules" ref="changeAmt" label-width="120px">
+        <el-form-item label="实际支付金额" prop="adjAmt" placeholder="请填写金额">
           <el-input v-model="changeAmtForm.adjAmt"></el-input>
         </el-form-item>
-        <el-form-item label="改价备注">
-          <el-autocomplete
-            class="inline-input"
-            v-model="changeAmtForm.adjRemark"
-            :fetch-suggestions="suggestChangeAmt"
-            placeholder="请填写备注"
-          ></el-autocomplete>
+        <el-form-item label="改价备注" prop="adjRemark" >
+          <el-autocomplete class="inline-input" v-model="changeAmtForm.adjRemark" :fetch-suggestions="suggestChangeAmt" placeholder="请填写备注"></el-autocomplete>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="changeAmtVisible = false">取 消</el-button>
-        <el-button type="primary" @click="changeAmtConfirm">确定</el-button>
+        <el-button type="primary" @click="changeAmtConfirm('changeAmt')">确定</el-button>
       </span>
     </el-dialog>
 
 
-    <el-dialog title="退单" :visible.sync="backAmtVisible" width="600px">
-      <el-form :model="backAmtForm">
-        <el-form-item label="退款金额">
+    <el-dialog title="退单" :visible.sync="backAmtVisible" width="600px" >
+      <el-form :model="backAmtForm" :rules="backAmtRules" ref="backAmtForm" label-width="120px">
+        <el-form-item label="退款金额" prop="refundAmt">
           <el-input v-model="backAmtForm.refundAmt" placeholder="请填写金额"></el-input>
         </el-form-item>
-        <el-form-item label="退款备注">
-          <el-autocomplete
-            class="inline-input"
-            v-model="backAmtForm.refundRemark"
-            :fetch-suggestions="suggestBackAmt"
-            placeholder="请填写备注"
-          ></el-autocomplete>
+        <el-form-item label="退款备注" prop="refundRemark">
+          <el-autocomplete class="inline-input" v-model="backAmtForm.refundRemark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="backAmtVisible = false">取 消</el-button>
-        <el-button type="primary" @click="backAmtConfirm">确定</el-button>
-      </span>
-    </el-dialog>
-
-    <el-dialog title="确认线下收款" :visible.sync="confirmAmtVisible" width="600px">
-      <el-form :model="confirmAmtForm">
-        <el-form-item label="线下收款金额" placeholder="请填写金额">
-          <el-input v-model="confirmAmtForm.offlinePayAmt"></el-input>
-        </el-form-item>
-        <el-form-item label="备注">
-          <el-input v-model="confirmAmtForm.offlinePayAmt"></el-input>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="confirmAmtVisible = false">取 消</el-button>
-        <el-button type="primary" @click="printHandover">确定</el-button>
+        <el-button type="primary" @click="backAmtConfirm('backAmtForm')">确定</el-button>
       </span>
     </el-dialog>
 
@@ -215,6 +189,16 @@
       </span>
     </el-dialog>
 
+    <el-dialog title="补打" :visible.sync="rePrintVisible" width="600px">
+      <div class="text-center">
+        <el-button @click="toSinglePrint(1,'xiaoDisBtn')" :loading = 'xiaoDisBtn' >消费单</el-button>
+        <el-button @click="toSinglePrint(2,'jieDisBtn')" :loading = 'jieDisBtn' >结账单</el-button>
+        <el-button @click="toSinglePrint(3,'chuDisBtn')" :loading = 'chuDisBtn' >厨打单</el-button>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="rePrintVisible = false">关闭</el-button>
+      </span>
+    </el-dialog>
 
     <el-dialog title="日报预览" :visible.sync="dayDialogVisible" width="600px">
       <div class="block padding-bottom15">
@@ -317,7 +301,12 @@
   .el-dialog .el-input{
     width:200px;
   }
-
+  .unit_header{
+    height:34px;
+    line-height:34px;
+    background:#f0f0f0;
+    border:1px solid #e3e3e3;
+  }
   .handover {
     font-size: 14px;
     & .handover_label {
@@ -417,11 +406,14 @@
 </style>
 <script type="text/ecmascript-6">
   import moment from 'moment'
+  import { App } from 'nw.gui'
   import roundTime from '../utils/roundTime'
   import { mapGetters } from 'vuex'
+
   import bus from '../utils/bus'
   import uploadLogs from '../utils/uploadLogs'
   import getConfig from '../utils/getConfig'
+  import { amount as amountRule } from '../utils/elemFormRules'
   let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
@@ -435,11 +427,16 @@
         handoverData: {},
         //  打卡
         hitCard: 0,
+        rePrintVisible: false, // 补打显示
         backCaiVisible: false,  //  退菜visible
         hitRcodeVisible: false, //  打卡记录
         workDialogVisible: false,
         handoverDialogVisible: false,
         dayDialogVisible: false, // 日报对话框
+
+        xiaoDisBtn: false,
+        jieDisBtn: false,
+        chuDisBtn: false,
 
         hitDate: now,
         hitRecordTable: [], // 打卡记录
@@ -454,16 +451,21 @@
         },
         changeAmtRules: {
           adjAmt: [
-            { required: true, message: '请选择活动区域', trigger: 'blur' }
+            {required: true, message: '金额不能为空', trigger: 'blur'},
+            {validator: amountRule, trigger: 'blur'}
           ],
           adjRemark: [
-            { required: true, message: '备注不能为空', trigger: 'blur' }
+            {required: true, message: '备注不能为空', trigger: 'blur'}
           ]
         },
         //  退菜
         backCaiForm: {
-          detailInfos: '',
           remark: ''
+        },
+        backCaiRules: {
+          remark: [
+            {required: true, message: '备注不能为空', trigger: 'blur'}
+          ]
         },
         //   退单form
         backAmtVisible: false,
@@ -472,22 +474,14 @@
           refundAmt: '',
           refundRemark: ''
         },
-        //  线下收款form
-        confirmAmtVisible: false,
-        confirmAmtForm: {
-          offlinePayAmt: '',
-          offPayRemark: ''
-        },
-
-        form: {
-          name: '',
-          region: '',
-          date1: '',
-          date2: '',
-          delivery: false,
-          type: [],
-          resource: '',
-          desc: ''
+        backAmtRules: {
+          refundAmt: [
+            {required: true, message: '金额不能为空', trigger: 'blur'},
+            {validator: amountRule, trigger: 'blur'}
+          ],
+          refundRemark: [
+            {required: true, message: '备注不能为空', trigger: 'blur'}
+          ]
         },
         currentRow: null,
         isMoreFn: false,
@@ -512,11 +506,21 @@
         }
       }
     },
-//    watch: {
-//      'printOrder' (newVal, oldVal) {
-//        console.log(newVal, oldVal, '数组变化')
-//      }
-//    },
+    watch: {
+      'printOrders' (newVal, oldVal) {
+        if (!newVal || !oldVal) return
+        if (newVal.length !== oldVal.length) {
+          console.log(newVal, oldVal, '数组变化')
+        }
+      },
+      '$route' (to, from) {
+        console.log(to, from, '路由变化')
+        if (this.activeOrder) {
+          this.$store.commit('clearActiveOrder')
+        }
+        this.$store.commit('clearOrderList')
+      }
+    },
     computed: {
       ...mapGetters({
         'isLogin': 'isLogin',
@@ -526,27 +530,36 @@
         'shop': 'shop',
         'shopUser': 'shopUser',
         'shopPrint': 'shopPrint',
-        'printOrder': 'printOrder',
+        'printOrders': 'printOrders',
         'activeOrder': 'activeOrder',
         'loopTime': 'loopTime'
       }),
-//    <div>
-//    <!--<button type="button" class="button light">上行</button>-->
-//    <button :disabled="true"  @click="changeAmtClickHandler" type="button" class="button  light">改价</button>
-//    <button @click="cancelOrder" type="button" class="button light">取消</button>
-//    <button @click="printClickHandler" type="button"  class="button light">打印</button>
-//    </div>
-//    <div>
-//    <!--<button type="button" class="button light">下行</button>-->
-//    <button @click="backAmtClickHandler" type="button" class="button light">退单</button>
-//    <button @click="backCaiClickHandler" type="button" class="button light">退菜</button>
-//    <button @click="clearActiveOrder" type="button" class="button light">清空</button>
-//    </div>
+      badgePrint () {
+        if (this.printOrders) {
+          return this.printOrders.length
+        }
+        return 0
+      },
+      isNewPage () {
+        return this.$route.name === 'NewOrder'
+      },
+      isPrintedPage () {
+        return this.$route.name === 'PrintedOrder'
+      },
+      isHistoryPage () {
+        return this.$route.name === 'HistoryOrder'
+      },
       changeAmtDisabled () {
         return this.disableBtnBy(['onlyChangeAmt', 'payByCash'])
       },
       cancelOrderDisabled () {
         return this.disableBtnBy(['payByCash'])
+      },
+      rePrintClickDisabled () {
+        if (this.activeOrder) {
+          return false
+        }
+        return true
       },
       printClickDisabled () {
         if (this.activeOrder) {
@@ -560,10 +573,10 @@
         if (this.activeOrder && this.activeOrder.status === 5) {
           return true
         }
-        return this.disableBtnBy(['confirmOrder'])
+        return this.disableBtnBy(['confirmOrder', 'orderDone'])
       },
       backCaiDisabled () {
-        return this.disableBtnBy(['confirmOrder'])
+        return this.disableBtnBy(['confirmOrder', 'orderDone'])
       },
       clearActiveDisable () {
         if (this.activeOrder) {
@@ -596,6 +609,11 @@
         }
         return true
       },
+      exitClickHandler () {
+        this.$confirm('你确定要退出系统么', '提示').then(() => {
+          App.quit()
+        })
+      },
       newOrderHandler () {
         this.$router.push({name: 'NewOrder'})
       },
@@ -623,6 +641,24 @@
         if (this.isActiveOrder()) {
           this.printService.add(this.activeOrder)
         }
+      },
+      //  显示补打
+      rePrintClickHandler () {
+        if (this.isActiveOrder()) {
+          this.rePrintVisible = true
+        }
+      },
+      // 手动补打
+      toSinglePrint (type, btnName) {
+        this[btnName] = true
+        let order = Object.assign({}, this.activeOrder, {printSingleType: type})
+        this.printService.add(order)
+        setTimeout(() => {
+          this[btnName] = false
+        }, 1500)
+      },
+      rePrintConfirmHandler () {
+        this.rePrintVisible = false
       },
       //  确认订单完成
       confirmOrderFinishHandler () {
@@ -666,12 +702,14 @@
             this.$http.post('/ycRest/confirmOfflinePay', params).then(res => {
               let resData = res.data
               let restOrder = resData.data
-              this.$store.dispatch('setAndUpdateActive', {order: restOrder}).then((newOrder) => {
+              this.$store.dispatch('setAndRemoreActive', {order: restOrder}).then((newOrder) => {
                 if (!newOrder.isPrint) {
-                  console.log(newOrder, '---------------怎么回事----')
                   this.printService.add(newOrder)
                 } else {
-                  this.$store.commit('removeActiveOrder')
+                  this.$store.commit('clearActiveOrder')
+                }
+                if (!this.isNewPage) {
+                  this.$store.commit('updateOne', newOrder)
                 }
                 this.$message({
                   message: '线下收款成功',
@@ -698,8 +736,12 @@
           }).then(() => {
             this.$http.post('/ycRest/cancelRestOrder', {id: this.activeOrder.id}).then(res => {
               let resData = res.data
-              console.log(resData)
+              console.log('取消订单', resData)
+              let id = this.activeOrder.id
               this.$store.commit('removeActiveOrder')
+              if (!this.isNewPage) {
+                this.$store.commit('removeOneById', id)
+              }
               this.$message({
                 message: '取消订单成功',
                 type: 'success'
@@ -774,18 +816,33 @@
       changeAmtClickHandler () {
         if (this.isActiveOrder()) {
           this.changeAmtForm.adjAmt = this.activeOrder.fnActPayAmount
+          this.changeAmtForm.adjRemark = ''
           this.changeAmtVisible = true
         }
 //      /ycRest/correctAmout
       },
-      changeAmtConfirm () {
-        let params = Object.assign({id: this.activeOrder.id, adjOpuser: this.shopUser.saleId}, this.changeAmtForm)
-        this.$http.post('/ycRest/correctAmout', params).then((res) => {
-          let resData = res.data
-          let {adjAmt, orderStatus} = resData.data
-          this.changeAmtVisible = false
-          this.activeOrder.status = orderStatus
-          this.activeOrder.adjAmt = adjAmt
+      changeAmtConfirm (formName) {
+        this.$refs[formName].validate(valid => {
+          if (valid) {
+            let params = Object.assign({id: this.activeOrder.id, adjOpuser: this.shopUser.saleId}, this.changeAmtForm)
+            this.$http.post('/ycRest/correctAmout', params).then((res) => {
+              let resData = res.data
+              let {restOrder} = resData.data
+              this.$message.success('改价成功')
+              this.$store.commit('setActiveOrder', restOrder)
+              this.$store.dispatch('isExsitPirntOrder', {order: restOrder}).then((bool) => {
+                console.log(bool, '哈哈哈')
+                if (bool) {
+                  this.$store.commit('updatePrintOrder', restOrder)
+                }
+                if (!this.isNewPage) {
+                  console.log('不是当前newOrder页面更新订单状态')
+                  this.$store.commit('updateOne', restOrder)
+                }
+              })
+              this.changeAmtVisible = false
+            })
+          }
         })
       },
       // 退单显示
@@ -796,19 +853,29 @@
           this.backAmtVisible = true
         }
       },
-      backAmtConfirm () {
-        this.$http.post('/ycRest/refundRestOrder', this.backAmtForm).then((res) => {
-          let resData = res.data
-          let {restOrder, refundDetailIds} = resData.data
-          this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
-            this.backAmtVisible = false
-            if (newOrder) {
-              newOrder.refundDetailIds = refundDetailIds
-              this.printService.add(newOrder)
-            }
-          })
-        }, err => {
-          console.log(err)
+      backAmtConfirm (formName) {
+        this.$refs[formName].validate(valid => {
+          if (valid) {
+            this.$http.post('/ycRest/refundRestOrder', this.backAmtForm).then((res) => {
+              let resData = res.data
+              let {restOrder, refundDetailIds} = resData.data
+              this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+                this.backAmtVisible = false
+                if (newOrder) {
+                  newOrder.refundDetailIds = refundDetailIds
+                  this.printService.add(newOrder)
+                }
+                if (this.isPrintedPage) {
+                  this.$store.commit('removeOne', newOrder)
+                }
+                if (this.isHistoryPage) {
+                  this.$store.commit('updateOne', newOrder)
+                }
+              })
+            }, err => {
+              console.log(err)
+            })
+          }
         })
       },
       //  退菜
@@ -840,27 +907,39 @@
           item.btnDisabled = true
         }
       },
-      backCaiConfirm () {
-        let tuiArr = this.backCaiList.map(item => {
-          if (item.tuiNum) {
-            return item.id + ';' + item.tuiNum
-          }
-        })
-        this.backCaiForm.detailInfos = tuiArr.join('|')
-        this.$http.post('/ycRest/retreatFood', this.backCaiForm).then(res => {
-          let resData = res.data
-          let {restOrder, refundDetailIds} = resData.data
-          this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
-            this.backCaiVisible = false
-            this.$message({
-              message: '退菜成功',
-              type: 'success'
+      backCaiConfirm (formName) {
+        this.$refs[formName].validate(valid => {
+          if (valid) {
+            let tuiArr = this.backCaiList.map(item => {
+              if (item.tuiNum) {
+                return item.id + ';' + item.tuiNum
+              }
             })
-            if (newOrder) {
-              newOrder.refundDetailIds = refundDetailIds
-              this.printService.add(newOrder)
+            this.backCaiForm.detailInfos = tuiArr.join('|')
+            if (!this.backCaiForm.detailInfos) {
+              return this.$message.error('请选择要退的菜品')
             }
-          })
+            this.$http.post('/ycRest/retreatFood', this.backCaiForm).then(res => {
+              let resData = res.data
+              let {restOrder, refundDetailIds, isAllRefund} = resData.data
+              this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+                this.backCaiVisible = false
+                this.$message({
+                  message: '退菜成功',
+                  type: 'success'
+                })
+                if (newOrder) {
+                  newOrder.refundDetailIds = refundDetailIds
+                  this.printService.add(newOrder)
+                }
+                if (this.isPrintedPage && isAllRefund) {
+                  this.$store.commit('removeOne', newOrder)
+                } else {
+                  this.$store.commit('updateOne', newOrder)
+                }
+              })
+            })
+          }
         })
       },
       //  日报显示
@@ -929,10 +1008,6 @@
         console.log('打印交班单')
       },
       moreFnClickHandler () {
-//        return this.$message({
-//          message: '当前功能暂未完善，待完善或开放',
-//          type: 'warning'
-//        })
         if (this.$route.path === '/main/otherFn') {
           this.isMoreFn = false
           this.$router.back()
@@ -975,7 +1050,6 @@
         },
         before (obj) {
           console.log(obj)
-          debugger
           if (obj.isOrder) {
             console.log('--------正在开始打印的订单Obj:', obj.id, '------------')
           } else {
@@ -987,11 +1061,12 @@
             try {
               self.$store.commit('setFinshPrintOrder', obj)
               self.$store.commit('removeOrder', obj)
-              self.$store.commit('finishPrintOrder', obj)
             } catch (e) {
               console.log(e)
             }
             console.log('---------------------结束打印的订单Obj:', obj.id)
+          } else {
+            console.log('正在进行普通打印')
           }
         },
         error (err, obj, next) {
@@ -1016,6 +1091,25 @@
           console.log('-----------打印已经完成--------------')
         }
       })
+      let netFix = (function () {
+        let times = 0
+        return {
+          isOk (cb) {
+            if (times > 0) {
+              cb && cb()
+            }
+            times = 0
+          },
+          toTry (cb) {
+            if (times < 30) {
+              times++
+              setTimeout(() => cb(true, times), 3000)
+            } else {
+              cb(false, times)
+            }
+          }
+        }
+      })()
       console.log(this.printService, 'printService')
       this.round = roundTime((next) => {
         var paramObj = {
@@ -1031,6 +1125,9 @@
           endDate: this.now
         }
         this.$http.post('/ycRest/restOrderList', paramObj).then(res => {
+          netFix.isOk(() => {
+            console.info('网络重连成功')
+          })
           let data = res.data.data
           if (data.updLog) {
             this.upLogs(data.updLog)
@@ -1046,19 +1143,31 @@
               }
             })
           }
+          next()
         }, err => {
-          next(false)
           console.log(err)
+          if (err === '请先登录') {
+            next(false)
+          } else {
+            netFix.toTry((bool, times) => {
+              if (!bool) {
+              } else {
+                console.error('网络断开正在重连中' + times)
+              }
+              next(bool)
+            })
+          }
         })
-        next()
       }, this.loopTime || 10000, false)
       this.round.start()
+      console.log('roundTime isChange')
       timer = setInterval(() => {
         this.currentTime = moment().format('YYYY年MM月DD日 HH:mm:ss')
       }, 1000)
     },
     destroyed () {
       if (this.round) {
+        console.log(this.round, 'stop---执行')
         this.round.stop()
       }
       clearInterval(timer)
