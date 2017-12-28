@@ -23,13 +23,23 @@ let order2tickets = {
       printNum: 1
     }
     if (obj.isBack) {
-      paramObj.refundDetailIds = obj.refundDetailIds
+      // 当为取消订单时不再去取对象
+      if (obj.isCancel) {
+        console.log('当前为取消订单操作，不需要去打印的订单信息')
+        return cb(null, obj)
+      } else {
+        paramObj.refundDetailIds = obj.refundDetailIds
+      }
+    }
+    if (obj.printSingleType) {
+      paramObj.isSingle = obj.printSingleType
     }
     Vue.http.post('/ycRest/printRestOrder', paramObj).then(res => {
-      console.log(res)
-      if (res.data) {
+      let resData = res.data
+      if (resData.retCode === 0) {
         cb(null, res.data.data)
       } else {
+        console.error('拉取打印数据报错')
         cb(new Error('请求返回的数据不正确'))
       }
     }, err => {
@@ -41,6 +51,7 @@ let order2tickets = {
     if (this.isOrder(order)) {
       this.getPrintData(order, (err, orderData) => {
         if (err) {
+          console.error('请求打印对象出错')
           cb(err)
         }
         let tmpOrder = Object.assign({}, order, orderData)
@@ -52,21 +63,25 @@ let order2tickets = {
     }
   },
   orderChangeList (order, cb) {
-    let newOrder = order
-    let consumptionOrder = this.createConsumptionOrder(newOrder)
-    let billingOrder = this.createBilling(newOrder)
-    let kitchenOrders = this.createKitchen(newOrder)
-    if (order.printSingleType) {
-      switch (order.printSingleType) {
-        case 1: cb(null, [consumptionOrder])
-          break
-        case 2: cb(null, [billingOrder])
-          break
-        case 3: cb(null, [...kitchenOrders])
-          break
+    try {
+      let newOrder = order
+      let consumptionOrder = this.createConsumptionOrder(newOrder)
+      let billingOrder = this.createBilling(newOrder)
+      let kitchenOrders = this.createKitchen(newOrder)
+      if (order.printSingleType) {
+        switch (order.printSingleType) {
+          case 1: cb(null, [consumptionOrder])
+            break
+          case 2: cb(null, [billingOrder])
+            break
+          case 3: cb(null, [...kitchenOrders])
+            break
+        }
+      } else {
+        cb(null, [consumptionOrder, billingOrder, ...kitchenOrders])
       }
-    } else {
-      cb(null, [consumptionOrder, billingOrder, ...kitchenOrders])
+    } catch (e) {
+      cb(new Error('模板编译出错'))
     }
   },
   //  普通对象打印处理
@@ -241,6 +256,10 @@ let order2tickets = {
   },
   getAllkitchen (list, order) {
     let tmp = []
+    if (!list) {
+      console.error(list, '获取后厨退菜为空值，快去看看呀')
+      return tmp
+    }
     list.forEach(item => {
       if (order.isBack) {
         if (item.buyCount > 0 || !item.fnPrintTag) {

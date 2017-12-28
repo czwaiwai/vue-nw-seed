@@ -33,6 +33,7 @@ let printFactory = {
         console.log(priOne, i, 'priOne')
         new ChnPrinter(priOne.name, function (err, msg) {
           if (err) {
+            console.error('打印机初始化出错')
             return cb(new Error('打印机初始化出错'))
           }
           i++
@@ -50,12 +51,13 @@ let printFactory = {
     let printTmp = arr[0]
     if (printTmp) {
       let chnObject = printTmp.chnPrinter
-      chnObject.compile(ticket.tpl).print(function (err, msg) {
+      chnObject.compile(ticket.tpl).beep('\x02').print(function (err, msg) {
         console.log(msg)
         chnObject.empty()
         if (msg === 'Print successed') {
           return cb(err, msg)
         } else {
+          console.error('打印机调用出错')
           return cb(new Error('调用打印机报错'))
         }
       })

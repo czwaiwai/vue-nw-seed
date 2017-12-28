@@ -3,13 +3,17 @@
  */
 import OrderSave from '../../utils/orderSave'
 import {orderSign, orderSignOne} from '../../utils/orderFormat'
+var isAuto = true
+if (process.env.NODE_ENV === 'development') {
+  isAuto = false
+}
 export default {
   state: {
     printOrders: [],
     hisOrders: [],
     hisOrderIds: [],
     activeOrder: null,
-    isAuto: true,
+    isAuto: isAuto,
     printService: null,
     printTpl: null,
     loopTime: 10000,
@@ -128,7 +132,17 @@ export default {
       order.isBack = true
       let newOrder = orderSignOne(order)
       commit('removeActiveOrder')
-      console.log('是否打印过这个订单', newOrder.isPrint)
+      console.log('退单退菜：是否打印过这个订单', newOrder.isPrint)
+      if (newOrder.isPrint) {
+        return newOrder
+      }
+    },
+    orderCancel ({state, commit}, {order}) {
+      order.isBack = true
+      order.isCancel = true
+      let newOrder = orderSignOne(order)
+      commit('removeActiveOrder')
+      console.log('取消订单~ 订单是否打印过：', newOrder.isPrint)
       if (newOrder.isPrint) {
         return newOrder
       }

@@ -48,7 +48,7 @@ axios.interceptors.request.use(function (config) {
 // 添加响应拦截器
 axios.interceptors.response.use(function (response) {
   // 对响应数据做点什么
-  console.log(response)
+  console.log('请求返回结果', response)
   if (response.data) {
     let { cfgInfo, data } = response.data
     if (response.data.retCode === -1) {
@@ -57,7 +57,7 @@ axios.interceptors.response.use(function (response) {
         type: 'error'
       })
       if (response.data.retMsg === '请先登录') {
-        appVue.$alert('您的登录已失效', '其实', {
+        appVue.$alert('您的登录已失效', '提示', {
           confirmButtonText: '重新登录',
           type: 'error',
           callback: action => appVue.$router.replace({name: 'Login'})

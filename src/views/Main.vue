@@ -3,8 +3,10 @@
     <el-header style="height:44px;">
       <div class="grid-x">
         <div class="logo cell small-6">飞常赞餐饮系统 v{{appVersion}} ({{shop.restName}})</div>
-        <div class="cell small-6 text-right"><span class="logo_time">{{currentTime}}</span>
-          <a @click="exitClickHandler" class="button small alert" href="javascript:void(0)" >退出系统</a></div>
+        <div class="cell small-6 text-right" style="line-height:44px;">
+          <span class="logo_time">{{currentTime}}</span>
+          <span class="light fs12 label" style="">{{shopUser.saleName}}[{{shopUser.mobile}}]</span>
+          <a @click="exitClickHandler" style="margin:0" class="button small alert" href="javascript:void(0)" >退出系统</a></div>
       </div>
     </el-header>
     <el-container>
@@ -652,6 +654,7 @@
       toSinglePrint (type, btnName) {
         this[btnName] = true
         let order = Object.assign({}, this.activeOrder, {printSingleType: type})
+        console.log('手动补打', btnName)
         this.printService.add(order)
         setTimeout(() => {
           this[btnName] = false
@@ -663,7 +666,7 @@
       //  确认订单完成
       confirmOrderFinishHandler () {
         if (this.isActiveOrder()) {
-          if (!this.isPrint) {
+          if (!this.activeOrder.isPrint) {
             return this.$message({message: '当前订单还未打印', type: 'warn'})
           }
           this.$confirm('确认订单已处理完成', '提示', {
@@ -736,7 +739,7 @@
           }).then(() => {
             this.$http.post('/ycRest/cancelRestOrder', {id: this.activeOrder.id}).then(res => {
               let resData = res.data
-              console.log('取消订单', resData)
+              let {restOrder} = resData.data
               let id = this.activeOrder.id
               this.$store.commit('removeActiveOrder')
               if (!this.isNewPage) {
@@ -745,6 +748,11 @@
               this.$message({
                 message: '取消订单成功',
                 type: 'success'
+              })
+              this.$store.dispatch('orderCancel', {order: restOrder}).then(newOrder => {
+                if (newOrder) {
+                  this.printService.add(newOrder)
+                }
               })
             })
           }).catch(() => {})
@@ -1052,6 +1060,7 @@
           console.log(obj)
           if (obj.isOrder) {
             console.log('--------正在开始打印的订单Obj:', obj.id, '------------')
+            console.log('--------', obj && obj.vOrderNo, '--------------')
           } else {
             console.log('--------普通打印')
           }
@@ -1065,12 +1074,13 @@
               console.log(e)
             }
             console.log('---------------------结束打印的订单Obj:', obj.id)
+            console.log('---------------------', obj && obj.vOrderNo)
           } else {
             console.log('正在进行普通打印')
           }
         },
         error (err, obj, next) {
-          console.log(err, '-------------')
+          console.error(err, '打印机的时候报错了赶紧来看看')
           self.$http.post('/feeback/save', {
             title: '打印回调内错误',
             content: '出现的错误：' + JSON.stringify(err) + '错误对象' + JSON.stringify(obj)
@@ -1081,7 +1091,9 @@
             type: 'warning'
           }).then(() => {
             next(true) // 为轮询是否就继续
-          }).catch(() => {})
+          }).catch(() => {
+            next(false)
+          })
         },
         //  这个对象放弃打印
         giveup (obj) {
@@ -1120,6 +1132,7 @@
           tableNum: '',
           orderIdOrName: '',
           userMobile: '',
+          qryType: 0,
           restShopId: this.shop.id,
           startDate: this.now,
           endDate: this.now
@@ -1131,13 +1144,13 @@
           let data = res.data.data
           if (data.updLog) {
             this.upLogs(data.updLog)
+            console.info('正在拉取日志')
           }
-          console.log('返回的结果', data)
           let {restOrderList} = data
-          console.log(restOrderList, '-------------')
           if (restOrderList && restOrderList.length > 0) {
             this.$store.dispatch('pushAction', {list: restOrderList}).then((newData) => {
               console.log('我不是空数组', newData)
+              console.log('当前是自动打印状态为：', this.isAuto)
               if (this.isAuto && newData.length > 0) {
                 this.printService.add(newData)
               }
@@ -1145,7 +1158,7 @@
           }
           next()
         }, err => {
-          console.log(err)
+          console.err(err)
           if (err === '请先登录') {
             next(false)
           } else {
@@ -1160,7 +1173,7 @@
         })
       }, this.loopTime || 10000, false)
       this.round.start()
-      console.log('roundTime isChange')
+      console.log('轮询已正常启动')
       timer = setInterval(() => {
         this.currentTime = moment().format('YYYY年MM月DD日 HH:mm:ss')
       }, 1000)

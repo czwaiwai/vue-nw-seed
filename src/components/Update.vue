@@ -29,6 +29,7 @@
     },
     computed: {
       saveAsName () {
+        console.log(parseName(this.info))
         return parseName(this.info)
       }
     },

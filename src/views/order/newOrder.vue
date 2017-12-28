@@ -7,7 +7,7 @@
             <p class="text-center">{{item.tableNum}}</p>
             <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
             <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span><span style="padding-left:20px">￥{{item.fnActPayAmount | currency}}</span></p>
-            <p class="fs14 text-center"><span class="label alert">{{itemStatus(item.status)}}</span></p>
+            <p class="fs14 text-center"><span v-show="item.isPrint" class="label success">已打印</span><span class="label alert">{{itemStatus(item.status)}}</span></p>
           </a>
         </div>
       </div>
@@ -41,7 +41,6 @@
   }
   .order_item p{
     margin:0;
-
   }
 </style>
 <script type="text/ecmascript-6">

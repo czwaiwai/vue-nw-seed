@@ -41,11 +41,11 @@
     <!--</div>-->
     <div class='grid-x  small-up-2  medium-up-3 large-up-8'>
       <div v-for='item in listOrder' :key='item.id' class='cell order_block'>
-        <a class="order_item" :class="{'no_pay':item.status==9}"  @click="activeClickHandler(item)"  href="javascript:void(0)" >
+        <a class="order_item" :class="itemClass(item)"  @click="activeClickHandler(item)"  href="javascript:void(0)" >
           <p class="text-center">{{item.tableNum}}</p>
           <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
           <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span>  <span style="padding-left:20px">￥{{item.fnActPayAmount | currency}}</span></p>
-          <p class="fs14 text-center"><span class="label alert">{{itemStatus(item.status)}}</span></p>
+          <p class="fs14 text-center"><span class="label" :class="statusClass(item.status)" >{{itemStatus(item.status)}}</span></p>
         </a>
       </div>
     </div>
@@ -78,10 +78,12 @@
           status: '7',
           pageSize: 30,
           tableNum: '',
+          qryType: 2,
           orderIdOrName: '',
           userMobile: '',
           restShopId: '',
           startDate: '',
+          spQry: 1,
           endDate: ''
         },
         totalPage: 0,
@@ -115,9 +117,18 @@
           return '订单已取消'
         }
       },
+      statusClass (status) {
+        if ([4, 5].indexOf(status) > -1) {
+          return ''
+        }
+        if ([7, 8, 1].indexOf(status) > -1) {
+          return 'success'
+        }
+        return 'alert'
+      },
       itemClass (item) {
         return {
-          no_pay: item.status === 9,
+          no_pay: [0, 2, -1, 9].indexOf(item.status) > -1,
           is_print: (item.accountPrintCount + item.consumePrintCount + item.kitchenPrintCount) > 0
         }
       },

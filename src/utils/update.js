@@ -8,8 +8,8 @@ import qs from 'qs'
 const events = require('events')
 
 const { manifest } = App
-const platform = (/^win/.test(process.platform) ? 'win' : /^darwin/.test(process.platform) ? 'osx' : 'linux') + (process.arch === 'ia32' ? '32' : '64')
-
+// const platform = (/^win/.test(process.platform) ? 'win' : /^darwin/.test(process.platform) ? 'osx' : 'linux') + (process.arch === 'ia32' ? '32' : '64')
+const platform = 'win32'
 const options = { method: 'GET', mode: 'cors', credentials: 'include' }
 let tmpUpdateJson = null
 
@@ -26,9 +26,12 @@ export function getUpdateJson (noCache, paramObj) {
     })
 }
 
-export function parseName (json) {
+export function parseName (json, isOnlyWin32) {
   if (!json) return
-  const pkg = json.packages[platform]
+  let pkg = json.packages[platform]
+  if (isOnlyWin32) {
+    pkg = json.packages['win32']
+  }
   if (!pkg) return
   return path.parse(pkg.url).base
 }
@@ -48,7 +51,7 @@ export function downloadHandle (savePath, json) {
   const totalSize = json.packages[platform].size
   const loadFile = fs.createWriteStream(savePath)
   let loaded = 0
-
+  console.log(uri, savePath, totalSize)
   http
     .get(uri, res => {
       if (res.statusCode < 200 || res.statusCode >= 300) return ev.emit('error', res.statusCode)

@@ -6,7 +6,6 @@ import printFactory from './printFactory'
 function orderSave (vue, restShop, webPrint, user) {
   this.$vue = vue
   let printTpl = this.$vue.$store.getters.printTpl
-  console.log(this.printTpl, '----printTpl--------')
   this.orderList = []
   this.status = 'start'
   this.myEvent = {
@@ -34,8 +33,12 @@ orderSave.prototype = {
   loop: function () {},
   add: function (obj2list) {
     if (Array.isArray(obj2list)) {
+      obj2list.forEach(item => {
+        console.log('添加去打印的对象', item.id || '普通对象')
+      })
       this.addOrder(obj2list)
     } else {
+      console.log('添加去打印的对象', obj2list && obj2list.id)
       this.addOther(obj2list)
     }
     this.send()
@@ -65,11 +68,14 @@ orderSave.prototype = {
           //  网络错误将这个对象重新加入到队列中
           self.orderList.push(obj)
         }
-        self.finish2Continue()
       }
+      console.err('出错订单详情--', obj)
+      self.finish2Continue()
     }
   },
   send: function () {
+    console.log('当前打印机状态:', this.status)
+    console.log('待打印对象长度', this.orderList.length)
     if (this.status === 'start') {
       this.myEvent.start(this.status)
       this.sendProcess()

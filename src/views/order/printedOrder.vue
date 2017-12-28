@@ -44,6 +44,7 @@
           page: 1,
           status: 10,
           pageSize: 30,
+          spQry: 1,
           tableNum: '',
           orderIdOrName: '',
           userMobile: '',
@@ -107,7 +108,7 @@
         this.orderForm.endDate = this.now
         console.log('shop', this.shop)
         this.orderForm.restShopId = this.shop.id
-        let params = Object.assign({}, this.orderForm)
+        let params = Object.assign({qryType: 1}, this.orderForm)
         return this.$http.post('/ycRest/restOrderList', params).then(res => {
           console.log(res)
           let resData = res.data

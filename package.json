@@ -2,8 +2,8 @@
   "name": "fcz_application",
   "appName": "飞常赞应用",
   "version": "0.1.2",
-  "description": "A seed project with Vue.js and Nw.js",
-  "author": "anchengjian <anchengjian@gmail.com>",
+  "description": "飞常赞是广州逸臣商贸有限公司旗下孵化的第三方互联网平台，整合机场内餐饮、零售、休闲、娱乐等资源，打造以航延服务为核心的一体化解决方案。",
+  "author": "深圳非常赞网络科技有限公司",
   "private": true,
   "scripts": {
     "dev": "node build/dev-server.js",
@@ -92,9 +92,9 @@
   "window": {
     "title": "飞常赞商家管理平台",
     "toolbar": false,
-    "width": 800,
+    "width": 850,
     "height": 500,
-    "min_width": 800,
+    "min_width": 850,
     "min_height": 500,
     "resizable": true,
     "frame": true,
