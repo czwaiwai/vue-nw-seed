@@ -79,11 +79,18 @@ axios.interceptors.response.use(function (response) {
   return response
 }, function (error) {
   // 对响应错误做点什么
+  console.log(error)
+  appVue.$message({
+    message: '当前网路不稳定',
+    type: 'warning'
+  })
   return Promise.reject(error)
 })
 Vue.prototype.$http = axios
 Vue.http = axios
-
+window.onerror = function (e) {
+  console.error(e)
+}
 Vue.config.errorHandler = (function () {
   let i = 0
   return function (err, vm) {
@@ -93,7 +100,7 @@ Vue.config.errorHandler = (function () {
       console.error(err.message, '\n', err.stack)
       if (i < 1) {
         i++
-        Vue.http.post('/feeback/save', {title: '前端js异常', content: '' + err.message + '路由地址：' + location.href + '\n\r' + err.stack}).then(() => {
+        Vue.http.post('/feeback/save', {title: '桌面版页面错误', content: '' + err.message + '路由地址：' + location.href + '\n\r' + err.stack}).then(() => {
           i = 0
         })
       }

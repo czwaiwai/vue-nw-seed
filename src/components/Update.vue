@@ -6,14 +6,21 @@
     </section>
     <section class="update-container text-center" style="padding:40px;" v-if="info">
       <h2>新版本 <small>版本号: {{info.version}}</small></h2>
-      <button type="button" class="update-btn" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="showFileDialog">点我更新</button>
+      <button type="button" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="showFileDialog">点我更新</button>
       <input type="file" class="hidden" ref="fileInput" :nwsaveas="saveAsName" @change="startDownload">
+      <div class="text-left" style="width:400px;margin:0 auto;">
+        <p v-html="updateInfo"></p>
+      </div>
     </section>
-    <p v-if="progress === -2">下载错误 error</p>
-    <p v-if="progress >= 0">下载进度: {{progress}} %</p>
+    <div class="text-center">
+      <p v-if="progress === -2">下载错误 error</p>
+      <div v-if="progress >= 0" style="width:600px;margin:0 auto">
+        <el-progress :text-inside="true" :stroke-width="18" :percentage="progress" status="success"></el-progress>
+      </div>
+      <p v-if="progress >= 0">下载进度: {{progress}} %</p>
+    </div>
   </section>
 </template>
-
 <script>
   import { getUpdateJson, parseName, downloadHandle } from '@/utils/update'
   import { Shell } from 'nw.gui'
@@ -29,11 +36,17 @@
     },
     computed: {
       saveAsName () {
-        console.log(parseName(this.info))
+        console.log(this.info)
         return parseName(this.info)
+      },
+      updateInfo () {
+        return this.parseUpdateInfo(this.info)
       }
     },
     methods: {
+      parseUpdateInfo (info) {
+        return info.versionInfo || ''
+      },
       showFileDialog (ev) {
         this.$refs.fileInput.click()
       },

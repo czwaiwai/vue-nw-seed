@@ -33,8 +33,8 @@ let printFactory = {
         console.log(priOne, i, 'priOne')
         new ChnPrinter(priOne.name, function (err, msg) {
           if (err) {
-            console.error('打印机初始化出错')
-            return cb(new Error('打印机初始化出错'))
+            console.error('错误：打印机初始化出错')
+            return cb(new Error('错误：打印机初始化出错'))
           }
           i++
           priOne.chnPrinter = this
@@ -57,8 +57,8 @@ let printFactory = {
         if (msg === 'Print successed') {
           return cb(err, msg)
         } else {
-          console.error('打印机调用出错')
-          return cb(new Error('调用打印机报错'))
+          console.error('错误：打印机调用出错')
+          return cb(new Error('错误：调用打印机报错'))
         }
       })
     } else {
@@ -69,6 +69,7 @@ let printFactory = {
   printProcess (tickets, priArr, cb) {
     let self = this
     let ticket = tickets.shift()
+    console.log('取出一个ticket', ticket)
     if (ticket) {
       this.tickPrint(ticket, priArr, function (err, msg) {
         if (err) {
@@ -77,6 +78,7 @@ let printFactory = {
         self.printProcess(tickets, priArr, cb)
       })
     } else {
+      console.log('订单打印完成')
       cb(null, '订单打印完成')
     }
   },

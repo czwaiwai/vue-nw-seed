@@ -90,7 +90,7 @@
                 <button @click="printedOrderHandler"  type="button" class="button  light expanded  margin5   ">已打印单</button>
               </div>
               <div class="cell small-3">
-                <button type="button" @click="workClickRecordHandler" class="button light  expanded  margin5   ">打卡记录</button>
+                <button type="button" @click="showHandoverClickHandler" class="button light  expanded  margin5   ">交班</button>
               </div>
               <div class="cell small-3">
                 <button type="button" @click="workClickHandler" class="button light   expanded  margin5   ">打卡</button>
@@ -104,19 +104,17 @@
                 <button type="button" @click="moreFnClickHandler" class="button  light expanded  margin5   ">其他功能</button>
               </div>
               <div class="cell small-3">
-                <button @click="histOrderHandler" type="button" class="button  light  expanded  margin5  ">历史订单</button>
+                <button type="button" @click="histOrderHandler" class="button  light  expanded  margin5  ">历史订单</button>
               </div>
               <div class="cell small-3">
-                <button type="button" @click="showDayClickHandler" class="button  light expanded  margin5   ">日报
-                </button>
+                <button type="button" @click="showDayClickHandler" class="button  light expanded  margin5   ">日报</button>
               </div>
-              <div class="cell small-3">
-                <button type="button" @click="showHandoverClickHandler" class="button light  expanded  margin5   ">交班
-                </button>
-              </div>
-              <!--<div class="cell small-2">-->
-                <!--<button type="button" @click="logoutClickHandle" class="button light  expanded  margin5   ">注销</button>-->
+              <!--<div class="cell small-3">-->
+                <!--<button type="button" @click="workClickRecordHandler" class="button light  expanded  margin5   ">打卡记录</button>-->
               <!--</div>-->
+              <div class="cell small-3">
+                <button type="button" @click="logoutClickHandle" class="button light  expanded  margin5   ">安全退出</button>
+              </div>
             </div>
           </div>
         </el-footer>
@@ -184,6 +182,7 @@
       <div>
         <el-radio v-model="hitCard" label="1" border>上班打卡</el-radio>
         <el-radio v-model="hitCard" label="2" border>下班打卡</el-radio>
+        <el-radio v-model="hitCard" label="3" border>交班打卡</el-radio>
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="workDialogVisible = false">取 消</el-button>
@@ -203,23 +202,26 @@
     </el-dialog>
 
     <el-dialog title="日报预览" :visible.sync="dayDialogVisible" width="600px">
-      <div class="block padding-bottom15">
-        <span class="demonstration">日期</span>
-        <el-date-picker
-          v-model="dateRange"
-          type="datetimerange"
-          time-arrow-control
-          @change="dayPaperChange"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期">
-        </el-date-picker>
-      </div>
+      <!--<div class="block padding-bottom15">-->
+        <!--<span class="demonstration">日期</span>-->
+        <!--<el-date-picker-->
+          <!--v-model="dateRange"-->
+          <!--type="datetimerange"-->
+          <!--time-arrow-control-->
+          <!--@change="dayPaperChange"-->
+          <!--range-separator="至"-->
+          <!--start-placeholder="开始日期"-->
+          <!--end-placeholder="结束日期">-->
+        <!--</el-date-picker>-->
+      <!--</div>-->
+      <!--<div>-->
+        <!--{{dateRange[0] | mydate('-')}}-->
+      <!--</div>-->
       <div class="day_paper">
         <h5>日报</h5>
         <p>店铺：{{shop.restName}}</p>
-        <p>统计开始日期：{{dateRange[0]}}</p>
-        <p>统计结束日期：{{dateRange[1]}}</p>
+        <p>统计日期：{{dateRange[0] | mydate('-') }}</p>
+        <!--<p>统计结束日期：{{dateRange[1]}}</p>-->
         <hr/>
         <p>已支付：{{dayPaperData.count}}笔 <span style="float:right">实收金额：{{dayPaperData.actualAmt}}</span></p>
         <hr/>
@@ -237,18 +239,19 @@
 
 
     <el-dialog title="交班单" :visible.sync="handoverDialogVisible" width="600px">
-      <div class="block padding-bottom15">
-        <span class="demonstration">日期</span>
-        <el-date-picker
-          v-model="dateRange"
-          type="datetimerange"
-          @change="handoverChange"
-          time-arrow-control
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期">
-        </el-date-picker>
-      </div>
+      <!--<div class="block padding-bottom15">-->
+        <!--<span class="demonstration">日期</span>-->
+        <!--<el-date-picker-->
+          <!--v-model="dateRange"-->
+          <!--type="datetimerange"-->
+          <!--@change="handoverChange"-->
+          <!--time-arrow-control-->
+          <!--range-separator="至"-->
+          <!--start-placeholder="开始日期"-->
+          <!--end-placeholder="结束日期">-->
+        <!--</el-date-picker>-->
+      <!--</div>-->
+      <div>日期：<label style="display:inline-block">{{ dateRange[0] | mydate('-') }}</label></div>
       <div class="handover">
         <div class="grid-container full">
           <div class="grid-x grid-margin-x">
@@ -411,11 +414,11 @@
   import { App } from 'nw.gui'
   import roundTime from '../utils/roundTime'
   import { mapGetters } from 'vuex'
-
   import bus from '../utils/bus'
   import uploadLogs from '../utils/uploadLogs'
   import getConfig from '../utils/getConfig'
   import { amount as amountRule } from '../utils/elemFormRules'
+  import {clearLogs} from '../utils/clearLogs'
   let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
@@ -646,6 +649,7 @@
       },
       //  显示补打
       rePrintClickHandler () {
+        console.log('-----------------------显示补打')
         if (this.isActiveOrder()) {
           this.rePrintVisible = true
         }
@@ -665,6 +669,7 @@
       },
       //  确认订单完成
       confirmOrderFinishHandler () {
+        console.log('-----------------------确认订单完成')
         if (this.isActiveOrder()) {
           if (!this.activeOrder.isPrint) {
             return this.$message({message: '当前订单还未打印', type: 'warn'})
@@ -691,6 +696,7 @@
       },
       //  确定线下收款
       confirmPayCashHandler () {
+        console.log('-----------------------确定线下收款')
         if (this.isActiveOrder()) {
           this.$confirm('确认线下收款' + this.activeOrder.fnActPayAmount + '元', '提示', {
             confirmButtonText: '确定',
@@ -725,6 +731,7 @@
       },
       //  取消订单
       cancelOrder () {
+        console.log('-----------------------取消订单')
         if (this.isActiveOrder()) {
           if (this.activeOrder.status !== 9) {
             return this.$message({
@@ -737,10 +744,10 @@
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            this.$http.post('/ycRest/cancelRestOrder', {id: this.activeOrder.id}).then(res => {
+            let id = this.activeOrder.id
+            this.$http.post('/ycRest/cancelRestOrder', {id: id}).then(res => {
               let resData = res.data
               let {restOrder} = resData.data
-              let id = this.activeOrder.id
               this.$store.commit('removeActiveOrder')
               if (!this.isNewPage) {
                 this.$store.commit('removeOneById', id)
@@ -754,6 +761,8 @@
                   this.printService.add(newOrder)
                 }
               })
+            }).catch(err => {
+              console.error('取消订单操作报错', err)
             })
           }).catch(() => {})
         }
@@ -790,6 +799,10 @@
         this.workDialogVisible = true
       },
       hitCardClickHandler () {
+        console.log('-----------------------打卡')
+        if (!this.hitCard) {
+          return this.$message.warning('请选择你要打的卡')
+        }
         this.$http.post('/ycRest/assistantSign', {signType: this.hitCard}).then((res) => {
           this.$message({
             message: '你已打卡成功',
@@ -801,6 +814,7 @@
       //  上班打卡记录
       workClickRecordHandler (e) {
         //  /ycRest/assistantSignRecord
+        console.log('-----------------------上班打卡记录')
         this.hitDate = now
         if (typeof e === 'string') {
           this.hitDate = e
@@ -822,6 +836,7 @@
       },
       // 改价显示
       changeAmtClickHandler () {
+        console.log('-----------------------改价显示')
         if (this.isActiveOrder()) {
           this.changeAmtForm.adjAmt = this.activeOrder.fnActPayAmount
           this.changeAmtForm.adjRemark = ''
@@ -830,6 +845,7 @@
 //      /ycRest/correctAmout
       },
       changeAmtConfirm (formName) {
+        console.log('-----------------------确认改价')
         this.$refs[formName].validate(valid => {
           if (valid) {
             let params = Object.assign({id: this.activeOrder.id, adjOpuser: this.shopUser.saleId}, this.changeAmtForm)
@@ -855,6 +871,7 @@
       },
       // 退单显示
       backAmtClickHandler () {
+        console.log('-----------------------退单显示')
         if (this.isActiveOrder()) {
           this.backAmtForm.id = this.activeOrder.id
           this.backAmtForm.refundAmt = this.activeOrder.fnActPayAmount
@@ -862,6 +879,7 @@
         }
       },
       backAmtConfirm (formName) {
+        console.log('-----------------------退单确认')
         this.$refs[formName].validate(valid => {
           if (valid) {
             this.$http.post('/ycRest/refundRestOrder', this.backAmtForm).then((res) => {
@@ -888,6 +906,7 @@
       },
       //  退菜
       backCaiClickHandler () {
+        console.log('-----------------------退菜')
         if (this.isActiveOrder()) {
           this.backCaiForm = {
             detailInfos: '',
@@ -916,6 +935,7 @@
         }
       },
       backCaiConfirm (formName) {
+        console.log('-----------------------退菜确定')
         this.$refs[formName].validate(valid => {
           if (valid) {
             let tuiArr = this.backCaiList.map(item => {
@@ -952,7 +972,8 @@
       },
       //  日报显示
       showDayClickHandler () {
-        this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id, returnType: 1}).then(res => {
+        console.log('-----------------------日报显示')
+        this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id, returnType: 1, exchangeType: 3}).then(res => {
           this.dayDialogVisible = true
           let resData = res.data
           let {data, saleBeginTime, saleEndTime} = resData.data
@@ -964,6 +985,7 @@
         })
       },
       dayPaperChange (e) {
+        console.log('-----------------------日报修改日期')
         let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
         let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
         this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, restShopId: this.shop.id}).then(res => {
@@ -976,6 +998,7 @@
         })
       },
       printDayPaper () {
+        console.log('-----------------------打印日报')
         console.log(bus)
         let dayPaperData = Object.assign({tplName: 'dayPaper', restName: this.shop.restName}, this.dayPaperData)
         this.printService.add(dayPaperData)
@@ -983,6 +1006,7 @@
       },
       //  交办单日期变更
       handoverChange () {
+        console.log('-----------------------交办单日期变更')
         let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
         let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
         this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, restShopId: this.shop.id}).then(res => {
@@ -998,7 +1022,8 @@
       },
       //  交办单显示
       showHandoverClickHandler () {
-        this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id}).then(res => {
+        console.log('-----------------------交办单显示')
+        this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id, exchangeType: 3}).then(res => {
           this.handoverDialogVisible = true
           let resData = res.data
           let {data, saleBeginTime, saleEndTime} = resData.data
@@ -1010,6 +1035,7 @@
         })
       },
       printHandover () {
+        console.log('-----------------------打印交班单')
         let handoverData = Object.assign({tplName: 'handover', restName: this.shop.restName}, this.handoverData)
         this.printService.add(handoverData)
         this.handoverDialogVisible = false
@@ -1025,14 +1051,23 @@
         }
       },
       logoutClickHandle () {
-        this.$http.post('/doLogout').then((res) => {
-          if (res.data.retCode === 0) {
-            this.$store.commit('logout')
-            this.$router.replace({name: 'Login'})
-          }
-        })
+        console.log('-----------------------退出登录')
+        this.$confirm('你确定要切换账号么', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          clearLogs()
+          this.$http.post('/doLogout').then((res) => {
+            if (res.data.retCode === 0) {
+              this.$store.commit('logout')
+              this.$router.replace({name: 'Login'})
+            }
+          })
+        }).catch(() => {})
       },
       upLogs (date) {
+        console.log('-----------------------拉取日志')
         if (date) {
           uploadLogs(this, this.shop.id, date)
         }
@@ -1040,6 +1075,7 @@
     },
     components: {},
     created () {
+      let self = this
       getConfig.then((json) => {
         this.appVersion = json.version
       })
@@ -1050,8 +1086,7 @@
         user: this.user
       })
       this.printService = this.$store.getters.printService
-//      this.printService = new OrderSave(this, this.shop, this.shopPrint, this.user)
-      let self = this
+      this.printService.setUser(this.user)
       this.printService.listen({
         start () {
           console.log('----------打印已经开始了---------------')
@@ -1080,11 +1115,7 @@
           }
         },
         error (err, obj, next) {
-          console.error(err, '打印机的时候报错了赶紧来看看')
-          self.$http.post('/feeback/save', {
-            title: '打印回调内错误',
-            content: '出现的错误：' + JSON.stringify(err) + '错误对象' + JSON.stringify(obj)
-          })
+          console.error(err, '错误：打印机的时候报错了赶紧来看看')
           self.$confirm('打印出错是否继续', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -1094,10 +1125,14 @@
           }).catch(() => {
             next(false)
           })
+          self.$http.post('/feeback/save', {
+            title: '打印回调内错误',
+            content: '出现的错误：' + JSON.stringify(err) + '错误对象' + JSON.stringify(obj)
+          })
         },
         //  这个对象放弃打印
         giveup (obj) {
-          console.log('----------这个订单被放弃了:', obj.id)
+          console.log('错误：----------这个订单被放弃了:', obj.id)
         },
         done () {
           console.log('-----------打印已经完成--------------')
@@ -1110,6 +1145,9 @@
             if (times > 0) {
               cb && cb()
             }
+            times = 0
+          },
+          clear () {
             times = 0
           },
           toTry (cb) {
@@ -1149,7 +1187,7 @@
           let {restOrderList} = data
           if (restOrderList && restOrderList.length > 0) {
             this.$store.dispatch('pushAction', {list: restOrderList}).then((newData) => {
-              console.log('我不是空数组', newData)
+              console.log('我不是空数组', JSON.stringify(newData))
               console.log('当前是自动打印状态为：', this.isAuto)
               if (this.isAuto && newData.length > 0) {
                 this.printService.add(newData)
@@ -1158,18 +1196,32 @@
           }
           next()
         }, err => {
-          console.err(err)
+          console.error('错误：', err)
           if (err === '请先登录') {
             next(false)
           } else {
             netFix.toTry((bool, times) => {
               if (!bool) {
+                this.$confirm('尝试连接失败，是否继续检测', '提示', {
+                  confirmButtonText: '是',
+                  cancelButtonText: '重新登录',
+                  type: 'warning'
+                }).then(() => {
+                  next(true) // 为轮询是否就继续
+                }).catch(() => {
+                  next(false)
+                  netFix.clear()
+                  this.$router.replace({name: 'Login'})
+                })
               } else {
-                console.error('网络断开正在重连中' + times)
+                next(bool)
+                this.$message.error('网络断开正在重连中' + times)
+                console.error('错误：' + '网络断开正在重连中' + times)
               }
-              next(bool)
             })
           }
+        }).catch(err => {
+          console.error('错误：轮询catch', err)
         })
       }, this.loopTime || 10000, false)
       this.round.start()

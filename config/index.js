@@ -47,7 +47,7 @@ module.exports = {
         // platforms: ['win32', 'win64', 'osx64'],
         platforms: ['win32'],
         version: '0.14.7',
-        // flavor: 'sdk',
+        //flavor: 'sdk',
         flavor: 'normal',
         cacheDir: resolve('./node_modules/_nw-builder-cache/'),
         buildDir: resolve('./releases'),
@@ -85,10 +85,10 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/api':{
-        target:'http://www.fcz360.com',//官网
-        // target:'http://192.168.2.108:88',//钟老师电脑
-        //target:'http://192.168.2.107:8080',//小婷电脑
-        //target:'http://192.168.2.105:8080',//
+        // target:'http://www.fcz360.com',//  官网
+        // target:'http://192.168.2.108:88',//  钟老师电脑
+        // target:'http://192.168.2.107:80',// 小婷电脑
+        target:'http://192.168.2.105:8080',//
         changeOrigin:true,
         pathRewrite:{
           '^/api':'/'

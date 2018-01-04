@@ -30,6 +30,9 @@ orderSave.prototype = {
   listen: function (orderStateObj) {
     Object.assign(this.myEvent, orderStateObj)
   },
+  setUser: function (user) {
+    order2tickets.setUser(user)
+  },
   loop: function () {},
   add: function (obj2list) {
     if (Array.isArray(obj2list)) {
@@ -69,7 +72,7 @@ orderSave.prototype = {
           self.orderList.push(obj)
         }
       }
-      console.err('出错订单详情--', obj)
+      console.error('错误：出错订单详情--', obj)
       self.finish2Continue()
     }
   },
@@ -86,7 +89,7 @@ orderSave.prototype = {
     this.status = 'waiting'
     let obj = this.orderList.shift()
     if (!obj) {
-      console.err('出现了空的打印对象，请检查代码逻辑！')
+      console.error('错误：出现了空的打印对象，请检查代码逻辑！')
       if (this.orderList.length === 0) {
         this.status = 'start'
         return

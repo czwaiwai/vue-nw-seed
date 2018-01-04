@@ -16,6 +16,9 @@ let order2tickets = {
   getDefaultPrintName () {
     return this.webPrint[0].name
   },
+  setUser (user) {
+    this.user = user
+  },
   //  打印前获取数据
   getPrintData (obj, cb) {
     let paramObj = {
@@ -52,7 +55,7 @@ let order2tickets = {
       this.getPrintData(order, (err, orderData) => {
         if (err) {
           console.error('请求打印对象出错')
-          cb(err)
+          return cb(err)
         }
         let tmpOrder = Object.assign({}, order, orderData)
         console.log('tmpOrder', tmpOrder)
@@ -63,37 +66,45 @@ let order2tickets = {
     }
   },
   orderChangeList (order, cb) {
+    let newOrder
+    let consumptionOrder
+    let billingOrder
+    let kitchenOrders
     try {
-      let newOrder = order
-      let consumptionOrder = this.createConsumptionOrder(newOrder)
-      let billingOrder = this.createBilling(newOrder)
-      let kitchenOrders = this.createKitchen(newOrder)
-      if (order.printSingleType) {
-        switch (order.printSingleType) {
-          case 1: cb(null, [consumptionOrder])
-            break
-          case 2: cb(null, [billingOrder])
-            break
-          case 3: cb(null, [...kitchenOrders])
-            break
-        }
-      } else {
-        cb(null, [consumptionOrder, billingOrder, ...kitchenOrders])
-      }
+      newOrder = order
+      consumptionOrder = this.createConsumptionOrder(newOrder)
+      billingOrder = this.createBilling(newOrder)
+      kitchenOrders = this.createKitchen(newOrder)
     } catch (e) {
-      cb(new Error('模板编译出错'))
+      return cb(new Error('模板编译出错', e))
+    }
+    if (order.printSingleType) {
+      switch (order.printSingleType) {
+        case 1: cb(null, [consumptionOrder])
+          break
+        case 2: cb(null, [billingOrder])
+          break
+        case 3: cb(null, [...kitchenOrders])
+          break
+      }
+    } else {
+      cb(null, [consumptionOrder, billingOrder, ...kitchenOrders])
     }
   },
   //  普通对象打印处理
   normalList (obj, cb) {
     if (!obj.tplName) {
-      cb(new Error('普通打印，没有设定打印模板'))
+      return cb(new Error('普通打印，没有设定打印模板'))
     }
-    let objNew = Object.assign({}, obj)
-    objNew.tpl = this.TplFn(objNew)
-    console.log(objNew, '普通打印模板')
-    objNew.printName = obj.printName || this.getDefaultPrintName()
-    cb(null, [objNew])
+    let objNew = Object.assign({user: this.user}, obj)
+    try {
+      objNew.tpl = this.TplFn(objNew)
+      console.log(objNew, '普通打印模板')
+      objNew.printName = obj.printName || this.getDefaultPrintName()
+    } catch (e) {
+      return cb(new Error(e))
+    }
+    return cb(null, [objNew])
   },
   isOrder (order) {
     if (order.isOrder) {
@@ -106,7 +117,7 @@ let order2tickets = {
       return `实际支付总额:${order.adjAmt}元`
     } else {
       if (order.status === 9) {
-        return `线下支付${order.bankPayAmt}元`
+        return `线下支付:${order.bankPayAmt}元`
       } else {
         if (order.acctPayAmt) {
           return `飞常赞余额支付：${order.acctPayAmt}元`

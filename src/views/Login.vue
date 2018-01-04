@@ -120,6 +120,7 @@
               this.$store.commit('setTpl', printTpl)
               this.$store.commit('setShopUser', UserInfo.fnShopAssist)
               this.$store.commit('setShop', restShop)
+              console.log('---------------用户登录成功--------------------')
               this.$router.push('/Main/newOrder')
             })
           }
