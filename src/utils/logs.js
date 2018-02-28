@@ -8,18 +8,20 @@ var path = require('path')
 var homePath = os.homedir()
 var tmpPath = path.join(homePath, '/tmp')
 
-var exists = fs.existsSync(tmpPath)
-if (!exists) {
-  fs.mkdir(tmpPath, function (err) {
-    if (err) {
-      console.log(err)
-    }
-  })
-}
-function getDir () {
-  var exists = fs.existsSync(tmpPath)
+// var exists = fs.existsSync(tmpPath)
+// if (!exists) {
+//   fs.mkdir(tmpPath, function (err) {
+//     if (err) {
+//       console.log(err)
+//     }
+//   })
+// }
+
+function getDir (tmp) {
+  var url = tmp || tmpPath
+  var exists = fs.existsSync(url)
   if (!exists) {
-    fs.mkdirSync(tmpPath)
+    fs.mkdirSync(url)
   }
   return true
 }
@@ -41,9 +43,14 @@ var logConfig = {
     default: { appenders: ['console', 'dateFile'], level: 'debug' }
   }
 }
-function getLogger () {
+function getLogger (disk) {
   let logger = null
-  if (getDir()) {
+  let newUrl
+  if (disk) {
+    newUrl = path.join(disk, '/tmp')
+    logConfig.appenders.dateFile.filename = path.resolve(newUrl, 'fcz.log')
+  }
+  if (getDir(newUrl)) {
     log4js.configure(logConfig)
     const logger = log4js.getLogger('thing')
     logger.level = 'info'
@@ -52,6 +59,7 @@ function getLogger () {
       console.warn = logger.warn.bind(logger)
       console.error = logger.error.bind(logger)
     }
+    logger.info('测试日志是否输出')
   }
   return logger
 }

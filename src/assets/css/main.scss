@@ -2,8 +2,8 @@
 $button-palette: map-merge($foundation-palette, (
   black: #bb00ff
 )) !default;
-@import '../../../node_modules/foundation-sites/scss/foundation';
-
+//@import '../../../node_modules/foundation-sites/scss/foundation';
+@import '~foundation-sites/scss/foundation';
 @include foundation-everything;
 @import 'tool';
 

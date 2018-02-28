@@ -9,6 +9,7 @@ let order2tickets = {
     console.log(webPrint, restShop)
     this.TplFn = webTplFn(printTpl)
     this.user = user
+    console.log('得到的用户对象', this.user)
     this.webPrint = webPrint
     this.restShop = restShop
   },
@@ -19,25 +20,41 @@ let order2tickets = {
   setUser (user) {
     this.user = user
   },
-  //  打印前获取数据
-  getPrintData (obj, cb) {
-    let paramObj = {
-      orderId: obj.id,
-      printNum: 1
+  toList: function (order, cb) {
+    if (order.isOnlyTpl) {
+      this.toTickets(order, cb)
+    } else {
+      this.getPrintDataNew(order, (err, data) => {
+        if (err) {
+          return cb(err)
+        }
+        this.toTickets(data, cb)
+      })
     }
-    if (obj.isBack) {
-      // 当为取消订单时不再去取对象
-      if (obj.isCancel) {
-        console.log('当前为取消订单操作，不需要去打印的订单信息')
-        return cb(null, obj)
-      } else {
-        paramObj.refundDetailIds = obj.refundDetailIds
-      }
+  },
+  toTickets: function (data, cb) {
+    if (data.printList) {
+      return cb(null, data.printList.map(item => {
+        return Object.assign({}, {
+          printName: item.printerName,
+          printTime: moment().format('MM-DD HH:mm:ss'),
+          tpl: item.content,
+          orderId: item.orderId
+        })
+      }))
     }
+    console.error('对象中没有printList都发过来了-_-!')
+    return cb(null, [])
+  },
+  getPrintDataNew (obj, cb) {
+    let params = {orderId: obj.id, printNum: 1}
     if (obj.printSingleType) {
-      paramObj.isSingle = obj.printSingleType
+      params.type = obj.printSingleType
     }
-    Vue.http.post('/ycRest/printRestOrder', paramObj).then(res => {
+    if (obj.params) {
+      Object.assign(params, obj.params)
+    }
+    Vue.http.post('/ycRest/newPrintRestOrder', params).then(res => {
       let resData = res.data
       if (resData.retCode === 0) {
         cb(null, res.data.data)
@@ -49,22 +66,76 @@ let order2tickets = {
       cb(err)
     })
   },
-  // 转换成打印对象
-  toList: function (order, cb) {
-    if (this.isOrder(order)) {
-      this.getPrintData(order, (err, orderData) => {
-        if (err) {
-          console.error('请求打印对象出错')
-          return cb(err)
-        }
-        let tmpOrder = Object.assign({}, order, orderData)
-        console.log('tmpOrder', tmpOrder)
-        this.orderChangeList(tmpOrder, cb)
-      })
-    } else {
-      this.normalList(order, cb)
+  isOrder (order) {
+    if (order.isOrder) {
+      return true
     }
+    return false
+  }
+  // 转换成打印对象 已弃用
+  // toList: function (order, cb) {
+  //   if (this.isOrder(order)) {
+  //     if (order.orderType === 'order' || !order.orderType) {
+  //       this.getPrintData(order, (err, orderData) => {
+  //         if (err) {
+  //           console.error('请求打印对象出错')
+  //           return cb(err)
+  //         }
+  //         let tmpOrder = Object.assign({}, order, orderData)
+  //         console.log('tmpOrder', tmpOrder)
+  //         this.orderChangeList(tmpOrder, cb)
+  //       })
+  //     } else {
+  //       this.orderNoDetail(order, (err, orderData) => {
+  //         if (err) {
+  //           console.error('请求打印对象出错')
+  //           return cb(err)
+  //         }
+  //         console.log('自带模板通道')
+  //         this.orderNoDetailList(orderData, cb)
+  //       })
+  //     }
+  //   } else {
+  //     this.normalList(order, cb)
+  //   }
+  // },
+  /*
+  // 无后厨小票打印
+  orderNoDetail (order, cb) {
+    console.log('无后厨小票打印', order)
+    Vue.http.post('/ycRest/latePrintRestOrder', {orderId: order.id}).then(res => {
+      let resData = res.data
+      if (resData.retCode === 0) {
+        cb(null, res.data.data)
+      } else {
+        console.error('拉取打印数据报错')
+        cb(new Error('请求返回的数据不正确'))
+      }
+    }, err => {
+      cb(err)
+    })
   },
+  // 无后厨小票打印转换成tickets
+  orderNoDetailList (data, cb) {
+    let tmp = []
+    try {
+      data.printList.forEach(item => {
+        let order = Object.assign({}, item.fnAttach, {
+          printName: item.printerName || this.getDefaultPrintName(),
+          typeName: '小票',
+          tplName: '',
+          printTime: moment().format('MM-DD HH:mm:ss'),
+          tpl: item.content,
+          orderId: item.orderId
+        })
+        tmp.push(order)
+      })
+    } catch (e) {
+      return cb(e)
+    }
+    return cb(null, [...tmp])
+  },
+  // 正常订单打印转tickets 弃用
   orderChangeList (order, cb) {
     let newOrder
     let consumptionOrder
@@ -76,7 +147,8 @@ let order2tickets = {
       billingOrder = this.createBilling(newOrder)
       kitchenOrders = this.createKitchen(newOrder)
     } catch (e) {
-      return cb(new Error('模板编译出错', e))
+      console.error('模板编译出错')
+      return cb(new Error(e))
     }
     if (order.printSingleType) {
       switch (order.printSingleType) {
@@ -106,11 +178,35 @@ let order2tickets = {
     }
     return cb(null, [objNew])
   },
-  isOrder (order) {
-    if (order.isOrder) {
-      return true
+  //  正常订单获取打印数据
+  getPrintData (obj, cb) {
+    let paramObj = {
+      orderId: obj.id,
+      printNum: 1
     }
-    return false
+    if (obj.isBack) {
+      // 当为取消订单时不再去取对象
+      if (obj.isCancel) {
+        console.log('当前为取消订单操作，不需要去打印的订单信息')
+        return cb(null, obj)
+      } else {
+        paramObj.refundDetailIds = obj.refundDetailIds
+      }
+    }
+    if (obj.printSingleType) {
+      paramObj.isSingle = obj.printSingleType
+    }
+    Vue.http.post('/ycRest/printRestOrder', paramObj).then(res => {
+      let resData = res.data
+      if (resData.retCode === 0) {
+        cb(null, res.data.data)
+      } else {
+        console.error('拉取打印数据报错')
+        cb(new Error('请求返回的数据不正确'))
+      }
+    }, err => {
+      cb(err)
+    })
   },
   payFormat (order) {
     if (order.adjAmt) {
@@ -153,6 +249,7 @@ let order2tickets = {
     newOrder.printTime = moment().format('MM-DD HH:mm:ss')
     newOrder.payText = this.payText(order.payType)
     newOrder.tpl = this.TplFn(newOrder)
+    console.log('创建消费单对象')
     return newOrder
   },
   //  创建结账单
@@ -167,6 +264,7 @@ let order2tickets = {
     newOrder.payFormat = this.payFormat(newOrder)
     newOrder.payText = this.payText(order.payType)
     newOrder.tpl = this.TplFn(newOrder)
+    console.log('创建的结账单')
     return newOrder
   },
   // 创建后厨单
@@ -295,6 +393,7 @@ let order2tickets = {
     })
     return tmp
   }
+  */
 }
 
 export default order2tickets

@@ -21,7 +21,7 @@ module.exports = {
   externals:[
     function() {
     var exts = {}
-    var lis=['chn-escpos','printer','log4js'];
+    var lis=['chn-escpos','printer','log4js','iconv-lite','escpos', 'pngjs','qr-image','get-pixels','mutable-buffer'];
     fs.readdirSync(path.join(__dirname, '../node_modules')).forEach(function(item) { // 我没有使用es6
       if(item.indexOf('.') === 0) return
       if(lis.indexOf(item)>-1){

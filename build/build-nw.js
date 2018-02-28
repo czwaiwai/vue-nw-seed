@@ -23,13 +23,13 @@ config.build.nw.manifest.forEach(function(v, i) {
   else if (util.isObject(v)) manifest = util._extend(manifest, v)
 })
 config.build.nw.manifestModules.forEach(function(v,i){
-  console.log(v);
   if(!manifest['dependencies']){
     manifest['dependencies']={};
   }
+  let tmp =JSON.parse(JSON.stringify(tmpJson['dependencies']))
   manifest['dependencies'][v]=tmpJson['dependencies'][v]
 })
-
+console.log(manifest)
 fs.writeFile(manifestPath, JSON.stringify(manifest, null, '  '), 'utf-8', function(err) {
   if (err) throw err
   // start build app

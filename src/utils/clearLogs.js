@@ -6,7 +6,7 @@ const path = require('path')
 const os = require('os')
 const moment = require('moment')
 let tmpPath = path.resolve(os.homedir(), 'tmp')
-export function clearLogs (beforeDays = 30) {
+export function clearLogs (beforeDays = 7) {
   fs.readdir(tmpPath, function (err, files) {
     if (err) {
       return console.log('错误:读取目录出错', err)

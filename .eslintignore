@@ -1,4 +1,6 @@
 build/*.js
 config/*.js
 src/filter/*.js
+src/utils/image.js
+src/utils/utils.js
 src/test.js

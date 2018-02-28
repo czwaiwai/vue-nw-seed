@@ -1,31 +1,31 @@
 <template>
-    <div>
-      <el-form :inline="true" :model="orderForm" class="demo-form-inline">
-        <el-form-item label="订单号">
-          <el-input v-model="orderForm.vOrderNo" placeholder="订单号"></el-input>
-        </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="orderForm.userMobile" placeholder="手机号"></el-input>
-        </el-form-item>
-        <el-form-item label="桌台号">
-          <el-input v-model="orderForm.tableNum" placeholder="桌台号"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="onSubmit">查询</el-button>
-        </el-form-item>
-      </el-form>
-      <el-pagination background @current-change="currentChangeHandler" layout="total , prev, pager, next" :page-size="orderForm.pageSize" :total="totalRecord"></el-pagination>
-      <div  v-loading="isLoading" class='grid-x  small-up-2  medium-up-3 large-up-8'>
-        <div v-for='item in listOrder' :key='item.id' class='cell order_block'>
-          <a class="order_item" :class="{'no_pay':item.status==9}"  @click="activeClickHandler(item)"  href="javascript:void(0)" >
-            <p class="text-center">{{item.orderType==='pay'?'支付凭证':item.tableNum}}</p>
-            <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
-            <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span>  <span style="padding-left:20px">￥{{item.fnActPayAmount | currency}}</span></p>
-            <p class="fs14 text-center"><span class="label alert">{{itemStatus(item.status)}}</span></p>
-          </a>
-        </div>
+  <div>
+    <el-form :inline="true" :model="orderForm" class="demo-form-inline">
+      <el-form-item label="订单号">
+        <el-input v-model="orderForm.vOrderNo" placeholder="订单号"></el-input>
+      </el-form-item>
+      <el-form-item label="手机号">
+        <el-input v-model="orderForm.userMobile" placeholder="手机号"></el-input>
+      </el-form-item>
+      <el-form-item label="桌台号">
+        <el-input v-model="orderForm.tableNum" placeholder="桌台号"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onSubmit">查询</el-button>
+      </el-form-item>
+    </el-form>
+    <el-pagination background @current-change="currentChangeHandler" layout="total , prev, pager, next" :page-size="orderForm.pageSize" :total="totalRecord"></el-pagination>
+    <div  v-loading="isLoading" class='grid-x  small-up-2  medium-up-3 large-up-8'>
+      <div v-for='item in listOrder' :key='item.id' class='cell order_block'>
+        <a class="order_item" :class="{'no_pay':[0,9].indexOf(item.status)>-1}"  @click="activeClickHandler(item)"  href="javascript:void(0)" >
+          <p class="text-center">{{item.orderType==='pay'?'支付凭证':item.tableNum}}</p>
+          <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
+          <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span>  <span style="padding-left:20px">￥{{item.fnActPayAmount | currency}}</span></p>
+          <p class="fs14 text-center"><span class="label alert">{{itemStatus(item.status)}}</span></p>
+        </a>
       </div>
     </div>
+  </div>
 </template>
 <style rel='stylesheet/scss' lang='scss'>
 
@@ -112,7 +112,7 @@
         this.orderForm.restShopId = this.shop.id
         let params = Object.assign({qryType: 1}, this.orderForm)
         this.isLoading = true
-        return this.$http.post('/ycRest/restOrderList', params).then(res => {
+        return this.$http.post('/ycRest/restZXOrderList', params).then(res => {
           console.log(res)
           this.isLoading = false
           let resData = res.data

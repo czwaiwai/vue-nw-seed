@@ -15,16 +15,25 @@ function orderSave (vue, restShop, webPrint, user) {
     change: this.loop,
     giveup: this.loop,
     error: this.loop,
+    sysError: function (error) {
+      console.error(error)
+      vue.$alert('打印机配置出现错误无法正常操作，请尽快管理员联系', {
+        confirmButtonText: '确定',
+        callback: action => {
+          vue.$store.dispatch('logoutAction').then(() => {
+            vue.$router.replace({name: 'Login'})
+          })
+        }
+      })
+    },
     done: this.loop
   }
-  // if (typeof this.printTpl === 'undefined') {
-  //   throw new Error('未能成功获取到打印模板')
-  // }
   if (!Array.isArray(webPrint)) {
-    throw new Error('没有获取到配置打印机的信息')
+    this.myEvent.sysError(new Error('没有获取到配置打印机的信息'))
+    return
   }
   order2tickets.init(webPrint, restShop, user, printTpl)
-  printFactory.init(webPrint)
+  printFactory.init(webPrint, this.$vue)
 }
 orderSave.prototype = {
   listen: function (orderStateObj) {
@@ -59,6 +68,17 @@ orderSave.prototype = {
       obj.tryNum ++
     }
   },
+  getPrintState () {
+    return this.status
+  },
+  setPrintState (state) {
+    if (['start', 'waiting'].indexOf(state) > -1) {
+      this.status = state
+    }
+  },
+  showList () {
+    return this.orderList
+  },
   errNext (obj) {
     let self = this
     return function (isContinue = true, times = 5) {
@@ -72,7 +92,7 @@ orderSave.prototype = {
           self.orderList.push(obj)
         }
       }
-      console.error('错误：出错订单详情--', obj)
+      console.error('错误：出错订单详情--', Object.assign({}, obj))
       self.finish2Continue()
     }
   },
@@ -90,7 +110,7 @@ orderSave.prototype = {
     let obj = this.orderList.shift()
     if (!obj) {
       console.error('错误：出现了空的打印对象，请检查代码逻辑！')
-      if (this.orderList.length === 0) {
+      if (this.isEmptyList()) {
         this.status = 'start'
         return
       } else {
@@ -104,13 +124,19 @@ orderSave.prototype = {
         return self.myEvent.error(err, obj, self.errNext(obj))
       }
       // 发送到打印机
-      printFactory.send(tickets, function (err, msg) {
-        if (err) {
-          return self.myEvent.error(err, obj, self.errNext(obj))
-        }
+      if (tickets && tickets.length > 0) {
+        printFactory.send(tickets, function (err, msg) {
+          if (err) {
+            return self.myEvent.error(err, obj, self.errNext(obj))
+          }
+          self.myEvent.after(obj)
+          self.finish2Continue()
+        })
+      } else {
+        console.error('空对象去打印无法打印')
         self.myEvent.after(obj)
         self.finish2Continue()
-      })
+      }
     })
   },
   finish2Continue () {

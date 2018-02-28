@@ -19,7 +19,9 @@ export function orderSignOne (order) {
   } else if (order.status === 7) {
     order.btnStatus = btnStatus[3]
   }
-  if ((order.accountPrintCount + order.consumePrintCount + order.kitchenPrintCount)) {
+  if ((order.accountPrintCount + order.consumePrintCount + order.kitchenPrintCount) > 0) {
+    order.isPrint = true
+  } else if (order.latePrintCount > 0) {
     order.isPrint = true
   } else {
     order.isPrint = false

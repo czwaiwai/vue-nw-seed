@@ -1,22 +1,33 @@
 <template>
   <div class="page ">
     <div class="login_bg_01"></div>
-    <div class="row login_bg_02">
-      <div class="login_block column align-self-middle">
-        <h4 class="text-center padding-bottom">商家登录</h4>
-        <form novalidate @submit.prevent="submitHandler">
-            <div class="input-group login_input">
-              <span class="input-group-label login_user_icon"></span>
-              <input v-model="formObj.mobile" name="mobile" type="text" id="userName" placeholder="请输入用户名/手机号">
+    <div class="row ">
+      <div class="login_bg_02" style="width: 855px;height: 470px;margin: 0px auto;">
+        <div class="login_block column align-self-middle">
+          <h4 class="text-center padding-bottom">商家登录</h4>
+          <form novalidate @submit.prevent="submitHandler">
+            <div class="grid-x">
+              <div class="cell small-6">
+                <div class="input-group login_input">
+                  <span class="input-group-label login_user_icon"></span>
+                  <input @focus="inputFocus" v-model="formObj.mobile" name="mobile" type="text" id="userName" placeholder="请输入用户名/手机号">
+                </div>
+                <div class="input-group login_input">
+                  <span class="input-group-label login_lock_icon"></span>
+                  <input @focus="inputFocus"  v-model="formObj.passWd" name="passWd" id="password" type="password" placeholder="请输入登录密码">
+                </div>
+                <div class="text-center submit_btn_group padding">
+                  <button class="login_btn button primary expanded fcz " :disabled="isLoading" style="color:#FFF"  type="submit">
+                    <span v-show="isLoading">正在</span>登录<span class="dotting" v-show="isLoading"></span>
+                  </button>
+                </div>
+              </div>
+              <div class="cell small-6 text-right">
+                <vir-keyboard :input="input" style="width:250px;margin-top:-5px;display:inline-block" ></vir-keyboard>
+              </div>
             </div>
-            <div class="input-group login_input">
-              <span class="input-group-label login_lock_icon"></span>
-              <input v-model="formObj.passWd" name="passWd" id="password" type="password" placeholder="请输入登录密码">
-            </div>
-          <div class="text-center submit_btn_group padding">
-            <button class=" login_btn button primary expanded fcz " style="color:#FFF"  type="submit">登录</button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -31,15 +42,17 @@
     background:#FC862F url('../assets/img/login/bg_01.png') no-repeat top center;
     background-size:982px 287px;
   }
-  /*.login_bg_02{*/
-    /*background:url('../assets/img/login/bg_02.png') no-repeat  70% center;*/
-  /*}*/
+  .login_bg_02{
+    background:url('../assets/img/login/bg_02.png') no-repeat  ;
+    background-position: 125px 0px;
+  }
   .login_block {
     /*max-width:400px;*/
-    width:458px;
+    box-shadow: 0px 3px 10px rgba(51, 51, 51, 0.14);
+    width:610px;
     height:340px;
     margin:-170px auto 0 auto;
-    padding:43px 65px;
+    padding:43px 45px;
     border-radius:5px;
     border:1px solid #e3e3e3;
     background:#FFF;
@@ -75,16 +88,26 @@
 
 </style>
 <script>
+//  import virKeyboard from '@/components/virKeyboard'
+  import getConfig from '../utils/getConfig'
   export default {
     data () {
       return {
+        isLoading: false,
+        appVersion: '',
+        input: null,
         formObj: {
           mobile: '',
           passWd: ''
         }
       }
     },
+    computed: {
+    },
     methods: {
+      inputFocus (e) {
+        this.input = e.target
+      },
       submitValider () {
         var valids = {
           mobile: /^1\d{10}$/,
@@ -106,14 +129,17 @@
         if (validErr) {
           return this.$message({message: validErr, type: 'error'})
         }
-        this.$http.post('/ycLogin/doPCLogin', this.formObj).then(res => {
+        this.isLoading = true
+        this.$http.post('/ycLogin/doPCLogin', Object.assign({remark: '版本号：' + this.appVersion}, this.formObj)).then(res => {
           let data = res.data
-          let {UserInfo, restShop} = data.data
+          let {UserInfo, restShop, fczTn} = data.data
           //  console.log(UserInfo, '-----')
+          this.$store.commit('setToken', fczTn)
           if (!UserInfo.fnShopAssist) {
             return this.$message.error('你不是店员不能登录飞常赞')
           } else {
             this.$http.post('/ycRest/getPrintTpl').then(res => {
+              this.isLoading = false
               let resData = res.data
               let {printTpl, orderLoopSecond} = resData.data
               this.$store.commit('setLoopTime', orderLoopSecond)
@@ -121,14 +147,25 @@
               this.$store.commit('setShopUser', UserInfo.fnShopAssist)
               this.$store.commit('setShop', restShop)
               console.log('---------------用户登录成功--------------------')
-              this.$router.push('/Main/newOrder')
+              if (process.env.NODE_ENV === 'development') {
+                this.$router.push('/mainCus/buffetMode')
+              } else {
+                this.$router.push('/Main/newOrder')
+              }
+            }).catch(() => {
+              this.isLoading = false
             })
           }
+        }).catch(() => {
+          this.isLoading = false
         })
       }
     },
     created () {
-
+      getConfig.then((json) => {
+        this.appVersion = json.version
+        console.log('当前版本号：' + json.version)
+      })
     }
   }
 </script>

@@ -16,7 +16,6 @@ export default {
     shop: state => state.shop,
     shopPrint: state => state.shopPrint
   },
-  actions: {},
   mutations: {
     setShop (state, shop) {
       state.shop = shop
@@ -42,6 +41,12 @@ export default {
       state.user = user
       state.shopUser = {}
       state.isLogin = false
+    }
+  },
+  actions: {
+    logoutAction ({state, commit}) {
+      commit('logout')
+      commit('printClose')
     }
   }
 }

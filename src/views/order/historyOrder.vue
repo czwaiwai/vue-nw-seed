@@ -39,10 +39,10 @@
     <!--<div>-->
       <!--<button @click="upBtnHandler" type="button" class="button">上一页</button> <button @click="downBtnHandler" type="button" class="button">下一页</button> 第{{orderForm.page}}页-->
     <!--</div>-->
-    <div class='grid-x  small-up-2  medium-up-3 large-up-8'>
+    <div v-loading="isLoading" class='grid-x  small-up-2  medium-up-3 large-up-8'>
       <div v-for='item in listOrder' :key='item.id' class='cell order_block'>
         <a class="order_item" :class="itemClass(item)"  @click="activeClickHandler(item)"  href="javascript:void(0)" >
-          <p class="text-center">{{item.tableNum}}</p>
+          <p class="text-center">{{item.orderType==='pay'?'支付凭证':item.tableNum}}</p>
           <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
           <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span>  <span style="padding-left:20px">￥{{item.fnActPayAmount | currency}}</span></p>
           <p class="fs14 text-center"><span class="label" :class="statusClass(item.status)" >{{itemStatus(item.status)}}</span></p>
@@ -73,6 +73,7 @@
           value: '7',
           label: '已完成'
         }],
+        isLoading: false,
         orderForm: {
           page: 1,
           status: '7',
@@ -144,14 +145,17 @@
         this.getPageData()
       },
       pageInit () {
+        this.isLoading = false
         this.orderForm.page = 1
         this.orderForm.startDate = moment(this.rangeDate[0]).format('YYYY-MM-DD')
         this.orderForm.endDate = moment(this.rangeDate[1]).format('YYYY-MM-DD')
       },
       getPageData () {
         this.orderForm.restShopId = this.shop.id
+        this.isLoading = true
         return this.$http.post('/ycRest/restOrderList', this.orderForm).then(res => {
           let resData = res.data
+          this.isLoading = false
           let {totalPage, restOrderList, totalRecord} = resData.data
           this.totalPage = totalPage
           this.totalRecord = totalRecord

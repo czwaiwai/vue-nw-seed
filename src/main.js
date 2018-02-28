@@ -15,9 +15,11 @@ import router from './router'
 import './assets/css/main.scss'
 import 'element-ui/lib/theme-chalk/index.css'
 import getLogger from './utils/logs'
+import virKeyboard from './components/virKeyboard'
 getLogger()
 filter(Vue)
 Vue.use(ElementUI)
+Vue.component('virKeyboard', Vue.extend(virKeyboard))
 Vue.config.productionTip = false
 axios.defaults.baseURL = webUrl
 axios.defaults.headers['X-Requested-With'] = 'XMLHttpRequest'
@@ -29,6 +31,7 @@ axios.defaults.transformRequest = [function (data) {
 let isFirst = true
 axios.interceptors.request.use(function (config) {
   //  在发送请求之前做某事
+  console.log('config', config)
   if (isFirst) {
     isFirst = false
     if (config.data) {
@@ -36,6 +39,16 @@ axios.interceptors.request.use(function (config) {
     } else {
       config.data = {
         appCfg: 1
+      }
+    }
+  }
+  if (config.url.indexOf('/ycLogin/doPCLogin') === -1) {
+    console.log('添加token', store.getters.token)
+    if (config.data) {
+      config.data.fczTn = store.getters.token
+    } else {
+      config.data = {
+        fczTn: store.getters.token
       }
     }
   }
@@ -75,6 +88,13 @@ axios.interceptors.response.use(function (response) {
     if (userInfo) {
       store.commit('setUser', userInfo)
     }
+    let urlFilters = ['/ycRest/countProSaleData', '/ycRest/newPrintRestOrder', '/ycRest/restOrderList']
+    let isAddPrint = urlFilters.every(item => {
+      return response.config.url.indexOf(item) === -1
+    })
+    if (isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
+      store.dispatch('addPrintObj', {printList: data.printList})
+    }
   }
   return response
 }, function (error) {
@@ -86,6 +106,8 @@ axios.interceptors.response.use(function (response) {
   })
   return Promise.reject(error)
 })
+Vue.prototype.$win = win
+Vue.win = win
 Vue.prototype.$http = axios
 Vue.http = axios
 window.onerror = function (e) {

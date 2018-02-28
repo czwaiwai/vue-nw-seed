@@ -34,6 +34,9 @@ function roundTime (cb, time, isfirstRun) {
       cb(myfn)
       return this
     },
+    setTime: function (time) {
+      second = time
+    },
     stop: function () {
       firstNext = initNext
       clearTimeout(timer)

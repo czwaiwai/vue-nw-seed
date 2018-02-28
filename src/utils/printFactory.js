@@ -13,8 +13,9 @@ var md5 = function (str) {
 }
 
 let printFactory = {
-  init (webPrint) {
+  init (webPrint, vue) {
     console.log(webPrint)
+    this.$vue = vue
     this.webPrint = webPrint
     this.priArr = this.getRunPrinters(webPrint)
     this.web = this.coverWebPrint(webPrint)
@@ -51,17 +52,55 @@ let printFactory = {
     let printTmp = arr[0]
     if (printTmp) {
       let chnObject = printTmp.chnPrinter
-      chnObject.compile(ticket.tpl).beep('\x02').print(function (err, msg) {
-        console.log(msg)
-        chnObject.empty()
-        if (msg === 'Print successed') {
-          return cb(err, msg)
-        } else {
-          console.error('错误：打印机调用出错')
-          return cb(new Error('错误：调用打印机报错'))
+      console.log(chnObject)
+      chnObject.myCompile(ticket.tpl, function (err) {
+        if (err) {
+          return cb(err)
         }
+        chnObject.beep('\x02')
+        chnObject.print(function (err, msg) {
+          console.log(msg)
+          chnObject.empty()
+          if (msg === 'Print successed') {
+            return cb(err, msg)
+          } else {
+            console.error('错误：打印机调用出错,打印的时候失败了')
+            return cb(new Error('错误：调用打印机报错'))
+          }
+        })
       })
+      // try {
+      //   console.log('编译打印模板')
+      //   chnObject.compile(ticket.tpl)
+      //   chnObject.beep('\x02')
+      // } catch (e) {
+      //   console.error('打印机编译compile错误', e)
+      //   return cb(new Error(e))
+      // }
+      // console.log('调用print')
+      // chnObject.print(function (err, msg) {
+      //   console.log(msg)
+      //   chnObject.empty()
+      //   if (msg === 'Print successed') {
+      //     return cb(err, msg)
+      //   } else {
+      //     console.error('错误：打印机调用出错')
+      //     return cb(new Error('错误：调用打印机报错'))
+      //   }
+      // })
     } else {
+      if (ticket) {
+        this.$vue.$notify.error({
+          title: '消息提示',
+          message: `当前订单${ticket.orderId}的[${ticket.title}]没有找到的${ticket.printerName}打印机`,
+          duration: 0
+        })
+        this.$vue.$http.post('/feeback/save', {
+          title: '查看内容',
+          content: `当前订单${ticket.orderId}的[${ticket.title}]没有找到的${ticket.printerName}打印机` + JSON.stringify(ticket)
+        })
+      }
+      console.error('当前订单没有找到指定打印机')
       cb(null, '当前订单没有找到指定打印机')
     }
   },
@@ -89,9 +128,8 @@ let printFactory = {
       if (err) {
         cb(err)
       }
-      console.log(self)
+      console.log(priArr)
       console.log('tickets', tickets)
-      // cb(null, '测试订单完成')
       self.printProcess(tickets, priArr, cb)
     })
   },

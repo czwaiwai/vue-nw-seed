@@ -18,9 +18,12 @@
     <div class="cell btn_block">
       <button @click="safeExitHandler" type="button" class="button expanded">安全退出</button>
     </div>
-    <!--<div class="cell btn_block">-->
-      <!--<button type="button"class="button expanded">切换分区</button>-->
-    <!--</div>-->
+    <div v-if="isTest" class="cell btn_block">
+      <button @click="testHandler" type="button" class="button expanded">测试</button>
+    </div>
+    <div v-if="isTest" class="cell btn_block">
+      <button @click="swicthBuffetHandler" type="button"class="button expanded">切换点餐模式</button>
+    </div>
     <!--<div class="cell btn_block">-->
       <!--<button type="button"class="button expanded">菜品参数</button>-->
     <!--</div>-->
@@ -161,8 +164,10 @@
       <div class="day_paper">
         <h5>日报</h5>
         <p>店铺：{{shop.restName}}</p>
-        <p>统计开始日期：{{dateRange[0]}}</p>
-        <p>统计结束日期：{{dateRange[1]}}</p>
+        <div v-if="dateRange">
+          <p>统计开始日期：{{dateRange[0]}}</p>
+          <p>统计结束日期：{{dateRange[1]}}</p>
+        </div>
         <hr/>
         <p>已支付：{{dayPaperData.count}}笔 <span style="float:right">实收金额：{{dayPaperData.actualAmt}}</span></p>
         <hr/>
@@ -220,6 +225,10 @@
   import { mapGetters } from 'vuex'
   import moment from 'moment'
   let now = moment(new Date()).format('YYYY-MM-DD')
+  let isTest = false
+  if (process.env.NODE_ENV === 'development') {
+    isTest = true
+  }
   export default{
     data () {
       return {
@@ -228,10 +237,12 @@
         dateRange: [],
         dayPaperData: {},
         printTypeTxt: {
-          'standBy': '空闲',
+          'STANDBY': '空闲',
           'PRINTING': '打印中',
+          'DELETING': '删除中',
           'ERROR': '错误'
         },
+        isTest,
         hitDate: now,
         hitRecordTable: [], // 打卡记录
         currentTime: '',
@@ -260,6 +271,19 @@
     components: {
     },
     methods: {
+      testHandler () {
+        this.$router.push({name: 'Test'})
+      },
+      swicthBuffetHandler () {
+        this.$confirm('你确定要切换到点餐模式么，切换到点餐模式将无法监听到新订单', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.shop.restType = 2
+          this.$router.push({name: 'BuffetMode'})
+        }).catch(() => {})
+      },
       //  上班打卡记录
       workClickRecordHandler (e) {
         //  /ycRest/assistantSignRecord
@@ -284,10 +308,11 @@
         this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id}).then(res => {
           this.handoverDialogVisible = true
           let resData = res.data
-          let {data, saleBeginTime, saleEndTime} = resData.data
+          let {data, saleBeginTime, saleEndTime, printList} = resData.data
           this.dateRange = [saleBeginTime, saleEndTime]
           data.saleBeginTime = saleBeginTime
           data.saleEndTime = saleEndTime
+          this.tmpPrintList = printList
           this.dayPaperData = data
           this.handoverData = resData.data
         })
@@ -295,18 +320,25 @@
       //  交办单日期变更
       handoverChange () {
         console.log('-----------------------交办单日期变更')
-        let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
-        let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
-        this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, restShopId: this.shop.id}).then(res => {
-          this.handoverDialogVisible = true
-          let resData = res.data
-          let {data, saleBeginTime, saleEndTime} = resData.data
-          this.dateRange = [saleBeginTime, saleEndTime]
-          data.saleBeginTime = saleBeginTime
-          data.saleEndTime = saleEndTime
-          this.dayPaperData = data
-          this.handoverData = resData.data
-        })
+        if (this.dateRange) {
+          let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
+          let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
+          this.$http.post('/ycRest/countProSaleData', {
+            saleBeginTime,
+            saleEndTime,
+            restShopId: this.shop.id
+          }).then(res => {
+            this.handoverDialogVisible = true
+            let resData = res.data
+            let {data, saleBeginTime, saleEndTime, printList} = resData.data
+            this.dateRange = [saleBeginTime, saleEndTime]
+            data.saleBeginTime = saleBeginTime
+            data.saleEndTime = saleEndTime
+            this.tmpPrintList = printList
+            this.dayPaperData = data
+            this.handoverData = resData.data
+          })
+        }
       },
       //  日报显示
       showDayClickHandler () {
@@ -314,37 +346,51 @@
         this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id, returnType: 1}).then(res => {
           this.dayDialogVisible = true
           let resData = res.data
-          let {data, saleBeginTime, saleEndTime} = resData.data
+          let {data, saleBeginTime, saleEndTime, printList} = resData.data
           this.dateRange = [saleBeginTime, saleEndTime]
           data.saleBeginTime = saleBeginTime
           data.saleEndTime = saleEndTime
+          this.tmpPrintList = printList
           this.dayPaperData = data
           console.log(resData, '日报--------', data)
         })
       },
       dayPaperChange (e) {
         console.log('-----------------------日报修改日期')
-        let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
-        let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
-        this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, restShopId: this.shop.id}).then(res => {
-          let resData = res.data
-          let {data, saleBeginTime, saleEndTime} = resData.data
-          this.dateRange = [saleBeginTime, saleEndTime]
-          data.saleBeginTime = saleBeginTime
-          data.saleEndTime = saleEndTime
-          this.dayPaperData = data
-        })
+        console.log('dateRange', this.dateRange)
+        if (this.dateRange) {
+          console.log(this.dateRange)
+          let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
+          let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
+          this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, returnType: 1, restShopId: this.shop.id}).then(res => {
+            let resData = res.data
+            let {data, saleBeginTime, saleEndTime, printList} = resData.data
+            this.dateRange = [saleBeginTime, saleEndTime]
+            data.saleBeginTime = saleBeginTime
+            data.saleEndTime = saleEndTime
+            this.tmpPrintList = printList
+            this.dayPaperData = data
+          })
+        }
       },
       printDayPaper () {
         console.log('-----------------------打印日报')
-        let dayPaperData = Object.assign({tplName: 'dayPaper', restName: this.shop.restName}, this.dayPaperData)
-        this.printService.add(dayPaperData)
+        if (!this.dateRange) {
+          return this.$message.warning('请选择日期')
+        }
+        this.$store.dispatch('addPrintObj', {printList: this.tmpPrintList})
+//        let dayPaperData = Object.assign({tplName: 'dayPaper', restName: this.shop.restName}, this.dayPaperData)
+//        this.printService.add(dayPaperData)
         this.dayDialogVisible = false
       },
       printHandover () {
         console.log('-----------------------打印交班单')
-        let handoverData = Object.assign({tplName: 'handover', restName: this.shop.restName}, this.handoverData)
-        this.printService.add(handoverData)
+        if (!this.dateRange) {
+          return this.$message.warning('请选择日期')
+        }
+        this.$store.dispatch('addPrintObj', {printList: this.tmpPrintList})
+//        let handoverData = Object.assign({tplName: 'handover', restName: this.shop.restName}, this.handoverData)
+//        this.printService.add(handoverData)
         this.handoverDialogVisible = false
         console.log('打印交班单')
       },
@@ -374,26 +420,26 @@
           clearLogs()
           this.$http.post('/doLogout').then((res) => {
             if (res.data.retCode === 0) {
-              this.$store.commit('logout')
-              this.$router.replace({name: 'Login'})
+              this.$store.dispatch('logoutAction').then(() => {
+                this.$router.replace({name: 'Login'})
+              })
             }
           })
         }).catch(() => {})
       },
       showPrintersHandler () {
         let list = printer.getPrinters()
+        console.log([...list])
         this.printerList = list.map(item => {
           if (item.jobs && item.jobs.length > 0) {
-            console.log(item.jobs.status)
-            item.myPrintType = item.status[0]
+            item.myPrintType = item.jobs[0].status[0]
             item.waitjobs = item.jobs.length
           } else {
-            item.myPrintType = 'standBy'
+            item.myPrintType = 'STANDBY'
             item.waitjobs = 0
           }
           return item
         })
-        console.log(this.printerList)
         this.printerStateVisible = true
       }
     },
