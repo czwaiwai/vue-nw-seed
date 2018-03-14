@@ -76,7 +76,8 @@
         </div>
       </el-aside>
       <el-container>
-        <div class="unit_header padding15-h">{{$route.meta.title}} {{$route.path}}</div>
+        <div class="unit_header padding15-h">{{$route.meta.title}} {{$dev?$route.path:''}}</div>
+
         <el-main>
           <!--<div class="scroll_content">-->
           <keep-alive>
@@ -88,7 +89,7 @@
           <div class="grid-container full">
             <div class="grid-x food_buttons">
               <div class="cell small-3">
-                <button @click="printedOrderHandler"  type="button" class="button  light expanded  margin5   ">{{isBuffet?'已打印单':'点菜'}}</button>
+                <button @click="printedOrderHandler"  type="button" class="button  light expanded  margin5   ">{{isBuffet?'已点订单':'点菜'}}</button>
               </div>
               <div class="cell small-3">
                 <button type="button" @click="showHandoverClickHandler" class="button light  expanded  margin5   ">交班</button>
@@ -290,27 +291,30 @@
     <!--<el-dialog  width="600px" title="现金支付" :visible.sync="cashPayVisible" append-to-body>-->
       <!---->
     <!--</el-dialog>-->
-    <el-dialog title="结账" @open="cashOrderOpen" :close-on-click-modal="false"  :visible.sync="cashOrderVisible" width="700px">
-      <el-dialog width="600px"  @open="payStyleOpen" :title="payStyleTitle" :visible.sync="wxPayVisible" append-to-body>
-        <el-form  label-width="80px" >
-          <div class="grid-x">
-            <div class="small-6">
-              <el-form-item label="支付金额">
-                <el-input readonly v-model="payMoney" ></el-input>
-              </el-form-item>
-              <el-form-item label="支付授权">
-                <el-input  v-if="wxPayVisible" ref="payAuthNoInput" v-model="payAuthNo" ></el-input>
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" @click="wxPayVisible=cashOrderVisible=false">确认支付</el-button>
-                <el-button @click="wxPayVisible=false">取消</el-button>
-              </el-form-item>
+    <el-dialog title="结账" @open="cashOrderOpen"  :close-on-click-modal="false"  :visible.sync="cashOrderVisible" width="700px">
+      <el-dialog width="600px"  @open="payStyleOpen"   @close="payStyleClose" :close-on-click-modal="false"  :title="payStyleTitle" :visible.sync="wxPayVisible" append-to-body>
+        <div v-loading="wxPayLoading">
+          <el-form  label-width="80px" >
+            <div class="grid-x">
+              <div class="small-6">
+                <el-form-item label="支付金额">
+                  <el-input readonly v-model="payMoney" ></el-input>
+                </el-form-item>
+                <el-form-item label="支付码">
+                  <el-input  v-if="wxPayVisible" ref="payAuthNoInput" v-model="payAuthNo" ></el-input>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="onlinePayConfirm">确认支付</el-button>
+                  <el-button @click="wxPayVisible=false">取消</el-button>
+                </el-form-item>
+              </div>
+              <div class="small-6 text-right">
+                <vir-keyboard mode="bind" v-model="payAuthNo" :input="$refs.payAuthNoInput && $refs.payAuthNoInput.$el.querySelector('input')" style="margin-top:-5px;width:250px;display:inline-block;"></vir-keyboard>
+              </div>
             </div>
-            <div class="small-6 text-right">
-              <vir-keyboard mode="bind" v-model="payAuthNo" style="margin-top:-5px;width:250px;display:inline-block;"></vir-keyboard>
-            </div>
-          </div>
-        </el-form>
+          </el-form>
+        </div>
+        <div v-show="wxPayLoading" class="pay_sure_mask"><el-button type="primary" @click="userClickRes">确认收到款项</el-button></div>
       </el-dialog>
       <el-dialog  width="600px" title="折扣率" @open="discountOpen" :visible.sync="discountVisible" append-to-body>
           <div class="grid-x">
@@ -388,9 +392,9 @@
               </el-form>
               <div style="border-top:1px solid #e3e3e3;margin-top:20px;">
                 <div class="text-center" style="margin: 20px 0">
-                  <el-button plain>现金</el-button>
-                  <el-button @click="wxPayClickHandle" type="success" plain>微信</el-button>
-                  <el-button @click="aliPayClickHandle" type="primary" plain>支付宝</el-button>
+                  <el-button plain @click="$message.info('直接点击结账即为现金收款哦~')">现金</el-button>
+                  <el-button @click="wxPayClickHandle" type="success" plain>扫码收款</el-button>
+                  <!--<el-button @click="aliPayClickHandle" type="primary" plain>支付宝</el-button>-->
                 </div>
               </div>
             </div>
@@ -415,30 +419,39 @@
           <!--<button type="button" class="button ">支付宝</button>-->
       </div>
     </el-dialog>
-    <el-dialog width="600px" title="登录认证" :visible.sync="loginVisible" append-to-body>
-      <el-form  label-width="80px" :model="loginForm" :rules="loginFormRules" ref="loginForm" >
-        <div class="grid-x">
-          <div class="small-6">
-            <el-form-item label="账户" prop="mobile">
-              <el-input  @focus="inputFocus" v-model="loginForm.mobile"></el-input>
-            </el-form-item>
-            <el-form-item label="密码" prop="pwd">
-              <el-input  @focus="inputFocus" v-model="loginForm.pwd"  type="password"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="loginConfirm('loginForm')" >确定</el-button>
-              <el-button @click="loginVisible=false">取消</el-button>
-            </el-form-item>
-          </div>
-          <div class="small-6 text-right">
-            <vir-keyboard mode="focus" :input="input"  style="margin-top:-5px;width:250px;display:inline-block;"></vir-keyboard>
-          </div>
-        </div>
-      </el-form>
-    </el-dialog>
+    <!--<el-dialog width="600px" title="登录认证" :visible.sync="loginVisible" append-to-body>-->
+      <!--<el-form  label-width="80px" :model="loginForm" :rules="loginFormRules" ref="loginForm" >-->
+        <!--<div class="grid-x">-->
+          <!--<div class="small-6">-->
+            <!--<el-form-item label="账户" prop="mobile">-->
+              <!--<el-input  @focus="inputFocus" v-model="loginForm.mobile"></el-input>-->
+            <!--</el-form-item>-->
+            <!--<el-form-item label="密码" prop="pwd">-->
+              <!--<el-input  @focus="inputFocus" v-model="loginForm.pwd"  type="password"></el-input>-->
+            <!--</el-form-item>-->
+            <!--<el-form-item>-->
+              <!--<el-button type="primary" @click="loginConfirm('loginForm')" >确定</el-button>-->
+              <!--<el-button @click="loginVisible=false">取消</el-button>-->
+            <!--</el-form-item>-->
+          <!--</div>-->
+          <!--<div class="small-6 text-right">-->
+            <!--<vir-keyboard mode="focus" :input="input"  style="margin-top:-5px;width:250px;display:inline-block;"></vir-keyboard>-->
+          <!--</div>-->
+        <!--</div>-->
+      <!--</el-form>-->
+    <!--</el-dialog>-->
   </el-container>
 </template>
 <style rel="stylesheet/scss" type="text/scss" lang="scss">
+  .pay_sure_mask{
+    position: absolute;
+    height: 200px;
+    left: 0;
+    right: 0;
+    top: 40px;
+    z-index: 10000;
+    text-align: center;
+  }
   .discount_wrap{
     .title {
       text-align:left;
@@ -572,7 +585,7 @@
 <script type="text/ecmascript-6">
   import moment from 'moment'
   import { App } from 'nw.gui'
-
+  import roundTime from '../utils/roundTime'
   import { getLocalPrinters } from '../utils/getLocalPrinters'
   import { mapGetters } from 'vuex'
   import bus from '../utils/bus'
@@ -585,6 +598,11 @@
   let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   import virKeyboard from '@/components/virKeyboard'
+  import loginModal from '@/components/loginModal/'
+  import backAmtModal from '../components/backAmtModal/'
+  import changeAmtModal from '../components/changeAmtModal/'
+  import backVegetablesModal from '../components/backVegetablesModal/'
+  import scanPayModal from '../components/scanPayModal/'
   export default{
     data () {
       return {
@@ -609,6 +627,7 @@
         cashPayVisible: false, // 现金支付
         discountVisible: false, // 折扣显示
 
+        wxPayLoading: false,
         payLoading: false,
         xiaoDisBtn: false,
         jieDisBtn: false,
@@ -711,7 +730,9 @@
           '-1': '红冲成功'
         },
         isCusMode: true,
-        isBuffet: true
+        isBuffet: true,
+        tmpOrder: null,
+        tmpData: null
       }
     },
     watch: {
@@ -900,22 +921,109 @@
         })
         return tmp.join('|')
       },
-      // 线下支付结账 确定线下付款
-      cashDoneHandle () {
-        console.log('确定线下付款')
-        if (this.isActiveOrder()) {
-          if (!this.payMoney) {
-            return this.$message.warning('支付金额不能为空')
+      // 仅订单下单
+      async orderDown (params) {
+        let res = await this.$http.post('/ycRest/doOrder', params)
+        console.log('仅订单下单')
+        let resData = res.data
+        let {order} = resData.data
+        this.$store.commit('setActiveOrder', Object.assign({}, this.activeOrder, order, {isNew: false}))
+        return order
+      },
+      // 在线支付
+      async orderOnlinePay (params, order) {
+        let res = await this.$http.post('/pay/scanPay', params)
+        console.log('线上支付成功')
+        let resData = res.data
+        let {payStatus} = resData.data
+        this.tmpData = resData.data
+        switch (payStatus) {
+          case 1: this.normalSucc(resData.data.restOrder); break
+          case 2: this.waitRes(order, resData.data); break
+          case 3:
+          default: this.errorRes(order, resData.data)
+        }
+      },
+      // 正常成功状态
+      normalSucc (order) {
+        this.$message.success('下单成功')
+        this.cashOrderVisible = false
+        this.wxPayVisible = false
+        this.$store.commit('clearActiveOrder')
+        if (this.isPointPage) {
+          this.$store.commit('updateOne', order)
+        }
+      },
+      // 等待支付结果
+      waitRes (order, data) {
+        data.count = 0
+        this.round = roundTime(next => {
+          this.$http.get(`/pay/doQueryScanPay?id=${data.id}`).then(res => {
+            let resData = res.data
+            let {payStatus, payMsg, maxQryCount} = resData.data
+            switch (payStatus) {
+              case 1:
+                next(false)
+                this.normalSucc(resData.data.restOrder)
+                break
+              case 2:
+                if (data.count > maxQryCount) {
+                  this.wxPayLoading = false
+                  this.$message.error('支付超时，重新尝试~')
+                  next(false)
+                } else {
+                  this.$message.warning(payMsg)
+                  data.count++
+                  next(true)
+                }
+                break
+              default:
+                this.errorRes(order, resData.data)
+                next(false)
+                break
+            }
+          }).catch(err => {
+            console.log(err)
+            next(false)
+            this.$message.error('网络超时，请重新尝试~')
+          })
+        }, 3000)
+        this.round.start()
+      },
+      userClickRes () {
+        this.$http.post(`/pay/doQueryScanPay`, {id: this.tmpData.id}).then(res => {
+          let resData = res.data
+          let {payStatus} = resData.data
+          if (payStatus === 1) {
+            this.round.stop()
+            this.round = null
+            this.normalSucc(resData.data.restOrder)
+          } else if (payStatus === 2) {
+            this.$message.warning('还没检测到支付数据，稍等重试')
+          } else {
+            this.wxPayLoading = false
+            this.$message.error('网络超时，请重新尝试~')
+            this.round.stop()
+            this.round = null
           }
+        })
+      },
+      // 错误支付状态
+      errorRes (order, msgObj) {
+        this.wxPayLoading = false
+        this.$message.error(msgObj.payMsg)
+      },
+      // 线上支付
+      async onlinePayConfirm () {
+        if (this.isActiveOrder()) {
           let params = {
-            payType: 'offl',
+            payType: '',
             restShopId: this.shop.id,
             payAmt: this.activeOrder.fnActPayAmount,
             restPerson: '',
             isOfflinePay: 1,
             cartInfos: this.getCartInfos(),
             address: '',
-//            tableId: 86,
             couponId: '',
             userRemark: '',
             fczPrzAmt: '',
@@ -924,41 +1032,93 @@
             derateAmt: this.activeOrder.cashRound, // 优惠券金额
             actPayAmt: this.payMoney, // 实付金额
             cashDisc: this.activeOrder.cashDisc, // 折扣率
-            doOrderWay: 1  // 直接付款
+            doOrderWay: 1,  // 直接付款
+            authCode: this.payAuthNo
           }
-          // 已下单未付款订单
-          if (this.activeOrder.id) {
-            this.$http.post('/ycRest/doOrderPay', Object.assign({}, params, {orderId: this.activeOrder.id}))
-              .then(res => {
-                console.log('未付款订单付款下单成功')
-                let resData = res.data
-                let {order} = resData.data
-                this.$message.success('下单成功')
-                this.cashOrderVisible = false
-                this.$store.commit('clearActiveOrder')
-                console.log(order)
-                if (this.isPointPage) {
-                  this.$store.commit('updateOne', order)
-                }
-              })
-          } else { // 新增订单
-            this.$http.post('/ycRest/doOrderAndPay', params).then(res => {
-              console.log('新订单付款成功')
-              let resData = res.data
-              let {order} = resData.data
-              this.$message.success('下单成功')
-              this.cashOrderVisible = false
-              this.$store.commit('clearActiveOrder')
-              console.log(order)
-            })
+          this.wxPayLoading = true
+          if (this.activeOrder.isNew) {
+            try {
+              let order = await this.orderDown(params)
+              params.orderId = params.refOrderId = order.id
+              await this.orderOnlinePay(params, order)
+            } catch (e) {
+              this.wxPayLoading = false
+            }
+          } else {
+            try {
+              params.orderId = params.refOrderId = this.activeOrder.id
+              await this.orderOnlinePay(params, this.activeOrder)
+            } catch (e) {
+              this.wxPayLoading = false
+            }
           }
         }
-        console.log(this.activeOrder)
+      },
+      // 线下付款
+      async orderOfflPay (params, order) {
+        let res = await this.$http.post('/ycRest/doOfflPay', Object.assign({}, params, {orderId: order.id}))
+        let resData = res.data.data
+        this.$message.success('下单成功')
+        this.cashOrderVisible = false
+        this.$store.commit('clearActiveOrder')
+        if (this.isPointPage) {
+          this.$store.commit('updateOne', resData.order)
+        }
+      },
+      // 线下支付结账 确定线下付款
+      async cashDoneHandle () {
+        console.log('确定线下付款')
+        if (this.isActiveOrder()) {
+          if (this.activeOrder.fnAttach && this.activeOrder.fnAttach === 0) {
+            return this.$message.warning('当前订单中没有商品')
+          }
+          if (!this.payMoney) {
+            return this.$message.warning('支付金额不能为空')
+          }
+          let action = await this.$confirm('确定已收到现金款', '提示')
+          if (action === 'confirm') {
+            let params = {
+              payType: 'offl',
+              restShopId: this.shop.id,
+              payAmt: this.activeOrder.fnActPayAmount,
+              restPerson: '',
+              isOfflinePay: 1,
+              cartInfos: this.getCartInfos(),
+              address: '',
+              couponId: '',
+              userRemark: '',
+              fczPrzAmt: '',
+              fczPrzRemark: '',
+              dicountAmt: this.activeOrder.cashMoney, // 减免金额
+              derateAmt: this.activeOrder.cashRound, // 优惠券金额
+              actPayAmt: this.payMoney, // 实付金额
+              cashDisc: this.activeOrder.cashDisc // 折扣率
+            }
+            this.payLoading = true
+            if (this.activeOrder.isNew) {
+              try {
+                let order = await this.orderDown(params)
+                await this.orderOfflPay(params, order)
+                this.payLoading = false
+              } catch (e) {
+                this.payLoading = false
+              }
+            } else {
+              try {
+                await this.orderOfflPay(params, this.activeOrder)
+                this.payLoading = false
+              } catch (e) {
+                this.payLoading = false
+              }
+            }
+          }
+        }
+//        console.log(this.activeOrder)
       },
       inputFocus (e) {
         this.input = e.target
       },
-      discPercent (e) {
+      async discPercent (e) {
         let percent
         if (typeof e === 'string') {
           percent = e
@@ -970,30 +1130,34 @@
           if (percent > 100) {
             return this.$message.error('请输入100以内的数字')
           }
-          if (percent <= 85) {
-            return this.$confirm('当前折扣需要更高权限认证').then(res => {
-              this.loginVisible = true
-              this.callback = function () {
-                this.$store.commit('setActiveDiscount', percent)
-                this.discountVisible = false
-              }
-            })
+          if (percent < 100) {
+            await this.$confirm('当前折扣需要更高权限认证')
+            let res = await loginModal()
+            try {
+              let resVal = await this.$http.post('/ycRest/validateRight', res)
+              this.$store.commit('setActiveDiscount', percent)
+              this.discountVisible = false
+              console.log('验证结果', resVal)
+            } catch (e) {
+              console.log(e)
+            }
+            return
           }
           this.$store.commit('setActiveDiscount', percent)
           this.discountVisible = false
         }
       },
-      loginConfirm (formName) {
-        console.log('-----------------------登录验证确认')
-        this.$refs[formName].validate(valid => {
-          if (valid) {
-            console.log(valid)
-            this.loginVisible = false
-            this.callback && this.callback()
-            this.callback = null
-          }
-        })
-      },
+//      loginConfirm (formName) {
+//        console.log('-----------------------登录验证确认')
+//        this.$refs[formName].validate(valid => {
+//          if (valid) {
+//            console.log(valid)
+//            this.loginVisible = false
+//            this.callback && this.callback()
+//            this.callback = null
+//          }
+//        })
+//      },
       // 结账
       orderCashHandle () {
         console.log('结账---------')
@@ -1002,7 +1166,10 @@
 //          if (this.activeOrder.status === 1) {
 //            return this.$message.warning('该订单已支付完成了！')
 //          }
-          if (this.activeOrder.isNew || this.activeOrder.status === 0) {
+          if (this.activeOrder.isNew || [0, 9].indexOf(this.activeOrder.status) > -1) {
+            if (this.activeOrder.fnAttach && this.activeOrder.fnAttach.length === 0) {
+              return this.$message.warning('你还没有添加菜品')
+            }
             this.$store.commit('setActiveOrderInfo', {
               cashDisc: 100,
               cashMoney: 0,
@@ -1041,22 +1208,49 @@
           el.focus()
         }, 300)
       },
-      wxPayClickHandle () {
+      // 支付方式关闭
+      payStyleClose () {
+        this.wxPayLoading = false
+        this.round && this.round.stop()
+        this.round = null
+      },
+      async wxPayClickHandle (title) {
+        let self = this
         if (this.activeOrder && this.payMoney) {
-          this.wxPayVisible = true
-          this.payStyleTitle = '微信支付'
+//          this.wxPayVisible = true
+          this.payStyleTitle = '扫码收款'
+          if (typeof title === 'string') {
+            this.payStyleTitle = title
+          }
+          let order = await scanPayModal({
+            shopId: this.shop.id,
+            payStyleTitle: this.payStyleTitle,
+            payAmt: this.payMoney,
+            activeOrder: this.activeOrder,
+            cartInfos: this.getCartInfos(),
+            onClose: function (isChange) {
+              if (isChange) {
+                self.wxPayVisible = true
+              }
+            }
+          })
+          this.cashOrderVisible = false
+          this.$message.success('下单成功')
+          this.$store.commit('clearActiveOrder')
+          if (this.isPointPage) {
+            this.$store.commit('updateOne', order)
+          }
         } else {
           this.$message.warning('支付金额不能为空')
         }
       },
-      aliPayClickHandle () {
-        if (this.activeOrder && this.payMoney) {
-          this.wxPayVisible = true
-          this.payStyleTitle = '支付宝支付'
-        } else {
-          this.$message.warning('支付金额不能为空')
-        }
-      },
+//      aliPayClickHandle () {
+//        if (this.activeOrder && this.payMoney) {
+//          this.wxPayClickHandle('支付宝支付')
+//        } else {
+//          this.$message.warning('支付金额不能为空')
+//        }
+//      },
       // 下单
       createOrderHandle () {
         console.log('下单')
@@ -1073,14 +1267,14 @@
             cartInfos: this.createCartInfos(),
             couponId: '',
             fczPrzAmt: '',
-            fczPrzRemark: '',
-            doOrderWay: 0 // 代表仅仅下单
+            fczPrzRemark: ''
+//            doOrderWay: 0 // 代表仅仅下单
           }
-          this.$http.post('/ycRest/doOrderAndPay', params).then(res => {
+          this.$http.post('/ycRest/doOrder', params).then(res => {
             let resData = res.data
             let {order} = resData.data
             this.$message.success(resData.retMsg)
-            this.$store.commit('setActiveOrder', order)
+            this.$store.commit('clearActiveOrder', order)
           })
         }
       },
@@ -1370,13 +1564,29 @@
       changeAmtClickHandler () {
         console.log('-----------------------改价显示')
         if (this.isActiveOrder()) {
-          this.tmpOrder = Object.assign({}, this.activeOrder)
-          this.changeAmtForm.adjAmt = this.activeOrder.fnActPayAmount
-          this.changeAmtForm.adjRemark = ''
-          this.changeAmtVisible = true
-          this.btnLoading = false
+          changeAmtModal({
+            shopAuth: this.shop.refundNeedRight,
+            form: {
+              id: this.activeOrder.id,
+              adjOpuser: this.shopUser.saleId,
+              adjAmt: this.activeOrder.fnActPayAmount,
+              adjRemark: ''
+            }
+          }).then(restOrder => {
+            this.$message.success('改价成功')
+            this.$store.commit('setActiveOrder', restOrder)
+            this.$store.dispatch('isExsitPirntOrder', {order: restOrder}).then((bool) => {
+              console.log(bool, '哈哈哈')
+              if (bool) {
+                this.$store.commit('updatePrintOrderMap', restOrder)
+              }
+              if (!this.isNewPage) {
+                console.log('不是当前newOrder页面更新订单状态')
+                this.$store.commit('updateOne', restOrder)
+              }
+            })
+          })
         }
-//      /ycRest/correctAmout
       },
       changeAmtConfirm (formName) {
         console.log('-----------------------确认改价')
@@ -1412,10 +1622,22 @@
       backAmtClickHandler () {
         console.log('-----------------------退单显示')
         if (this.isActiveOrder()) {
-          this.backAmtForm.id = this.activeOrder.id
-          this.backAmtForm.refundAmt = this.activeOrder.fnActPayAmount
-          this.backAmtVisible = true
-          this.btnLoading = false
+          backAmtModal({
+            shopAuth: this.shop.refundNeedRight,
+            form: {
+              id: this.activeOrder.id,
+              refundAmt: currency(this.activeOrder.fnActPayAmount)
+            }
+          }).then(restOrder => {
+            this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+              if (this.isPrintedPage) {
+                this.$store.commit('removeOne', newOrder)
+              }
+              if (this.isHistoryPage) {
+                this.$store.commit('updateOne', newOrder)
+              }
+            })
+          })
         }
       },
       backAmtConfirm (formName) {
@@ -1433,7 +1655,7 @@
 //                  newOrder.refundDetailIds = refundDetailIds
 //                  this.printService.add(newOrder)
 //                }
-                if (this.isPrintedPage) {
+                if (this.isPrintedPage || this.isPointPage) {
                   this.$store.commit('removeOne', newOrder)
                 }
                 if (this.isHistoryPage) {
@@ -1448,7 +1670,7 @@
         })
       },
       //  退菜显示
-      backCaiClickHandler () {
+      async backCaiClickHandler () {
         console.log('-----------------------退菜')
         if (this.isActiveOrder()) {
           this.backCaiForm = {
@@ -1456,19 +1678,36 @@
             remark: ''
           }
           this.btnLoading = false
-          this.$http.post('/ycRest/getRestOrderRefundData', {orderId: this.activeOrder.id}).then(res => {
-            let resData = res.data
-            let {detailList} = resData.data
-            detailList.forEach(item => {
-              item.tuiNum = 0
-              if (item.buyCount === 0) {
-                item.btnDisabled = true
-              } else {
-                item.btnDisabled = false
-              }
+          let res = await this.$http.post('/ycRest/getRestOrderRefundData', {orderId: this.activeOrder.id})
+          let resData = res.data
+          let {detailList} = resData.data
+          detailList.forEach(item => {
+            item.tuiNum = 0
+            if (item.buyCount === 0) {
+              item.btnDisabled = true
+            } else {
+              item.btnDisabled = false
+            }
+          })
+          console.log('---------await-------------------')
+          let {restOrder, isAllRefund} = await backVegetablesModal({
+            form: {
+              detailInfos: '',
+              remark: ''
+            },
+            list: detailList,
+            shopAuth: this.shop.refundNeedRight
+          })
+          this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+            this.$message({
+              message: '退菜成功',
+              type: 'success'
             })
-            this.backCaiList = detailList
-            this.backCaiVisible = true
+            if (this.isPrintedPage && isAllRefund) {
+              this.$store.commit('removeOne', newOrder)
+            } else {
+              this.$store.commit('updateOne', newOrder)
+            }
           })
         }
       },
@@ -1506,7 +1745,7 @@
 //                  newOrder.refundDetailIds = refundDetailIds
 //                  this.printService.add(newOrder)
 //                }
-                if (this.isPrintedPage && isAllRefund) {
+                if ((this.isPrintedPage && isAllRefund) || (this.isPointPage && isAllRefund)) {
                   this.$store.commit('removeOne', newOrder)
                 } else {
                   this.$store.commit('updateOne', newOrder)
@@ -1719,6 +1958,7 @@
       })
       console.log(this.printService, 'printService')
       console.log('getLocalPrinters()', getLocalPrinters())
+
       timer = setInterval(() => {
         this.currentTime = moment().format('YYYY年MM月DD日 HH:mm:ss')
       }, 1000)

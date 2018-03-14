@@ -21,5 +21,6 @@ if (process.env.NODE_ENV === 'development') {
 export {
   baseUrl,
   webUrl,
-  imgUrl
+  imgUrl,
+  imgDomainServer
 }

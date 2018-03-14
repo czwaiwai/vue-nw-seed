@@ -69,13 +69,13 @@
                 <button :disabled="clearActiveDisable"  @click="clearActiveOrder" type="button" class="button light">清空</button>
               </div>
             </div>
-            <template v-if="shop.restType===2">
-              <button @click="createOrderHandle" :disabled="createOrderDisabled" class="button  margin5 flex_item fs20 warn " style="max-width:128px;color:#FFF;">下单</button>
-            </template>
-            <template v-else >
+            <!--<template v-if="shop.restType===2">-->
+              <!--<button @click="createOrderHandle" :disabled="createOrderDisabled" class="button  margin5 flex_item fs20 warn " style="max-width:128px;color:#FFF;">下单</button>-->
+            <!--</template>-->
+            <!--<template v-else >-->
               <button v-show="activeOrd.btnStatus === 'payByCash'" @click="confirmPayCashHandler" class="button fcz margin5 flex_item fs20 alert " style="max-width:128px;color:#FFF;">确认线下付款</button>
               <button v-show="['confirmOrder','orderDone'].indexOf(activeOrd.btnStatus) > -1" :disabled="confirmBtnDisable" @click="confirmOrderFinishHandler" class="button info margin5 flex_item fs20 alert " style="max-width:128px;color:#FFF;">确认订单完成</button>
-            </template>
+            <!--</template>-->
           </div>
         </div>
       </el-aside>
@@ -170,20 +170,20 @@
     </el-dialog>
 
 
-    <el-dialog title="退单" :visible.sync="backAmtVisible" width="600px" >
-      <el-form :model="backAmtForm" :rules="backAmtRules" ref="backAmtForm" label-width="120px">
-        <el-form-item label="退款金额" prop="refundAmt">
-          <el-input v-model="backAmtForm.refundAmt" placeholder="请填写金额"></el-input>
-        </el-form-item>
-        <el-form-item label="退款备注" prop="refundRemark">
-          <el-autocomplete class="inline-input" v-model="backAmtForm.refundRemark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="backAmtVisible = false">取 消</el-button>
-        <el-button type="primary" :loading="btnLoading" @click="backAmtConfirm('backAmtForm')">确定</el-button>
-      </span>
-    </el-dialog>
+    <!--<el-dialog title="退单" :visible.sync="backAmtVisible" width="600px" >-->
+      <!--<el-form :model="backAmtForm" :rules="backAmtRules" ref="backAmtForm" label-width="120px">-->
+        <!--<el-form-item label="退款金额" prop="refundAmt">-->
+          <!--<el-input v-model="backAmtForm.refundAmt" placeholder="请填写金额"></el-input>-->
+        <!--</el-form-item>-->
+        <!--<el-form-item label="退款备注" prop="refundRemark">-->
+          <!--<el-autocomplete class="inline-input" v-model="backAmtForm.refundRemark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>-->
+        <!--</el-form-item>-->
+      <!--</el-form>-->
+      <!--<span slot="footer" class="dialog-footer">-->
+        <!--<el-button @click="backAmtVisible = false">取 消</el-button>-->
+        <!--<el-button type="primary" :loading="btnLoading" @click="backAmtConfirm('backAmtForm')">确定</el-button>-->
+      <!--</span>-->
+    <!--</el-dialog>-->
 
     <el-dialog title="打卡" :visible.sync="workDialogVisible" width="600px">
       <div>
@@ -434,8 +434,13 @@
   import bus from '../utils/bus'
   import uploadLogs from '../utils/uploadLogs'
   import getConfig from '../utils/getConfig'
-  import { amount as amountRule } from '../utils/elemFormRules'
+  import { amount as amountRule, mobile, passWd } from '../utils/elemFormRules'
   import {clearLogs} from '../utils/clearLogs'
+  import {currency} from '../utils/utils'
+//  import loginModal from '../components/loginModal/'
+  import backAmtModal from '../components/backAmtModal/'
+  import changeAmtModal from '../components/changeAmtModal/'
+  import backVegetablesModal from '../components/backVegetablesModal'
   let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
@@ -467,7 +472,24 @@
         hitRecordTable: [], // 打卡记录
         currentTime: '',
         now: now,
-
+        input: null, // 虚拟键盘使用
+        //  用户验证
+        loginVisible: false, // 登录认证
+        loginAuthList: [],
+        loginForm: {
+          mobile: '',
+          pwd: ''
+        },
+        loginFormRules: {
+          mobile: [
+            {required: true, message: '手机号不能为空', trigger: 'blur'},
+            {validator: mobile, trigger: 'blur'}
+          ],
+          pwd: [
+            {required: true, message: '密码不能为空', trigger: 'blur'},
+            {validator: passWd, trigger: 'blur'}
+          ]
+        },
         //  改价form
         changeAmtVisible: false,
         changeAmtForm: {
@@ -540,12 +562,12 @@
       }
     },
     watch: {
-      'printOrders' (newVal, oldVal) {
-        if (!newVal || !oldVal) return
-        if (newVal.length !== oldVal.length) {
-          console.log(newVal, oldVal, '数组变化')
-        }
-      },
+//      'printOrders' (newVal, oldVal) {
+//        if (!newVal || !oldVal) return
+//        if (newVal.length !== oldVal.length) {
+//          console.log(newVal, oldVal, '数组变化')
+//        }
+//      },
       '$route' (to, from) {
         console.log(to, from, '路由变化')
         if (this.activeOrder) {
@@ -637,6 +659,9 @@
       }
     },
     methods: {
+      inputFocus (e) {
+        this.input = e.target
+      },
       disableBtnBy (arr) {
         if (this.activeOrder) {
           if (arr.indexOf(this.activeOrder.btnStatus) > -1) {
@@ -837,12 +862,12 @@
         console.log('-----------------------取消订单')
         if (this.isActiveOrder()) {
           let id = this.activeOrder.id
-          if (this.activeOrder.status !== 9) {
-            return this.$message({
-              message: '只有未收款订单可以取消订单',
-              type: 'warning'
-            })
-          }
+//          if (this.activeOrder.status !== 9) {
+//            return this.$message({
+//              message: '只有未收款订单可以取消订单',
+//              type: 'warning'
+//            })
+//          }
           this.$confirm('你确定要取消订单吗', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -947,85 +972,117 @@
       changeAmtClickHandler () {
         console.log('-----------------------改价显示')
         if (this.isActiveOrder()) {
-          this.tmpOrder = Object.assign({}, this.activeOrder)
-          this.changeAmtForm.adjAmt = this.activeOrder.fnActPayAmount
-          this.changeAmtForm.adjRemark = ''
-          this.changeAmtVisible = true
-          this.btnLoading = false
+          changeAmtModal({
+            shopAuth: this.shop.refundNeedRight,
+            form: {
+              id: this.activeOrder.id,
+              adjOpuser: this.shopUser.saleId,
+              adjAmt: this.activeOrder.fnActPayAmount,
+              adjRemark: ''
+            }
+          }).then(restOrder => {
+            this.$message.success('改价成功')
+            this.$store.commit('setActiveOrder', restOrder)
+            this.$store.dispatch('isExsitPirntOrder', {order: restOrder}).then((bool) => {
+              console.log(bool, '哈哈哈')
+              if (bool) {
+                this.$store.commit('updatePrintOrderMap', restOrder)
+              }
+              if (!this.isNewPage) {
+                console.log('不是当前newOrder页面更新订单状态')
+                this.$store.commit('updateOne', restOrder)
+              }
+            })
+          })
         }
 //      /ycRest/correctAmout
       },
-      changeAmtConfirm (formName) {
-        console.log('-----------------------确认改价')
-        this.$refs[formName].validate(valid => {
-          if (valid) {
-            this.btnLoading = true
-            let params = Object.assign({id: this.tmpOrder.id, adjOpuser: this.shopUser.saleId}, this.changeAmtForm)
-            this.$http.post('/ycRest/correctAmout', params).then((res) => {
-              this.btnLoading = false
-              let resData = res.data
-              let {restOrder} = resData.data
-              this.$message.success('改价成功')
-              this.$store.commit('setActiveOrder', restOrder)
-              this.$store.dispatch('isExsitPirntOrder', {order: restOrder}).then((bool) => {
-                console.log(bool, '哈哈哈')
-                if (bool) {
-//                  this.$store.commit('updatePrintOrder', restOrder)
-                  this.$store.commit('updatePrintOrderMap', restOrder)
-                }
-                if (!this.isNewPage) {
-                  console.log('不是当前newOrder页面更新订单状态')
-                  this.$store.commit('updateOne', restOrder)
-                }
-              })
-              this.changeAmtVisible = false
-            }).catch(() => {
-              this.btnLoading = false
-            })
-          }
-        })
-      },
+//      changeAmtConfirm (formName) {
+//        console.log('-----------------------确认改价')
+//        this.$refs[formName].validate(valid => {
+//          if (valid) {
+//            this.btnLoading = true
+//            let params = Object.assign({id: this.tmpOrder.id, adjOpuser: this.shopUser.saleId}, this.changeAmtForm)
+//            this.$http.post('/ycRest/correctAmout', params).then((res) => {
+//              this.btnLoading = false
+//              let resData = res.data
+//              let {restOrder} = resData.data
+//              this.$message.success('改价成功')
+//              this.$store.commit('setActiveOrder', restOrder)
+//              this.$store.dispatch('isExsitPirntOrder', {order: restOrder}).then((bool) => {
+//                console.log(bool, '哈哈哈')
+//                if (bool) {
+//                  this.$store.commit('updatePrintOrderMap', restOrder)
+//                }
+//                if (!this.isNewPage) {
+//                  console.log('不是当前newOrder页面更新订单状态')
+//                  this.$store.commit('updateOne', restOrder)
+//                }
+//              })
+//              this.changeAmtVisible = false
+//            }).catch(() => {
+//              this.btnLoading = false
+//            })
+//          }
+//        })
+//      },
       // 退单显示
       backAmtClickHandler () {
         console.log('-----------------------退单显示')
         if (this.isActiveOrder()) {
-          this.backAmtForm.id = this.activeOrder.id
-          this.backAmtForm.refundAmt = this.activeOrder.fnActPayAmount
-          this.backAmtVisible = true
-          this.btnLoading = false
+          backAmtModal({
+            shopAuth: this.shop.refundNeedRight,
+            form: {
+              id: this.activeOrder.id,
+              refundAmt: currency(this.activeOrder.fnActPayAmount)
+            }
+          }).then(restOrder => {
+            this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+              if (this.isPrintedPage) {
+                this.$store.commit('removeOne', newOrder)
+              }
+              if (this.isHistoryPage) {
+                this.$store.commit('updateOne', newOrder)
+              }
+            })
+          })
         }
       },
-      backAmtConfirm (formName) {
-        console.log('-----------------------退单确认')
-        this.$refs[formName].validate(valid => {
-          if (valid) {
-            this.btnLoading = true
-            this.$http.post('/ycRest/refundRestOrder', this.backAmtForm).then((res) => {
-              this.btnLoading = false
-              let resData = res.data
-              let {restOrder} = resData.data
-              this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
-                this.backAmtVisible = false
-//                if (newOrder.isPrint) {
-//                  newOrder.refundDetailIds = refundDetailIds
-//                  this.printService.add(newOrder)
-//                }
-                if (this.isPrintedPage) {
-                  this.$store.commit('removeOne', newOrder)
-                }
-                if (this.isHistoryPage) {
-                  this.$store.commit('updateOne', newOrder)
-                }
-              })
-            }, err => {
-              console.log(err)
-              this.btnLoading = false
-            })
-          }
-        })
-      },
+//      backAmtConfirm (formName) {
+//        console.log('-----------------------退单确认')
+//        this.$refs[formName].validate(async valid => {
+//          if (valid) {
+//            this.btnLoading = true
+//            try {
+//              let res = {}
+//              if (this.shop.refundNeedRight === 1) {
+//                res = await loginModal({})
+//              }
+//              this.$http.post('/ycRest/refundRestOrder', Object.assign(this.backAmtForm, res)).then((res) => {
+//                this.btnLoading = false
+//                let resData = res.data
+//                let {restOrder} = resData.data
+//                this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+//                  this.backAmtVisible = false
+//                  if (this.isPrintedPage) {
+//                    this.$store.commit('removeOne', newOrder)
+//                  }
+//                  if (this.isHistoryPage) {
+//                    this.$store.commit('updateOne', newOrder)
+//                  }
+//                })
+//              }, err => {
+//                console.log(err)
+//                this.btnLoading = false
+//              })
+//            } catch (e) {
+//              this.btnLoading = false
+//            }
+//          }
+//        })
+//      },
       //  退菜显示
-      backCaiClickHandler () {
+      async backCaiClickHandler () {
         console.log('-----------------------退菜')
         if (this.isActiveOrder()) {
           this.backCaiForm = {
@@ -1033,68 +1090,81 @@
             remark: ''
           }
           this.btnLoading = false
-          this.$http.post('/ycRest/getRestOrderRefundData', {orderId: this.activeOrder.id}).then(res => {
-            let resData = res.data
-            let {detailList} = resData.data
-            detailList.forEach(item => {
-              item.tuiNum = 0
-              if (item.buyCount === 0) {
-                item.btnDisabled = true
-              } else {
-                item.btnDisabled = false
-              }
+          let res = await this.$http.post('/ycRest/getRestOrderRefundData', {orderId: this.activeOrder.id})
+          let resData = res.data
+          let {detailList} = resData.data
+          detailList.forEach(item => {
+            item.tuiNum = 0
+            if (item.buyCount === 0) {
+              item.btnDisabled = true
+            } else {
+              item.btnDisabled = false
+            }
+          })
+          console.log('---------await-------------------')
+          let {restOrder, isAllRefund} = await backVegetablesModal({
+            form: {
+              detailInfos: '',
+              remark: ''
+            },
+            list: detailList,
+            shopAuth: this.shop.refundNeedRight
+          })
+          this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+            this.$message({
+              message: '退菜成功',
+              type: 'success'
             })
-            this.backCaiList = detailList
-            this.backCaiVisible = true
+            if (this.isPrintedPage && isAllRefund) {
+              this.$store.commit('removeOne', newOrder)
+            } else {
+              this.$store.commit('updateOne', newOrder)
+            }
           })
         }
       },
-      tuiCaiBtnHandle (index, item) {
-        item.tuiNum ++
-        if (item.tuiNum === item.buyCount) {
-          item.btnDisabled = true
-        }
-      },
-      backCaiConfirm (formName) {
-        console.log('-----------------------退菜确定')
-        this.$refs[formName].validate(valid => {
-          if (valid) {
-            this.btnLoading = true
-            let tuiArr = this.backCaiList.map(item => {
-              if (item.tuiNum) {
-                return item.id + ';' + item.tuiNum
-              }
-            })
-            this.backCaiForm.detailInfos = tuiArr.join('|')
-            if (!this.backCaiForm.detailInfos) {
-              return this.$message.error('请选择要退的菜品')
-            }
-            this.$http.post('/ycRest/retreatFood', this.backCaiForm).then(res => {
-              this.btnLoading = false
-              let resData = res.data
-              let {restOrder, isAllRefund} = resData.data
-              this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
-                this.backCaiVisible = false
-                this.$message({
-                  message: '退菜成功',
-                  type: 'success'
-                })
-//                if (newOrder.isPrint) {
-//                  newOrder.refundDetailIds = refundDetailIds
-//                  this.printService.add(newOrder)
+//      tuiCaiBtnHandle (index, item) {
+//        item.tuiNum ++
+//        if (item.tuiNum === item.buyCount) {
+//          item.btnDisabled = true
+//        }
+//      },
+//      backCaiConfirm (formName) {
+//        console.log('-----------------------退菜确定')
+//        this.$refs[formName].validate(valid => {
+//          if (valid) {
+//            this.btnLoading = true
+//            let tuiArr = this.backCaiList.map(item => {
+//              if (item.tuiNum) {
+//                return item.id + ';' + item.tuiNum
+//              }
+//            })
+//            this.backCaiForm.detailInfos = tuiArr.join('|')
+//            if (!this.backCaiForm.detailInfos) {
+//              return this.$message.error('请选择要退的菜品')
+//            }
+//            this.$http.post('/ycRest/retreatFood', this.backCaiForm).then(res => {
+//              this.btnLoading = false
+//              let resData = res.data
+//              let {restOrder, isAllRefund} = resData.data
+//              this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+//                this.backCaiVisible = false
+//                this.$message({
+//                  message: '退菜成功',
+//                  type: 'success'
+//                })
+//                if (this.isPrintedPage && isAllRefund) {
+//                  this.$store.commit('removeOne', newOrder)
+//                } else {
+//                  this.$store.commit('updateOne', newOrder)
 //                }
-                if (this.isPrintedPage && isAllRefund) {
-                  this.$store.commit('removeOne', newOrder)
-                } else {
-                  this.$store.commit('updateOne', newOrder)
-                }
-              })
-            }).catch(() => {
-              this.btnLoading = false
-            })
-          }
-        })
-      },
+//              })
+//            }).catch(() => {
+//              this.btnLoading = false
+//            })
+//          }
+//        })
+//      },
       //  日报显示
       showDayClickHandler () {
         console.log('-----------------------日报显示')

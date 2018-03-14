@@ -22,6 +22,8 @@ Vue.use(ElementUI)
 Vue.component('virKeyboard', Vue.extend(virKeyboard))
 Vue.config.productionTip = false
 axios.defaults.baseURL = webUrl
+axios.defaults.timeout = 30000
+console.log(axios.defaults, 'axios')
 axios.defaults.headers['X-Requested-With'] = 'XMLHttpRequest'
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
 axios.defaults.transformRequest = [function (data) {
@@ -62,6 +64,9 @@ axios.interceptors.request.use(function (config) {
 axios.interceptors.response.use(function (response) {
   // 对响应数据做点什么
   console.log('请求返回结果', response)
+  if (response.headers['content-type'] === 'application/vnd.ms-excel') {
+    return response
+  }
   if (response.data) {
     let { cfgInfo, data } = response.data
     if (response.data.retCode === -1) {
@@ -106,6 +111,12 @@ axios.interceptors.response.use(function (response) {
   })
   return Promise.reject(error)
 })
+
+if (process.env.NODE_ENV === 'development') {
+  Vue.prototype.$dev = true
+} else {
+  Vue.prototype.$dev = false
+}
 Vue.prototype.$win = win
 Vue.win = win
 Vue.prototype.$http = axios

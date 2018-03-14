@@ -111,6 +111,9 @@
     "show_in_taskbar": true
   },
   "nodejs": true,
+  "permissions": [
+    "downloads"
+  ],
   "js-flags": "--harmony",
   "node-remote": "<all_urls>"
 }

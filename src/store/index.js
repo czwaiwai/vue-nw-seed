@@ -6,11 +6,13 @@ import Vuex from 'vuex'
 import userStore from './modules/userStore'
 import configStore from './modules/configStore'
 import orderStore from './modules/orderStore'
+import shopStore from './modules/shopStore'
 Vue.use(Vuex)
 export default new Vuex.Store({
   modules: {
     userStore,
     configStore,
-    orderStore
+    orderStore,
+    shopStore
   }
 })

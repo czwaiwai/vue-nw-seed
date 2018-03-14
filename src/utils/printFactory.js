@@ -48,6 +48,9 @@ let printFactory = {
   },
   //  单个小票选择对应的打印机
   tickPrint (ticket, priArr, cb) {
+    if (!priArr) {
+      return cb('打印机对象不存在')
+    }
     let arr = priArr.filter(item => ticket.printName === item.name)
     let printTmp = arr[0]
     if (printTmp) {
@@ -126,7 +129,7 @@ let printFactory = {
     let self = this
     this.createPrinter(function (err, priArr) {
       if (err) {
-        cb(err)
+        return cb(err)
       }
       console.log(priArr)
       console.log('tickets', tickets)

@@ -132,7 +132,7 @@
         this.isLoading = true
         this.$http.post('/ycLogin/doPCLogin', Object.assign({remark: '版本号：' + this.appVersion}, this.formObj)).then(res => {
           let data = res.data
-          let {UserInfo, restShop, fczTn} = data.data
+          let {UserInfo, restShop, retailShop, bookShop, fczTn, belongShopType} = data.data
           //  console.log(UserInfo, '-----')
           this.$store.commit('setToken', fczTn)
           if (!UserInfo.fnShopAssist) {
@@ -141,22 +141,50 @@
             this.$http.post('/ycRest/getPrintTpl').then(res => {
               this.isLoading = false
               let resData = res.data
-              let {printTpl, orderLoopSecond} = resData.data
+              let {printTpl, orderLoopSecond, bookList, xcodeList} = resData.data
               this.$store.commit('setLoopTime', orderLoopSecond)
               this.$store.commit('setTpl', printTpl)
               this.$store.commit('setShopUser', UserInfo.fnShopAssist)
-              this.$store.commit('setShop', restShop)
+              if (restShop) {
+                this.$store.commit('setShop', restShop)
+              }
+              if (retailShop) {
+                this.$store.commit('setShop', retailShop)
+              }
+              if (bookShop) {
+                this.$store.commit('setShop', bookShop)
+              }
+              this.$store.commit('setBookList', bookList)
+              this.$store.commit('setXcodeList', xcodeList)
               console.log('---------------用户登录成功--------------------')
               if (process.env.NODE_ENV === 'development') {
-                this.$router.push('/mainCus/buffetMode')
+//                this.$router.push('/mainCus/buffetMode')
+//                this.$router.push('/mainMall/assistantOpLog')
+//                this.$router.push('/mainBook/bookAssistantOpLogType1')
+//                this.$router.push('/Main/newOrder')
+                switch (belongShopType) {
+                  case 11: this.$router.push('/Main/newOrder'); break
+                  case 12: this.$router.push('/mainCus/buffetMode'); break
+                  case 21: this.$router.push('/mainBook/bookAssistantOpLogType1'); break
+                  case 31: this.$router.push('/mainMall/assistantOpLog'); break
+                  default: this.$message.error('没有分配权限登录')
+                }
               } else {
-                this.$router.push('/Main/newOrder')
+                switch (belongShopType) {
+                  case 11: this.$router.push('/Main/newOrder'); break
+                  case 12: this.$router.push('/mainCus/buffetMode'); break
+                  case 21: this.$router.push('/mainBook/bookAssistantOpLogType1'); break
+                  case 31: this.$router.push('/mainMall/assistantOpLog'); break
+                  default: this.$message.error('没有分配权限登录')
+                }
               }
-            }).catch(() => {
+            }).catch((e) => {
+              console.error(e)
               this.isLoading = false
             })
           }
-        }).catch(() => {
+        }).catch((e) => {
+          console.error(e)
           this.isLoading = false
         })
       }

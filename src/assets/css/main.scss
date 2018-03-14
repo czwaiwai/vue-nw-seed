@@ -19,3 +19,14 @@ input[type=text],input[type=password]{
   margin:0;
 }
 
+.el-select input[readonly]{
+  background: #FFF;
+  cursor: pointer;
+}
+
+.dot-two {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}

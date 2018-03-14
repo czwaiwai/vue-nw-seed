@@ -9,6 +9,7 @@
           正在支付中....
         </div>
       </el-dialog>
+      <el-button @click="login" >测试登录框</el-button>
     </div>
 </template>
 <style rel="stylesheet/scss" lang="scss">
@@ -17,6 +18,7 @@
 <script type="text/ecmascript-6">
   import Vue from 'vue'
   import scanner from '../utils/scanner'
+  import loginModal from '../components/loginModal/'
   Vue.component('mycontent', {
     props: ['content'],
     data () {
@@ -50,6 +52,18 @@
     },
     components: {},
     methods: {
+      login () {
+        loginModal(this, {
+          closeOnClickModal: false,
+          test: '这是我传递的值' + Math.random(),
+          onOpen: function () {
+            console.log('我被打开了')
+          }}).then(res => {
+            console.log(res)
+          }).catch(err => {
+            console.log(err)
+          })
+      },
       // 开启对话框监听键盘事件
       openPay () {
         this.workDialogVisible = true
