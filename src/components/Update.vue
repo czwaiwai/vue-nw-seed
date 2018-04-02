@@ -6,30 +6,60 @@
     </section>
     <section class="update-container text-center" style="padding:40px;" v-if="info">
       <h2>新版本 <small>版本号: {{info.version}}</small></h2>
-      <button type="button" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="showFileDialog">点我更新</button>
+      <button type="button" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="autoDownload">自动更新</button>
+      <!--<button type="button" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="showFileDialog">立即更新</button>-->
+      <button type="button  " v-if="progress < 0 && info.canWait" class="button secondary" @click="updateLate">稍后再更</button>
       <input type="file" class="hidden" ref="fileInput" :nwsaveas="saveAsName" @change="startDownload">
-      <div class="text-left" style="width:400px;margin:0 auto;">
-        <p v-html="updateInfo"></p>
+      <div class="text-center">
+        <p v-if="progress === -2">下载错误 error</p>
+        <div v-if="progress >= 0" style="width:600px;margin:0 auto">
+          <p class="fs12">当前安装包下载路径为：{{downloadUrl}}</p>
+          <el-progress :text-inside="true" :stroke-width="18" :percentage="progress" status="success"></el-progress>
+        </div>
+        <p v-if="progress >= 0">下载进度: {{progress}} %</p>
+      </div>
+      <hr>
+      <div class="grid-x">
+        <div class="small-6 text-left">
+          <h5 >更新内容</h5>
+          <div >
+            <p v-html="updateInfo"></p>
+          </div>
+        </div>
+        <div class="small-6 text-left">
+          <h5>注意事项</h5>
+          <div >
+            <ul>
+              <li class="fs14">进度条到100%表示程序已下载完成，如果未自动安装请找到更新路径找到指定的安装包文件</li>
+              <li class="fs14">请勿将下载的安装包保存至飞常赞的安装目录</li>
+              <li class="fs14">请勿修改安装包的名称</li>
+              <li class="fs14">安装完成后，点击完成程序会自动运行请耐心等待</li>
+              <li class="fs14">待飞常赞成功登陆后，可删除掉安装包文件</li>
+            </ul>
+          </div>
+          <h5>其他更新方式</h5>
+          <div>
+            <ul>
+              <li class="fs14">您还可以复制以下链接到浏览器进行下载来飞常赞程序<br />
+                <span class="fs12 success-text">{{info.packages.win32.url}}</span></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </section>
-    <div class="text-center">
-      <p v-if="progress === -2">下载错误 error</p>
-      <div v-if="progress >= 0" style="width:600px;margin:0 auto">
-        <el-progress :text-inside="true" :stroke-width="18" :percentage="progress" status="success"></el-progress>
-      </div>
-      <p v-if="progress >= 0">下载进度: {{progress}} %</p>
-    </div>
+
   </section>
 </template>
 <script>
   import { getUpdateJson, parseName, downloadHandle } from '@/utils/update'
   import { Shell } from 'nw.gui'
-
+  import {getFileFullName} from '../utils/checkAndFilePath'
   export default {
     name: 'update',
     data () {
       return {
         info: null,
+        downloadUrl: '',
         jsonIsLoading: true,
         progress: -1  // init: -1, error: -2
       }
@@ -44,15 +74,35 @@
       }
     },
     methods: {
+      updateLate () {
+        this.$router.replace('/login')
+      },
       parseUpdateInfo (info) {
         return info.versionInfo || ''
       },
       showFileDialog (ev) {
         this.$refs.fileInput.click()
       },
+      autoDownload () {
+        var targetPath = getFileFullName(this.info.name + '-' + this.info.version + '.exe')
+        this.downloadUrl = targetPath
+        this.progress = 0
+        const file = downloadHandle(targetPath, this.info)
+
+        file.on('data', num => { this.progress = Math.ceil(num * 100) })
+        file.on('error', () => { this.progress = -2 })
+
+        file.on('end', filePath => {
+          this.progress = this.progress < 0 ? this.progress : 100
+
+          // open install file
+          setTimeout(() => Shell.openItem(filePath), 300)
+//          setTimeout(() => Shell.openExternal(filePath), 500)
+        })
+      },
       startDownload (ev) {
         const targetPath = ev.target.value
-
+        this.downloadUrl = targetPath
         // reset
         ev.target.value = ''
         if (!targetPath.trim()) return
@@ -67,7 +117,9 @@
           this.progress = this.progress < 0 ? this.progress : 100
 
           // open install file
-          setTimeout(() => Shell.openExternal(filePath), 100)
+          console.log('更新完成路径', filePath)
+          setTimeout(() => Shell.openItem(filePath), 300)
+//          setTimeout(() => Shell.openExternal(filePath), 500)
         })
       }
     },

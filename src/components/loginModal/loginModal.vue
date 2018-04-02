@@ -67,6 +67,7 @@
           saleId: '',
           psd: ''
         }
+        this.getPageData()
       },
       close (e) {
         this.onClose && this.onClose()

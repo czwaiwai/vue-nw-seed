@@ -1,7 +1,7 @@
 <template>
     <div>
       <button class="button" >测试</button>
-      <button class="button" >测试nwjs 打印</button>
+      <button class="button" @click="printTest" >测试nwjs 打印</button>
       <button @click="openPay" class="button" >结账</button>
       <el-dialog title="结账" :before-close="closePay" :visible.sync="workDialogVisible" width="600px">
         测试结账
@@ -10,15 +10,32 @@
         </div>
       </el-dialog>
       <el-button @click="login" >测试登录框</el-button>
+      <button @click="iframeCreate">创建iframe</button>
+      <div ref="iframeBl"></div>
+      <button @click="showScan">点击弹起扫码框</button>
+      <button @click="$router.push('/update')">跳转到更新页</button>
+
+      <input v-model="url">
+      <button @click="openFolder">打开目录</button>
+      <button @click="openPathFolder">打开path目录</button>
+      <button @click="openDefault">打开默认程序</button>
+      <button @click="openPathDefault">打开path默认程序</button>
+      <button @click="openEXE">打开程序</button>
+      <button @click="openPathEXE">打开path程序</button>
+
     </div>
 </template>
-<style rel="stylesheet/scss" lang="scss">
+<style rel="stylesheet/scss"  lang="scss">
 
 </style>
 <script type="text/ecmascript-6">
   import Vue from 'vue'
   import scanner from '../utils/scanner'
   import loginModal from '../components/loginModal/'
+  import scanModal from '../components/scanModal/'
+  import { Shell } from 'nw.gui'
+  import path from 'path'
+  var gui = require('nw.gui')
   Vue.component('mycontent', {
     props: ['content'],
     data () {
@@ -39,6 +56,7 @@
   export default{
     data () {
       return {
+        url: '',
         payLoading: false,
         workDialogVisible: false,
         msg: 'hello vue',
@@ -52,6 +70,91 @@
     },
     components: {},
     methods: {
+      openFolder () {
+        Shell.showItemInFolder(this.url)
+      },
+      openPathFolder () {
+        Shell.showItemInFolder(path.resolve(this.url))
+      },
+      openDefault () {
+        Shell.openItem(this.url)
+      },
+      openPathDefault () {
+        Shell.openItem(path.resolve(this.url))
+      },
+      openEXE () {
+        Shell.openExternal(this.url)
+      },
+      openPathEXE () {
+        Shell.openExternal(path.resolve(this.url))
+      },
+      async showScan () {
+        let res = await scanModal({onlyScan: true})
+        console.log(res)
+      },
+      printTest () {
+        var div = document.createElement('div')
+        div.setAttribute('id', 'printView')
+        div.innerHTML = `
+          <div style="margin:0;padding:0;">
+          <h5 class="center">东一三逸臣商场（A9109）</h5>
+          <p class="center">电子发票</p>
+          <p>====================</p>
+          <p>开票商家：广州逸臣贸易有限公司</p>
+          <p>发票总金额：￥100.0</p>
+          <p  class="center">微信扫一扫开电子发票</p>
+          <div id="printViewImg"></div>
+          <p  class="center">失效日期：2018-04-13 13:25:24</p>
+          <p  class="center">打印时间：2018-04-13 13:25:24</p>
+          <p>地址：广州白云国际机场东一三层（A9109）</p>
+          <p>电话：020-36068983</p>
+          <p class="center">请保存好本小票</p>
+          </div>
+`
+        document.body.appendChild(div)
+        var imgDiv = div.querySelector('#printViewImg')
+        var img = new Image()
+        img.src = 'http://www.fcz360.com/upload/wx/expQrcode/201803/invoice_3792946370659328.jpg'
+        imgDiv.appendChild(img)
+        img.onload = function () {
+          img.onload = null
+          var win = gui.Window.get()
+          win.print({
+            printer: '小票机net',
+            autoprint: true,
+            shouldPrintBackgrounds: false,
+            marginsType: 1,
+            headerFooterEnabled: false,
+            marginsCustom: {marginBottom: 1, marginLeft: 1, marginRight: 1, marginTop: 1},
+            mediaSize: {'name': 'CUSTOM', 'width_microns': 58000, 'height_microns': 215000, 'custom_display_name': 'Letter', 'is_default': true}
+          })
+        }
+      },
+      iframeCreate () {
+//        gui.Window.open('http://www.baidu.com', {}, function (newWin) {
+//          // do something with the newly created window
+//          console.log(newWin)
+//          newWin.print({autoprint: true})
+//        })
+        var iframe = document.createElement('iframe')
+        this.$refs.iframeBl.appendChild(iframe)
+        var iframedocument = iframe.contentDocument // contentWindow.document;
+        iframedocument.open()
+        iframedocument.write('<html><head><title></title></head><body>1234235</body></html>')
+        iframedocument.close()
+        var iframeWindow = iframe.contentWindow
+        console.log(iframeWindow)
+//        var win = gui.Window.get()
+        var iframeWin = gui.Window.get(iframeWindow)
+        iframeWin.print({autoprint: true, preview: false})
+        console.log(iframeWin)
+      },
+      printerNw () {
+        var nw = global.nw
+        var win = nw.Window.get()
+        console.log(win.getPrinters())
+        console.log('bac')
+      },
       login () {
         loginModal(this, {
           closeOnClickModal: false,

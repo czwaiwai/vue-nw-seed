@@ -10,7 +10,6 @@ export default function scanner (cb) {
 //  isStart = false
 //  有回车符说明是 扫码枪 扫描的结果
     if (str.indexOf('#END') > 0) {
-      canScan = false
       let tmp = str.replace('#END', '')
       cb(tmp, function () {
         canScan = true
@@ -25,9 +24,11 @@ export default function scanner (cb) {
       this.start()
     },
     start: function () {
+      canScan = true
       document.addEventListener('keyup', this.event)
     },
     stop: function () {
+      canScan = false
       document.activeElement.blur()
       document.removeEventListener('keyup', this.event)
     },
@@ -42,6 +43,7 @@ export default function scanner (cb) {
 //          }
 //          if (!isStart) return
       if (e.keyCode === 13) {
+        canScan = false // 当遇到第一个end时不再接受后面的输入
         keyStr += '#END'
       } else if (e.keyCode > 47 && e.keyCode < 106) {
         keyStr += String.fromCharCode(e.keyCode)

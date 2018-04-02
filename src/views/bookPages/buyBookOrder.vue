@@ -34,6 +34,7 @@
             <el-option v-for="item in bookList" :label="item.name" :key="item.xcode" :value="item.xcode"></el-option>
           </el-select>
         </el-form-item>
+
         <el-form-item label="图书购买时间范围"  prop="date1">
           <el-date-picker v-model="orderForm.date1"
             type="daterange"
@@ -134,7 +135,8 @@
     },
     computed: {
       ...mapGetters({
-        'bookList': 'bookList'
+        'bookList': 'bookList',
+        'shopInfoList': 'shopInfoList'
       })
     },
     methods: {

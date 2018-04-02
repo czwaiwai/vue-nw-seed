@@ -52,6 +52,10 @@
               <i class="el-icon-news"></i>
               <span slot="title">电子发票</span>
             </el-menu-item>
+            <el-menu-item index="/mainBook/scanClerk"  >
+              <i class="el-icon-news"></i>
+              <span slot="title">飞常赞用户收款</span>
+            </el-menu-item>
           </el-menu>
         </div>
         <div class="aside-footer " style="padding:0;background:#545C64"  >
@@ -129,6 +133,15 @@
     components: {
     },
     methods: {
+    },
+    created () {
+      // 初始化打印数据
+      this.$store.commit('printInit', {
+        vue: this,
+        shop: this.shop,
+        shopPrint: this.shopPrint,
+        user: this.user
+      })
     }
   }
 </script>

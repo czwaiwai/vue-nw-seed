@@ -1,5 +1,5 @@
 <template>
-  <div class="grid-x  small-up-2  medium-up-3 large-up-6">
+  <div class="grid-x  small-up-4  medium-up-5 large-up-7">
     <div class="cell btn_block">
       <button @click="allOrderFinishHandler" type="button" class="button expanded">批量订单完成</button>
     </div>
@@ -18,15 +18,21 @@
     <div class="cell btn_block">
       <button @click="safeExitHandler" type="button" class="button expanded">安全退出</button>
     </div>
-    <div v-if="isTest" class="cell btn_block">
+    <div v-if="isTest || user.mobile=='13728905705'" class="cell btn_block">
       <button @click="testHandler" type="button" class="button expanded">测试</button>
     </div>
-    <div v-if="isTest" class="cell btn_block">
+    <div v-if="isTest " class="cell btn_block">
       <button @click="swicthBuffetHandler" type="button"class="button expanded">切换点餐模式</button>
     </div>
-    <!--<div class="cell btn_block">-->
-      <!--<button type="button"class="button expanded">菜品参数</button>-->
-    <!--</div>-->
+    <div class="cell btn_block">
+      <button @click="createInvoice" type="button"class="button expanded">开电子发票</button>
+    </div>
+    <div class="cell btn_block">
+      <button @click="scanClerk" type="button"class="button expanded">飞常赞用户收款</button>
+    </div>
+    <div class="cell btn_block">
+      <button @click="openCashBox" type="button"class="button expanded">开钱箱</button>
+    </div>
     <!--<div class="cell btn_block">-->
       <!--<button type="button" class="button expanded">主界面按钮颜色</button>-->
     <!--</div>-->
@@ -178,8 +184,33 @@
     components: {
     },
     methods: {
+      openCashBox () {
+        let printName = this.shopPrint[0].name
+        let tmp = {
+          content: `<% openCashbox:'' %>`,
+          orderId: '',
+          pkey: '',
+          printMore: '',
+          printMoreSeq: '',
+          printerName: printName,
+          title: '开钱箱'
+        }
+        this.$store.dispatch('addPrintObj', {printList: [tmp]})
+      },
       testHandler () {
         this.$router.push({name: 'Test'})
+      },
+      scanClerk () {
+        if (this.$route.path.indexOf('/mainCus') > -1) {
+          return this.$router.push('/mainCus/scanClerk')
+        }
+        return this.$router.push('/main/scanClerk')
+      },
+      createInvoice () {
+        if (this.$route.path.indexOf('/mainCus') > -1) {
+          return this.$router.push('/mainCus/invoice')
+        }
+        return this.$router.push('/main/invoice')
       },
       swicthBuffetHandler () {
         this.$confirm('你确定要切换到点餐模式么，切换到点餐模式将无法监听到新订单', '提示', {
@@ -207,35 +238,13 @@
         let res = await this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id})
         let resData = res.data
         let printList = await handoverModal({
+          exchangeType: 0,
           shopId: this.shop.id,
           handoverData: resData.data
         })
         this.$message.success('操作成功，交办单已往打印机')
         this.$store.dispatch('addPrintObj', {printList})
       },
-      //  交办单日期变更
-//      handoverChange () {
-//        console.log('-----------------------交办单日期变更')
-//        if (this.dateRange) {
-//          let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
-//          let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
-//          this.$http.post('/ycRest/countProSaleData', {
-//            saleBeginTime,
-//            saleEndTime,
-//            restShopId: this.shop.id
-//          }).then(res => {
-//            this.handoverDialogVisible = true
-//            let resData = res.data
-//            let {data, saleBeginTime, saleEndTime, printList} = resData.data
-//            this.dateRange = [saleBeginTime, saleEndTime]
-//            data.saleBeginTime = saleBeginTime
-//            data.saleEndTime = saleEndTime
-//            this.tmpPrintList = printList
-//            this.dayPaperData = data
-//            this.handoverData = resData.data
-//          })
-//        }
-//      },
       //  日报显示
       async showDayClickHandler () {
         console.log('-----------------------日报显示')
@@ -243,6 +252,7 @@
         let resData = res.data
         let {data, saleBeginTime, saleEndTime, printList} = resData.data
         let newPrintList = await dayModal({
+          exchangeType: 0,
           shopId: this.shop.id,
           shopName: this.shop.restName,
           dayData: data,
@@ -253,41 +263,6 @@
         this.$message.success('操作成功，日报已往打印机')
         this.$store.dispatch('addPrintObj', {printList: newPrintList})
       },
-//      dayPaperChange (e) {
-//        console.log('-----------------------日报修改日期')
-//        console.log('dateRange', this.dateRange)
-//        if (this.dateRange) {
-//          console.log(this.dateRange)
-//          let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
-//          let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
-//          this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, returnType: 1, restShopId: this.shop.id}).then(res => {
-//            let resData = res.data
-//            let {data, saleBeginTime, saleEndTime, printList} = resData.data
-//            this.dateRange = [saleBeginTime, saleEndTime]
-//            data.saleBeginTime = saleBeginTime
-//            data.saleEndTime = saleEndTime
-//            this.tmpPrintList = printList
-//            this.dayPaperData = data
-//          })
-//        }
-//      },
-//      printDayPaper () {
-//        console.log('-----------------------打印日报')
-//        if (!this.dateRange) {
-//          return this.$message.warning('请选择日期')
-//        }
-//        this.$store.dispatch('addPrintObj', {printList: this.tmpPrintList})
-//        this.dayDialogVisible = false
-//      },
-//      printHandover () {
-//        console.log('-----------------------打印交班单')
-//        if (!this.dateRange) {
-//          return this.$message.warning('请选择日期')
-//        }
-//        this.$store.dispatch('addPrintObj', {printList: this.tmpPrintList})
-//        this.handoverDialogVisible = false
-//        console.log('打印交班单')
-//      },
       allOrderFinishHandler () {
         this.$confirm('你确定将所有支付完成并打印的订单设置为订单完成状态吗', '提示', {
           confirmButtonText: '确定',
@@ -322,19 +297,23 @@
         }).catch(() => {})
       },
       showPrintersHandler () {
-        let list = printer.getPrinters()
-        console.log([...list])
-        this.printerList = list.map(item => {
-          if (item.jobs && item.jobs.length > 0) {
-            item.myPrintType = item.jobs[0].status[0]
-            item.waitjobs = item.jobs.length
-          } else {
-            item.myPrintType = 'STANDBY'
-            item.waitjobs = 0
-          }
-          return item
-        })
-        this.printerStateVisible = true
+        if (this.$isXP) {
+          this.$message.warning('XP系统无法查看设备打印')
+        } else {
+          let list = printer.getPrinters()
+          console.log([...list])
+          this.printerList = list.map(item => {
+            if (item.jobs && item.jobs.length > 0) {
+              item.myPrintType = item.jobs[0].status[0]
+              item.waitjobs = item.jobs.length
+            } else {
+              item.myPrintType = 'STANDBY'
+              item.waitjobs = 0
+            }
+            return item
+          })
+          this.printerStateVisible = true
+        }
       }
     },
     activated () {

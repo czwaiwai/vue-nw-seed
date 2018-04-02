@@ -32,6 +32,28 @@
 //   console.log(`请求遇到问题：${e.message}`)
 // })
 // req.end()
-var path = require('path')
-var saveFile = require('./utils/saveExcel')
-saveFile('/ycShop/expFczOrderExecl?exportToExcel=YES&orderId=&status=1&date=&xcode=gzdsmsgc&rcode=', path.resolve('c:/test1.xlsx'))
+// var path = require('path')
+// var saveFile = require('./utils/saveExcel')
+// saveFile('/ycShop/expFczOrderExecl?exportToExcel=YES&orderId=&status=1&date=&xcode=gzdsmsgc&rcode=', path.resolve('c:/test1.xlsx'))
+// var roundTime = require('./utils/roundTime')
+// console.log('立即执行----')
+// var round = roundTime(function (next) {
+//   console.log('-------start---------')
+//   console.log(next.isValid, '??')
+//   setTimeout(function () {
+//     console.log('我进来了')
+//     if (next.isValid) {
+//       console.log('hahaha')
+//       console.log('-------end-------')
+//       next()
+//     } else {
+//       next(false)
+//     }
+//   }, 3000)
+// }, 1000)
+// round.start()
+// setTimeout(function () {
+//   round.stop()
+//   round.start()
+// }, 6000)
+

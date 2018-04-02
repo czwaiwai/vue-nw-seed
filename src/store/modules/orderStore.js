@@ -44,39 +44,40 @@ export default {
         cashRound: 0, // 舍入额
         cashMoney: 0, // 折扣掉的金额
         cashNeedPay: 0, // 应收的金额
+        cashMoneyBack: 0, // 找回的零钱
         fnAttach: []
       }
     },
     setActiveOrderInfo (state, obj) {
       if (!state.activeOrder) return
-      // Object.assign(state.activeOrder, obj)
-      console.log(this._vm)
       for (let key in obj) {
         this._vm.$set(state.activeOrder, key, obj[key])
       }
-      // this._vm.$set()
-      // console.log(state.activeOrder)
     },
+    // 设置折扣额及应收金额
     changeActiveMoney (state, money) {
       if (!state.activeOrder) return
       let active = state.activeOrder
       let before = active.fnActPayAmount
+      // 有折扣
       if (active.cashMoney > 0) {
         before = currency(before - active.cashMoney)
       }
-      // 如果money不等于应付金额，进入舍入模式
-      //  if (money !== active.cashNeedPay) {
       console.log(parseFloat(before), parseFloat(money))
-      active.cashRound = currency(parseFloat(money) - parseFloat(before))
-      console.log(active.cashRound, '-----------------------')
-      active.cashNeedPay = money
-      // }
+      active.cashMoneyBack = currency(parseFloat(money) - parseFloat(before))
+      // active.cashNeedPay = money
+    },
+    // 修改找零金额
+    changeActiveBackMoney (state, money) {
+      if (!state.activeOrder) return
+      state.activeOrder.cashRound = currency(parseFloat(state.activeOrder.cashMoneyBack) - parseFloat(money))
+      state.activeOrder.cashMoneyBack = money
+      console.log(state.activeOrder.cashRound, '取整后：舍入金额 cashRound')
     },
     setActiveDiscount (state, percent) {
       if (!state.activeOrder) return
       let active = state.activeOrder
       active.cashDisc = percent
-      // 注意：还未处理小数点精确度问题
       active.cashMoney = currency((active.fnActPayAmount * (100 - percent)) / 100)
       active.cashNeedPay = currency(active.fnActPayAmount - active.cashMoney)
       // state.activeOrder.cashNeedPay =
@@ -254,6 +255,9 @@ export default {
       }
     },
     removeOrderMap (state, order) {
+      if (order) {
+        console.log('列表中移除---order', JSON.stringify(order))
+      }
       if (state.hisOrderIds.indexOf(order.id) === -1) {
         state.hisOrderIds.push(order.id)
       }
@@ -341,7 +345,7 @@ export default {
       return newOrder
     },
     setAndRemoreActive ({state, commit}, {order}) {
-      console.log(order)
+      console.log('------setAndRemoreActive', JSON.stringify(order))
       let newOrder = orderSignOne(order)
       // commit('removeActiveOrder', newOrder)
       commit('removeActiveOrderMap')

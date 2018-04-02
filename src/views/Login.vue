@@ -90,12 +90,15 @@
 <script>
 //  import virKeyboard from '@/components/virKeyboard'
   import getConfig from '../utils/getConfig'
+  import {clearLogs} from '../utils/clearLogs'
+  import {clearApplicationFile} from '../utils/checkAndFilePath'
   export default {
     data () {
       return {
         isLoading: false,
         appVersion: '',
         input: null,
+        appJson: {},
         formObj: {
           mobile: '',
           passWd: ''
@@ -129,6 +132,7 @@
         if (validErr) {
           return this.$message({message: validErr, type: 'error'})
         }
+
         this.isLoading = true
         this.$http.post('/ycLogin/doPCLogin', Object.assign({remark: '版本号：' + this.appVersion}, this.formObj)).then(res => {
           let data = res.data
@@ -141,21 +145,39 @@
             this.$http.post('/ycRest/getPrintTpl').then(res => {
               this.isLoading = false
               let resData = res.data
-              let {printTpl, orderLoopSecond, bookList, xcodeList} = resData.data
+              let {printTpl, orderLoopSecond, bookList, xcodeList, shopInfo, shopInfoList} = resData.data
               this.$store.commit('setLoopTime', orderLoopSecond)
               this.$store.commit('setTpl', printTpl)
               this.$store.commit('setShopUser', UserInfo.fnShopAssist)
-              if (restShop) {
-                this.$store.commit('setShop', restShop)
+              if (shopInfo) {
+                if (shopInfo.restName) {
+                  shopInfo.name = shopInfo.restName
+                }
+                shopInfo.belongShopType = belongShopType
+                this.$store.commit('setShop', shopInfo)
+                clearLogs(shopInfo.clientLogDays)
+                if (this.appJson.version) {
+                  clearApplicationFile(this.appJson.name + '-' + this.appJson.version + '.exe')
+                }
+              } else {
+                if (restShop) {
+                  this.$store.commit('setShop', restShop)
+                }
+                if (retailShop) {
+                  this.$store.commit('setShop', retailShop)
+                }
+                if (bookShop) {
+                  this.$store.commit('setShop', bookShop)
+                }
               }
-              if (retailShop) {
-                this.$store.commit('setShop', retailShop)
+              console.log(shopInfoList)
+              this.$store.commit('setShopInfoList', shopInfoList)
+              if (bookList) {
+                this.$store.commit('setBookList', bookList)
               }
-              if (bookShop) {
-                this.$store.commit('setShop', bookShop)
+              if (xcodeList) {
+                this.$store.commit('setXcodeList', xcodeList)
               }
-              this.$store.commit('setBookList', bookList)
-              this.$store.commit('setXcodeList', xcodeList)
               console.log('---------------用户登录成功--------------------')
               if (process.env.NODE_ENV === 'development') {
 //                this.$router.push('/mainCus/buffetMode')
@@ -171,10 +193,10 @@
                 }
               } else {
                 switch (belongShopType) {
-                  case 11: this.$router.push('/Main/newOrder'); break
-                  case 12: this.$router.push('/mainCus/buffetMode'); break
-                  case 21: this.$router.push('/mainBook/bookAssistantOpLogType1'); break
-                  case 31: this.$router.push('/mainMall/assistantOpLog'); break
+                  case 11: this.$router.push('/Main/newOrder'); break // 餐饮店
+                  case 12: this.$router.push('/mainCus/buffetMode'); break  // 自选店
+                  case 21: this.$router.push('/mainBook/bookAssistantOpLogType1'); break // 书店
+                  case 31: this.$router.push('/mainMall/assistantOpLog'); break // 线下商店
                   default: this.$message.error('没有分配权限登录')
                 }
               }
@@ -191,7 +213,9 @@
     },
     created () {
       getConfig.then((json) => {
+        this.appJson = json
         this.appVersion = json.version
+        console.log('获取的软件信息', json)
         console.log('当前版本号：' + json.version)
       })
     }

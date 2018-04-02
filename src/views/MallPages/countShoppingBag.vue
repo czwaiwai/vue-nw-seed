@@ -61,7 +61,8 @@
     },
     computed: {
       ...mapGetters({
-        'xcodeList': 'xcodeList'
+        'xcodeList': 'xcodeList',
+        'shopInfoList': 'shopInfoList'
       })
     },
     methods: {

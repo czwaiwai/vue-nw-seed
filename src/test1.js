@@ -33,6 +33,7 @@ const os = require('os')
 //     }
 //   })
 // })
+console.log(os.tmpdir(), 'tmpdir')
 function payFormat (order) {
   if (order.adjAmt) {
     return `实际支付总额:${order.adjAmt}元`
@@ -52,4 +53,3 @@ function payFormat (order) {
     }
   }
 }
-console.log(payFormat({}))

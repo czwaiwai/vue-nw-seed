@@ -4,13 +4,18 @@
 export default {
   state: {
     bookList: [],
-    xcodeList: []
+    xcodeList: [],
+    shopInfoList: []
   },
   getters: {
     bookList: state => state.bookList,
-    xcodeList: state => state.xcodeList
+    xcodeList: state => state.xcodeList,
+    shopInfoList: state => state.shopInfoList
   },
   mutations: {
+    setShopInfoList (state, list) {
+      state.shopInfoList = list
+    },
     setBookList (state, list) {
       state.bookList = list
     },

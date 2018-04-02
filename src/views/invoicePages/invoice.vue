@@ -83,11 +83,15 @@
       routeTo () {
         console.log(this.$route.path)
         if (this.$route.path.indexOf('/mainBook') > -1) {
-          this.$router.replace('/mainBook/redInvoice')
+          return this.$router.replace('/mainBook/redInvoice')
         }
         if (this.$route.path.indexOf('/mainMall') > -1) {
-          this.$router.replace('/mainMall/redInvoice')
+          return this.$router.replace('/mainMall/redInvoice')
         }
+        if (this.$route.path.indexOf('/mainCus') > -1) {
+          return this.$router.replace('/mainCus/redInvoice')
+        }
+        return this.$router.replace('/main/redInvoice')
       },
       onSubmit (formName) {
         this.$refs[formName].validate((valid) => {

@@ -36,6 +36,10 @@
               <i class="el-icon-news"></i>
               <span slot="title">电子发票</span>
             </el-menu-item>
+            <el-menu-item index="/mainMall/scanClerk"  >
+              <i class="el-icon-news"></i>
+              <span slot="title">飞常赞用户收款</span>
+            </el-menu-item>
           </el-menu>
         </div>
         <div class="aside-footer " style="padding:0;background:#545C64"  >

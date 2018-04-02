@@ -9,6 +9,7 @@ import App from './App'
 import store from './store'
 import ElementUI from 'element-ui'
 import { webUrl } from './utils/env'
+import FastClick from 'fastclick'
 import filter from './filter/'
 import axios from 'axios'
 import router from './router'
@@ -16,8 +17,24 @@ import './assets/css/main.scss'
 import 'element-ui/lib/theme-chalk/index.css'
 import getLogger from './utils/logs'
 import virKeyboard from './components/virKeyboard'
+import osType from './utils/osType'
+import chromePrint from './utils/chromePrint'
 getLogger()
+osType(Vue)
 filter(Vue)
+if ('addEventListener' in document) {
+  document.addEventListener('DOMContentLoaded', function () {
+    FastClick.attach(document.body)
+  }, false)
+  document.addEventListener('keydown', function (e) {
+    if (e.keyCode === 13) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    return false
+  })
+}
+
 Vue.use(ElementUI)
 Vue.component('virKeyboard', Vue.extend(virKeyboard))
 Vue.config.productionTip = false
@@ -97,8 +114,14 @@ axios.interceptors.response.use(function (response) {
     let isAddPrint = urlFilters.every(item => {
       return response.config.url.indexOf(item) === -1
     })
-    if (isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
-      store.dispatch('addPrintObj', {printList: data.printList})
+    let shop = appVue.$store.getters.shop
+    if (shop) {
+      if (shop.printType === 1 && isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
+        chromePrint(data.printList)
+      }
+      if (shop.printType !== 1 && isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
+        store.dispatch('addPrintObj', {printList: data.printList})
+      }
     }
   }
   return response
@@ -117,6 +140,7 @@ if (process.env.NODE_ENV === 'development') {
 } else {
   Vue.prototype.$dev = false
 }
+Vue.prototype.$nw = global.nw
 Vue.prototype.$win = win
 Vue.win = win
 Vue.prototype.$http = axios

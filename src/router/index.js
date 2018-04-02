@@ -20,12 +20,12 @@ import MainMall from '@/views/MainMall'
 import AssistantOpLog from '@/views/MallPages/assistantOpLog'
 import YcFczOrder from '@/views/MallPages/ycFczOrder'
 import CountShoppingBag from '@/views/MallPages/countShoppingBag'
+import ScanClerk from '@/views/MallPages/scanClerk'
 
 // 电子发票
 import Invoice from '@/views/invoicePages/invoice'
 import RedInvoice from '@/views/invoicePages/redInvoice'
 
-import Printers from '@/views/Printers'
 import NewOrder from '@/views/order/NewOrder'
 import PrintedOrder from '@/views/order/PrintedOrder'
 import CusPrintedOrder from '@/views/order/cusPrintedOrder'
@@ -59,10 +59,6 @@ export default new Router({
           title: '其他功能'
         },
         component: OtherFn
-      }, {
-        path: 'printers',
-        name: 'Printers',
-        component: Printers
       }, {
         path: 'newOrder',
         name: 'NewOrder',
@@ -98,6 +94,27 @@ export default new Router({
           title: '点餐模式'
         },
         component: BuffetMode
+      }, {
+        path: 'invoice',
+        name: 'Invoice',
+        meta: {
+          title: '电子发票开具'
+        },
+        component: Invoice
+      }, {
+        path: 'redInvoice',
+        name: 'RedInvoice',
+        meta: {
+          title: '电子发票红冲'
+        },
+        component: RedInvoice
+      }, {
+        path: 'scanClerk',
+        name: 'ScanClerk',
+        meta: {
+          title: '飞常赞用户收款'
+        },
+        component: ScanClerk
       }]
     },
     {
@@ -133,9 +150,26 @@ export default new Router({
         },
         component: OtherFn
       }, {
-        path: 'printers',
-        name: 'Printers',
-        component: Printers
+        path: 'invoice',
+        name: 'Invoice',
+        meta: {
+          title: '电子发票开具'
+        },
+        component: Invoice
+      }, {
+        path: 'redInvoice',
+        name: 'RedInvoice',
+        meta: {
+          title: '电子发票红冲'
+        },
+        component: RedInvoice
+      }, {
+        path: 'scanClerk',
+        name: 'ScanClerk',
+        meta: {
+          title: '飞常赞用户收款'
+        },
+        component: ScanClerk
       }]
     },
     {
@@ -207,6 +241,13 @@ export default new Router({
           title: '电子发票红冲'
         },
         component: RedInvoice
+      }, {
+        path: 'scanClerk',
+        name: 'ScanClerk',
+        meta: {
+          title: '飞常赞用户收款'
+        },
+        component: ScanClerk
       }]
     },
     {
@@ -248,6 +289,13 @@ export default new Router({
           title: '电子发票红冲'
         },
         component: RedInvoice
+      }, {
+        path: 'scanClerk',
+        name: 'ScanClerk',
+        meta: {
+          title: '飞常赞用户收款'
+        },
+        component: ScanClerk
       }]
     },
     {

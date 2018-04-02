@@ -6,7 +6,7 @@ $button-palette: map-merge($foundation-palette, (
 @import '~foundation-sites/scss/foundation';
 @include foundation-everything;
 @import 'tool';
-
+@import  'print';
 *,html{
   padding:0;
   margin:0;

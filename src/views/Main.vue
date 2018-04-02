@@ -129,45 +129,45 @@
       </el-container>
     </el-container>
 
-    <el-dialog title="退菜" :visible.sync="backCaiVisible" width="600px">
-      <el-table :data="backCaiList" border height="300" style="width: 100%">
-        <el-table-column prop="restProName" label="菜名"></el-table-column>
-        <el-table-column label="数量" width="120">
-          <template slot-scope="scope">
-            <span class="padding-right">{{scope.row.buyCount}}</span>  <span v-show="scope.row.tuiNum" class="alert label">退菜 -{{scope.row.tuiNum}}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="80">
-          <template slot-scope="scope">
-            <el-button size="mini" :disabled="scope.row.btnDisabled" @click="tuiCaiBtnHandle(scope.$index, scope.row)">退菜</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-form :model="backCaiForm" :rules="backCaiRules" ref="backCaiForm" label-width="120px">
-        <el-form-item label="备注" prop="remark" style="margin-bottom:0;padding-top:15px;">
-          <el-autocomplete class="inline-input" v-model="backCaiForm.remark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="backCaiVisible = false">取 消</el-button>
-        <el-button type="primary" :loading="btnLoading" @click="backCaiConfirm('backCaiForm')">确定</el-button>
-      </span>
-    </el-dialog>
+    <!--<el-dialog title="退菜" :visible.sync="backCaiVisible" width="600px">-->
+      <!--<el-table :data="backCaiList" border height="300" style="width: 100%">-->
+        <!--<el-table-column prop="restProName" label="菜名"></el-table-column>-->
+        <!--<el-table-column label="数量" width="120">-->
+          <!--<template slot-scope="scope">-->
+            <!--<span class="padding-right">{{scope.row.buyCount}}</span>  <span v-show="scope.row.tuiNum" class="alert label">退菜 -{{scope.row.tuiNum}}</span>-->
+          <!--</template>-->
+        <!--</el-table-column>-->
+        <!--<el-table-column label="操作" width="80">-->
+          <!--<template slot-scope="scope">-->
+            <!--<el-button size="mini" :disabled="scope.row.btnDisabled" @click="tuiCaiBtnHandle(scope.$index, scope.row)">退菜</el-button>-->
+          <!--</template>-->
+        <!--</el-table-column>-->
+      <!--</el-table>-->
+      <!--<el-form :model="backCaiForm" :rules="backCaiRules" ref="backCaiForm" label-width="120px">-->
+        <!--<el-form-item label="备注" prop="remark" style="margin-bottom:0;padding-top:15px;">-->
+          <!--<el-autocomplete class="inline-input" v-model="backCaiForm.remark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>-->
+        <!--</el-form-item>-->
+      <!--</el-form>-->
+      <!--<span slot="footer" class="dialog-footer">-->
+        <!--<el-button @click="backCaiVisible = false">取 消</el-button>-->
+        <!--<el-button type="primary" :loading="btnLoading" @click="backCaiConfirm('backCaiForm')">确定</el-button>-->
+      <!--</span>-->
+    <!--</el-dialog>-->
 
-    <el-dialog title="改价" :visible.sync="changeAmtVisible" width="600px">
-      <el-form :model="changeAmtForm" :rules="changeAmtRules" ref="changeAmt" label-width="120px">
-        <el-form-item label="实际支付金额" prop="adjAmt" placeholder="请填写金额">
-          <el-input v-model="changeAmtForm.adjAmt"></el-input>
-        </el-form-item>
-        <el-form-item label="改价备注" prop="adjRemark" >
-          <el-autocomplete class="inline-input" v-model="changeAmtForm.adjRemark" :fetch-suggestions="suggestChangeAmt" placeholder="请填写备注"></el-autocomplete>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="changeAmtVisible = false">取 消</el-button>
-        <el-button type="primary" :loading="btnLoading" @click="changeAmtConfirm('changeAmt')">确定</el-button>
-      </span>
-    </el-dialog>
+    <!--<el-dialog title="改价" :visible.sync="changeAmtVisible" width="600px">-->
+      <!--<el-form :model="changeAmtForm" :rules="changeAmtRules" ref="changeAmt" label-width="120px">-->
+        <!--<el-form-item label="实际支付金额" prop="adjAmt" placeholder="请填写金额">-->
+          <!--<el-input v-model="changeAmtForm.adjAmt"></el-input>-->
+        <!--</el-form-item>-->
+        <!--<el-form-item label="改价备注" prop="adjRemark" >-->
+          <!--<el-autocomplete class="inline-input" v-model="changeAmtForm.adjRemark" :fetch-suggestions="suggestChangeAmt" placeholder="请填写备注"></el-autocomplete>-->
+        <!--</el-form-item>-->
+      <!--</el-form>-->
+      <!--<span slot="footer" class="dialog-footer">-->
+        <!--<el-button @click="changeAmtVisible = false">取 消</el-button>-->
+        <!--<el-button type="primary" :loading="btnLoading" @click="changeAmtConfirm('changeAmt')">确定</el-button>-->
+      <!--</span>-->
+    <!--</el-dialog>-->
 
 
     <!--<el-dialog title="退单" :visible.sync="backAmtVisible" width="600px" >-->
@@ -236,7 +236,7 @@
       <div class="day_paper">
         <h5>日报</h5>
         <p>店铺：{{shop.restName}}</p>
-        <p>统计日期：{{dateRange[0] | mydate('-') }}</p>
+        <p>统计日期：{{dateRange[1] | mydate('-') }}</p>
         <!--<p>统计结束日期：{{dateRange[1]}}</p>-->
         <hr/>
         <p>已支付：{{dayPaperData.count}}笔 <span style="float:right">实收金额：{{dayPaperData.actualAmt}}</span></p>
@@ -267,7 +267,7 @@
           <!--end-placeholder="结束日期">-->
         <!--</el-date-picker>-->
       <!--</div>-->
-      <div>日期：<label style="display:inline-block">{{ dateRange[0] | mydate('-') }}</label></div>
+      <div>日期：<label style="display:inline-block">{{ dateRange[1] | mydate('-') }}</label></div>
       <div class="handover">
         <div class="grid-container full">
           <div class="grid-x grid-margin-x">
@@ -379,6 +379,9 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .buffet_mode .item_name {
+      font-size:14px;
+    }
   }
 
   .aside-footer {
@@ -441,6 +444,7 @@
   import backAmtModal from '../components/backAmtModal/'
   import changeAmtModal from '../components/changeAmtModal/'
   import backVegetablesModal from '../components/backVegetablesModal'
+  import rePrintModal from '../components/rePrintModal/'
   let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
@@ -706,23 +710,42 @@
           this.printService.add(this.activeOrder)
         }
       },
+
       //  显示补打
-      rePrintClickHandler () {
+      async rePrintClickHandler () {
         console.log('-----------------------显示补打')
         if (this.isActiveOrder()) {
-          this.tmpOrder = Object.assign({}, this.activeOrder)
-          this.rePrintVisible = true
+          let self = this
+          console.log('补打，当前店信息', this.shop)
+          await rePrintModal({
+            shop: this.shop,
+            activeOrder: Object.assign({}, this.activeOrder),
+            printFn: function (order) {
+              console.log('我被调用了')
+              self.printService.add(order)
+            }
+          })
         }
       },
+      //  显示补打
+//      rePrintClickHandler () {
+//        console.log('-----------------------显示补打')
+//        if (this.isActiveOrder()) {
+//          this.tmpOrder = Object.assign({}, this.activeOrder)
+//          this.rePrintVisible = true
+//        }
+//      },
       // 手动补打
       toSinglePrint (type, btnName, newType) {
-        this[btnName] = true
-        let order = Object.assign({}, this.tmpOrder, {printSingleType: newType})
-        console.log('手动补打', btnName)
-        this.printService.add(order)
-        setTimeout(() => {
-          this[btnName] = false
-        }, 1500)
+        if (this.isActiveOrder()) {
+          this[btnName] = true
+          let order = Object.assign({}, this.tmpOrder, {printSingleType: newType})
+          console.log('手动补打', btnName)
+          this.printService.add(order)
+          setTimeout(() => {
+            this[btnName] = false
+          }, 1500)
+        }
       },
       // 手动打印开发票单
       // 手动红冲发票
@@ -761,17 +784,6 @@
               this.$message.success('红冲成功')
             }
           }).catch(() => {})
-
-//
-//          this.invoiceBtn = true
-//          this.$http.post('/rest/applyInvoice', {restOrderId: id}).then(function () {
-//            setTimeout(() => {
-//              this.invoiceBtn = false
-//              this.$message.success('发票信息已经发送至打印机')
-//            }, 1000)
-//          }).catch(e => {
-//            this.invoiceBtn = false
-//          })
         }
       },
 //      sendInvoice () {
@@ -1502,7 +1514,9 @@
       })
       this.listenService()
       console.log(this.printService, 'printService')
-      console.log('getLocalPrinters()', getLocalPrinters())
+      if (!this.$isXP) {
+        console.log('getLocalPrinters()', getLocalPrinters())
+      }
       //  轮询
       if (this.shop.restType !== 2) {
         this.roundFn()

@@ -81,7 +81,8 @@
     },
     computed: {
       ...mapGetters({
-        'bookList': 'bookList'
+        'bookList': 'bookList',
+        'shopInfoList': 'shopInfoList'
       })
     },
     methods: {
