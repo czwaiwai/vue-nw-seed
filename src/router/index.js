@@ -25,7 +25,7 @@ import ScanClerk from '@/views/MallPages/scanClerk'
 // 电子发票
 import Invoice from '@/views/invoicePages/invoice'
 import RedInvoice from '@/views/invoicePages/redInvoice'
-
+import InvoiceList from '@/views/invoicePages/InvoiceList'
 import NewOrder from '@/views/order/NewOrder'
 import PrintedOrder from '@/views/order/PrintedOrder'
 import CusPrintedOrder from '@/views/order/cusPrintedOrder'
@@ -104,10 +104,18 @@ export default new Router({
       }, {
         path: 'redInvoice',
         name: 'RedInvoice',
+        props: (route) => ({invoiceCode: route.query.invoiceCode, invoiceNo: route.query.invoiceNo}),
         meta: {
           title: '电子发票红冲'
         },
         component: RedInvoice
+      }, {
+        path: 'invoiceList',
+        name: 'InvoiceList',
+        meta: {
+          title: '电子发票列表'
+        },
+        component: InvoiceList
       }, {
         path: 'scanClerk',
         name: 'ScanClerk',
@@ -159,10 +167,18 @@ export default new Router({
       }, {
         path: 'redInvoice',
         name: 'RedInvoice',
+        props: (route) => ({invoiceCode: route.query.invoiceCode, invoiceNo: route.query.invoiceNo}),
         meta: {
           title: '电子发票红冲'
         },
         component: RedInvoice
+      }, {
+        path: 'invoiceList',
+        name: 'InvoiceList',
+        meta: {
+          title: '电子发票列表'
+        },
+        component: InvoiceList
       }, {
         path: 'scanClerk',
         name: 'ScanClerk',
@@ -242,6 +258,13 @@ export default new Router({
         },
         component: RedInvoice
       }, {
+        path: 'invoiceList',
+        name: 'InvoiceList',
+        meta: {
+          title: '电子发票列表'
+        },
+        component: InvoiceList
+      }, {
         path: 'scanClerk',
         name: 'ScanClerk',
         meta: {
@@ -289,6 +312,13 @@ export default new Router({
           title: '电子发票红冲'
         },
         component: RedInvoice
+      }, {
+        path: 'invoiceList',
+        name: 'InvoiceList',
+        meta: {
+          title: '电子发票列表'
+        },
+        component: InvoiceList
       }, {
         path: 'scanClerk',
         name: 'ScanClerk',

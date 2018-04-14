@@ -215,7 +215,7 @@
       getConfig.then((json) => {
         this.appJson = json
         this.appVersion = json.version
-        console.log('获取的软件信息', json)
+        console.log('获取的软件信息', JSON.stringify(json))
         console.log('当前版本号：' + json.version)
       })
     }

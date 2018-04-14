@@ -65,7 +65,7 @@
             <div class="row ">
               <div>
                 <button :disabled="changeAmtDisabled"  @click="changeAmtClickHandler" type="button" class="button  light">改价</button>
-                <button :disabled="cancelOrderDisabled" @click="cancelOrder" type="button" class="button light">取消</button>
+                <button :disabled="cancelOrderDisabled" @click="cancelOrderPwd" type="button" class="button light">取消</button>
                 <button :disabled="rePrintClickDisabled" @click="rePrintClickHandler" type="button" class="button light">补打</button>
                 <!--<button :disabled="printClickDisabled"  @click="printClickHandler" type="button"  class="button light">打印</button>-->
               </div>
@@ -973,6 +973,37 @@
               })
             })
           }).catch(() => {})
+        }
+      },
+      // 验证版取消订单
+      async cancelOrderPwd () {
+        if (this.isActiveOrder()) {
+          let id = this.activeOrder.id
+          await this.$confirm('你确定要取消订单吗', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          let action = {}
+          if (this.shop.refundNeedRight) {
+            action = await loginModal()
+          }
+          try {
+            let res = await this.$http.post('/ycRest/cancelRestOrder', Object.assign({id: id}, action))
+            let resData = res.data
+            let {restOrder} = resData.data
+            this.$store.commit('removeActiveOrderMap')
+            if (!this.isNewPage) {
+              this.$store.commit('removeOneById', id)
+            }
+            this.$message({
+              message: '取消订单成功',
+              type: 'success'
+            })
+            this.$store.dispatch('orderCancel', {order: restOrder})
+          } catch (e) {
+            console.error('取消订单操作报错', e)
+          }
         }
       },
       //  取消订单

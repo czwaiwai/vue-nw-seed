@@ -34,6 +34,7 @@
         <el-form-item class="text-center">
           <el-button type="primary" :loading="btnLoading" @click="onSubmit('ruleForm')">打印二维码小票</el-button>
           <p class="text-center fs14">发票开具错误? 请点击<el-button type="text" @click="routeTo">红冲发票</el-button></p>
+          <p class="text-center fs14">点击查询<el-button type="text" @click="routeList">已开发票</el-button></p>
         </el-form-item>
       </el-form>
 
@@ -92,6 +93,18 @@
           return this.$router.replace('/mainCus/redInvoice')
         }
         return this.$router.replace('/main/redInvoice')
+      },
+      routeList () {
+        if (this.$route.path.indexOf('/mainBook') > -1) {
+          return this.$router.replace('/mainBook/invoiceList')
+        }
+        if (this.$route.path.indexOf('/mainMall') > -1) {
+          return this.$router.replace('/mainMall/invoiceList')
+        }
+        if (this.$route.path.indexOf('/mainCus') > -1) {
+          return this.$router.replace('/mainCus/invoiceList')
+        }
+        return this.$router.replace('/main/invoiceList')
       },
       onSubmit (formName) {
         this.$refs[formName].validate((valid) => {

@@ -7,13 +7,17 @@
     <section class="update-container text-center" style="padding:40px;" v-if="info">
       <h2>新版本 <small>版本号: {{info.version}}</small></h2>
       <button type="button" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="autoDownload">自动更新</button>
+      <button type="button" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="hotUpdate">热更新</button>
       <!--<button type="button" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="showFileDialog">立即更新</button>-->
       <button type="button  " v-if="progress < 0 && info.canWait" class="button secondary" @click="updateLate">稍后再更</button>
       <input type="file" class="hidden" ref="fileInput" :nwsaveas="saveAsName" @change="startDownload">
+      <div v-html="test"></div>
+      <p>新版本不会输出这句话</p>
       <div class="text-center">
         <p v-if="progress === -2">下载错误 error</p>
         <div v-if="progress >= 0" style="width:600px;margin:0 auto">
-          <p class="fs12">当前安装包下载路径为：{{downloadUrl}}</p>
+          <p class="fs12">当前安装包下载路径为：{{downloadUrl}}----</p>
+          <p>{{info}}-----</p>
           <el-progress :text-inside="true" :stroke-width="18" :percentage="progress" status="success"></el-progress>
         </div>
         <p v-if="progress >= 0">下载进度: {{progress}} %</p>
@@ -51,8 +55,10 @@
   </section>
 </template>
 <script>
-  import { getUpdateJson, parseName, downloadHandle } from '@/utils/update'
+  import { getUpdateJson, parseName, downloadHandle, hotDownload } from '@/utils/update'
   import { Shell } from 'nw.gui'
+  import Zip from 'node-7z'
+  import path from 'path'
   import {getFileFullName} from '../utils/checkAndFilePath'
   export default {
     name: 'update',
@@ -61,6 +67,7 @@
         info: null,
         downloadUrl: '',
         jsonIsLoading: true,
+        test: '',
         progress: -1  // init: -1, error: -2
       }
     },
@@ -82,6 +89,49 @@
       },
       showFileDialog (ev) {
         this.$refs.fileInput.click()
+      },
+      hotUpdate () {
+        var execPath = path.dirname(process.execPath)
+        var cwdPath = process.cwd()
+        console.log(execPath)
+        console.log(cwdPath)
+        var info = Object.assign({}, this.info)
+        var unzipPath = path.join(process.cwd(), '/')
+        var fileName = path.join(unzipPath, '/update_' + this.info.version + '.7z')
+        this.test = `
+<p>${execPath}</p>
+<p>${cwdPath}</p>
+<p>${fileName}</p>
+<p>${unzipPath}</p>
+`
+        this.downloadUrl = fileName
+        this.progress = 0
+        const file = hotDownload(fileName, info)
+        file.on('data', num => { this.progress = Math.ceil(num * 100) })
+        file.on('error', () => { this.progress = -2 })
+        file.on('end', filePath => {
+          this.progress = this.progress < 0 ? this.progress : 100
+          console.log(this.progress)
+          var task = new Zip()
+          console.log(task)
+          task.extractFull(fileName, unzipPath)
+            .progress(data => {
+              this.downloadUrl = JSON.stringify(data)
+            })
+            .then(() => {
+              console.log('解压完成')
+              this.$alert('更新成功，点击确定重新启动应用即可', '更新完成', {
+                confirmButtonText: '确定',
+                callback: action => {
+                  global.chrome.runtime.reload()
+                }
+              })
+            // 提示让用户重新启动应用
+            }).catch(err => {
+              this.$alert('解压出错')
+              console.log('解压错误', err)
+            })
+        })
       },
       autoDownload () {
         var targetPath = getFileFullName(this.info.name + '-' + this.info.version + '.exe')

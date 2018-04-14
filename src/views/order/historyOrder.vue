@@ -51,9 +51,6 @@
     </div>
   </div>
 </template>
-<style rel='stylesheet/scss' lang='scss'>
-
-</style>
 <script type='text/ecmascript-6'>
   import {mapGetters} from 'vuex'
   import moment from 'moment'

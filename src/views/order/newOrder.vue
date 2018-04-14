@@ -3,6 +3,7 @@
       <!--<el-checkbox v-model="isAutoCheck" @change="changeHandle" label="自动打印" border></el-checkbox>-->
       <div class="grid-x  small-up-2  medium-up-3 large-up-8">
         <div v-for="item in printOrders" :key="item.id" class="cell order_block">
+          <i v-if="item.status!=9" @click="removeOnNewList(item)" class="el-icon-close"></i>
           <a class="order_item" :class="{'no_pay':item.status==9}" @click="activeClickHandler(item)" href="javascript:void(0)">
             <p class="text-center">{{item.orderType==='pay'?'支付凭证':item.tableNum}}</p>
             <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
@@ -15,7 +16,20 @@
 </template>
 <style rel="stylesheet/scss" lang="scss">
   .order_block{
+    position:relative;
     padding:5px;
+  }
+  i.el-icon-close {
+    position:absolute;
+    top:5px;
+    right:5px;
+    padding:5px;
+    cursor:pointer;
+    color:#FFF;
+    border:1px dashed #FFF;
+  }
+  i.el-icon-close:hover{
+    border:1px dashed #FFF;
   }
   .cell.order_block{
     min-width: 135px !important;
@@ -59,6 +73,9 @@
       })
     },
     methods: {
+      removeOnNewList (item) {
+        this.$store.commit('removeOrderMap', item)
+      },
       itemStatus (status) {
         if ([7, 8].indexOf(status) > -1) {
           return '已完成'

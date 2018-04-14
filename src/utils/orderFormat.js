@@ -16,7 +16,7 @@ export function orderSignOne (order) {
     order.btnStatus = btnStatus[1]
   } else if (order.status === 1) {
     order.btnStatus = btnStatus[2]
-  } else if (order.status === 7) {
+  } else if (order.status === 7 || order.status === 8) {
     order.btnStatus = btnStatus[3]
   }
   if ((order.accountPrintCount + order.consumePrintCount + order.kitchenPrintCount) > 0) {

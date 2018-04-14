@@ -4,7 +4,7 @@
         <div class="grid-x">
           <div class="small-6">
             <el-form-item label="账户" prop="saleId">
-              <el-select name="saleId" v-model="loginForm.saleId" placeholder="请选择">
+              <el-select name="saleId" autoComplete="new-password"  v-model="loginForm.saleId" placeholder="请选择">
                 <el-option
                   v-for="item in loginAuthList"
                   :key="item.saleId"
@@ -15,7 +15,7 @@
               <!--<el-input  @focus="inputFocus" v-model="loginForm.mobile"></el-input>-->
             </el-form-item>
             <el-form-item label="密码" prop="psd">
-              <el-input name="psd"    @focus="inputFocus" v-model="loginForm.psd"  type="password"></el-input>
+              <el-input name="psd"  autoComplete="new-password"  @focus="inputFocus" v-model="loginForm.psd"  type="password"></el-input>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="loginConfirm('loginForm')" >确定</el-button>

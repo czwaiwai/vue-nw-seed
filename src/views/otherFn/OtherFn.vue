@@ -15,9 +15,6 @@
     <div class="cell btn_block">
       <button  @click="showDayClickHandler" type="button" class="button expanded">今日备注</button>
     </div>
-    <div class="cell btn_block">
-      <button @click="safeExitHandler" type="button" class="button expanded">安全退出</button>
-    </div>
     <div v-if="isTest || user.mobile=='13728905705'" class="cell btn_block">
       <button @click="testHandler" type="button" class="button expanded">测试</button>
     </div>
@@ -28,10 +25,16 @@
       <button @click="createInvoice" type="button"class="button expanded">开电子发票</button>
     </div>
     <div class="cell btn_block">
+      <button @click="invoiceList" type="button"class="button expanded">开票记录</button>
+    </div>
+    <div class="cell btn_block">
       <button @click="scanClerk" type="button"class="button expanded">飞常赞用户收款</button>
     </div>
     <div class="cell btn_block">
       <button @click="openCashBox" type="button"class="button expanded">开钱箱</button>
+    </div>
+    <div class="cell btn_block">
+      <button @click="safeExitHandler" type="button" class="button expanded">安全退出</button>
     </div>
     <!--<div class="cell btn_block">-->
       <!--<button type="button" class="button expanded">主界面按钮颜色</button>-->
@@ -211,6 +214,12 @@
           return this.$router.push('/mainCus/invoice')
         }
         return this.$router.push('/main/invoice')
+      },
+      invoiceList () {
+        if (this.$route.path.indexOf('/mainCus') > -1) {
+          return this.$router.push('/mainCus/invoiceList')
+        }
+        return this.$router.push('/main/invoiceList')
       },
       swicthBuffetHandler () {
         this.$confirm('你确定要切换到点餐模式么，切换到点餐模式将无法监听到新订单', '提示', {

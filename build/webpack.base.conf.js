@@ -29,7 +29,7 @@ module.exports = {
       }
     })
     return exts
-  } ()],
+  } (),'vertx'],
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     alias: {

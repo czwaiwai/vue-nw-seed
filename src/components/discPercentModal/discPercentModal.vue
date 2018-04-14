@@ -98,7 +98,7 @@
             await this.$confirm('当前折扣需要更高权限认证')
             let res = await loginModal()
             try {
-              let resVal = await this.$http.post('/ycRest/validateRight', res)
+              let resVal = await this.$http.post('/ycRest/validateRight', Object.assign({percent}, res))
               this.visible = false
               this.callback(percent)
 //              this.$store.commit('setActiveDiscount', percent)

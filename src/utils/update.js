@@ -43,7 +43,34 @@ export function checkUpdate (params) {
     window.location.hash = '/update'
   })
 }
+export function hotDownload (savePath, json) {
+  const ev = new events.EventEmitter()
 
+  const uri = json.hotUrl
+  const totalSize = json.hotSize
+  const loadFile = fs.createWriteStream(savePath)
+  let loaded = 0
+  console.log(uri, savePath, totalSize)
+  http
+    .get(uri, res => {
+      if (res.statusCode < 200 || res.statusCode >= 300) return ev.emit('error', res.statusCode)
+      res.on('end', () => {
+        loadFile.end()
+        loadFile.destroySoon()
+        ev.emit('end', savePath)
+      })
+      res.on('error', err => ev.emit('error', err.message))
+      res.on('data', chunk => {
+        console.log(chunk, '怎么肥事')
+        loadFile.write(chunk)
+        loaded += chunk.length
+        ev.emit('data', loaded / totalSize)
+      })
+    })
+    .on('error', err => ev.emit('error', err.message))
+
+  return ev
+}
 export function downloadHandle (savePath, json) {
   const ev = new events.EventEmitter()
 

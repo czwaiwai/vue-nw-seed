@@ -58,7 +58,7 @@
             <div class="row ">
               <div>
                 <button :disabled="changeAmtDisabled"  @click="changeAmtClickHandler" type="button" class="button  light">改价</button>
-                <button :disabled="cancelOrderDisabled" @click="cancelOrder" type="button" class="button light">取消</button>
+                <button :disabled="cancelOrderDisabled" @click="cancelOrderPwd" type="button" class="button light">取消</button>
                 <button :disabled="rePrintClickDisabled" @click="rePrintClickHandler" type="button" class="button light">补打</button>
                 <button :disabled="printClickDisabled"  @click="printClickHandler" type="button"  class="button light">打印</button>
               </div>
@@ -67,6 +67,7 @@
                 <button :disabled="backAmtDisabled"  @click="backAmtClickHandler" type="button" class="button light">退单</button>
                 <button :disabled="backCaiDisabled"  @click="backCaiClickHandler" type="button" class="button light">退菜</button>
                 <button :disabled="clearActiveDisable"  @click="clearActiveOrder" type="button" class="button light">清空</button>
+                <button :disabled="freeOrderDisable"  @click="freeOrderHandler"  type="button" class="button light">免单</button>
               </div>
             </div>
             <!--<template v-if="shop.restType===2">-->
@@ -92,7 +93,7 @@
           <div class="grid-container full">
             <div class="grid-x food_buttons">
               <div class="cell small-3">
-                <button @click="newOrderHandler" type="button"  class="button light  expanded   margin5   ">新订单<el-badge :value="badgePrint" style="height:12px;" ></el-badge></button>
+                <button @click="newOrderHandler" type="button"  class="button light  expanded   margin5   ">新订单<el-badge v-show="badgePrint" :value="badgePrint" style="height:12px;" ></el-badge></button>
               </div>
               <div class="cell small-3">
                 <button @click="printedOrderHandler"  type="button" class="button  light expanded  margin5   ">已打印单</button>
@@ -129,61 +130,6 @@
       </el-container>
     </el-container>
 
-    <!--<el-dialog title="退菜" :visible.sync="backCaiVisible" width="600px">-->
-      <!--<el-table :data="backCaiList" border height="300" style="width: 100%">-->
-        <!--<el-table-column prop="restProName" label="菜名"></el-table-column>-->
-        <!--<el-table-column label="数量" width="120">-->
-          <!--<template slot-scope="scope">-->
-            <!--<span class="padding-right">{{scope.row.buyCount}}</span>  <span v-show="scope.row.tuiNum" class="alert label">退菜 -{{scope.row.tuiNum}}</span>-->
-          <!--</template>-->
-        <!--</el-table-column>-->
-        <!--<el-table-column label="操作" width="80">-->
-          <!--<template slot-scope="scope">-->
-            <!--<el-button size="mini" :disabled="scope.row.btnDisabled" @click="tuiCaiBtnHandle(scope.$index, scope.row)">退菜</el-button>-->
-          <!--</template>-->
-        <!--</el-table-column>-->
-      <!--</el-table>-->
-      <!--<el-form :model="backCaiForm" :rules="backCaiRules" ref="backCaiForm" label-width="120px">-->
-        <!--<el-form-item label="备注" prop="remark" style="margin-bottom:0;padding-top:15px;">-->
-          <!--<el-autocomplete class="inline-input" v-model="backCaiForm.remark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>-->
-        <!--</el-form-item>-->
-      <!--</el-form>-->
-      <!--<span slot="footer" class="dialog-footer">-->
-        <!--<el-button @click="backCaiVisible = false">取 消</el-button>-->
-        <!--<el-button type="primary" :loading="btnLoading" @click="backCaiConfirm('backCaiForm')">确定</el-button>-->
-      <!--</span>-->
-    <!--</el-dialog>-->
-
-    <!--<el-dialog title="改价" :visible.sync="changeAmtVisible" width="600px">-->
-      <!--<el-form :model="changeAmtForm" :rules="changeAmtRules" ref="changeAmt" label-width="120px">-->
-        <!--<el-form-item label="实际支付金额" prop="adjAmt" placeholder="请填写金额">-->
-          <!--<el-input v-model="changeAmtForm.adjAmt"></el-input>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item label="改价备注" prop="adjRemark" >-->
-          <!--<el-autocomplete class="inline-input" v-model="changeAmtForm.adjRemark" :fetch-suggestions="suggestChangeAmt" placeholder="请填写备注"></el-autocomplete>-->
-        <!--</el-form-item>-->
-      <!--</el-form>-->
-      <!--<span slot="footer" class="dialog-footer">-->
-        <!--<el-button @click="changeAmtVisible = false">取 消</el-button>-->
-        <!--<el-button type="primary" :loading="btnLoading" @click="changeAmtConfirm('changeAmt')">确定</el-button>-->
-      <!--</span>-->
-    <!--</el-dialog>-->
-
-
-    <!--<el-dialog title="退单" :visible.sync="backAmtVisible" width="600px" >-->
-      <!--<el-form :model="backAmtForm" :rules="backAmtRules" ref="backAmtForm" label-width="120px">-->
-        <!--<el-form-item label="退款金额" prop="refundAmt">-->
-          <!--<el-input v-model="backAmtForm.refundAmt" placeholder="请填写金额"></el-input>-->
-        <!--</el-form-item>-->
-        <!--<el-form-item label="退款备注" prop="refundRemark">-->
-          <!--<el-autocomplete class="inline-input" v-model="backAmtForm.refundRemark" :fetch-suggestions="suggestBackAmt" placeholder="请填写备注"></el-autocomplete>-->
-        <!--</el-form-item>-->
-      <!--</el-form>-->
-      <!--<span slot="footer" class="dialog-footer">-->
-        <!--<el-button @click="backAmtVisible = false">取 消</el-button>-->
-        <!--<el-button type="primary" :loading="btnLoading" @click="backAmtConfirm('backAmtForm')">确定</el-button>-->
-      <!--</span>-->
-    <!--</el-dialog>-->
 
     <el-dialog title="打卡" :visible.sync="workDialogVisible" width="600px">
       <div>
@@ -440,7 +386,7 @@
   import { amount as amountRule, mobile, passWd } from '../utils/elemFormRules'
   import {clearLogs} from '../utils/clearLogs'
   import {currency} from '../utils/utils'
-//  import loginModal from '../components/loginModal/'
+  import loginModal from '../components/loginModal/'
   import backAmtModal from '../components/backAmtModal/'
   import changeAmtModal from '../components/changeAmtModal/'
   import backVegetablesModal from '../components/backVegetablesModal'
@@ -649,6 +595,18 @@
       confirmBtnDisable () {
         return this.disableBtnBy(['confirmOrder'])
       },
+      freeOrderDisable () {
+        if (this.activeOrder) {
+//          console.log(this.activeOrder, 'activeOrder')
+          let buildTime = moment(this.activeOrder.buildTime).format('YYYY-MM-DD')
+          if (buildTime === now) {
+            return false
+          } else {
+            return true
+          }
+        }
+        return true
+      },
       activeOrderData () {
         if (this.activeOrder) {
           return this.activeOrder.fnAttach
@@ -665,6 +623,20 @@
     methods: {
       inputFocus (e) {
         this.input = e.target
+      },
+      // 免单
+      async freeOrderHandler () {
+        console.log('免单')
+        let action = await this.$confirm('免单操作需要更高的操作权限', '提示')
+        if (action === 'confirm') {
+          let user = await loginModal()
+          if (user) {
+            user.isFree = 1
+            console.log(user, 'user')
+//            this.cashDoneHandle(user)
+//            this.$message.success('免单成功~')
+          }
+        }
       },
       disableBtnBy (arr) {
         if (this.activeOrder) {
@@ -869,17 +841,42 @@
           }).catch(() => {})
         }
       },
-      //  取消订单
-      cancelOrder () {
+      // 验证版取消订单
+      async cancelOrderPwd () {
+        if (this.isActiveOrder()) {
+          let id = this.activeOrder.id
+          await this.$confirm('你确定要取消订单吗', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          let action = {}
+          if (this.shop.refundNeedRight) {
+            action = await loginModal()
+          }
+          try {
+            let res = await this.$http.post('/ycRest/cancelRestOrder', Object.assign({id: id}, action))
+            let resData = res.data
+            let {restOrder} = resData.data
+            this.$store.commit('removeActiveOrderMap')
+            if (!this.isNewPage) {
+              this.$store.commit('removeOneById', id)
+            }
+            this.$message({
+              message: '取消订单成功',
+              type: 'success'
+            })
+            this.$store.dispatch('orderCancel', {order: restOrder})
+          } catch (e) {
+            console.error('取消订单操作报错', e)
+          }
+        }
+      },
+      //  取消订单 [已弃用]
+      async cancelOrder () {
         console.log('-----------------------取消订单')
         if (this.isActiveOrder()) {
           let id = this.activeOrder.id
-//          if (this.activeOrder.status !== 9) {
-//            return this.$message({
-//              message: '只有未收款订单可以取消订单',
-//              type: 'warning'
-//            })
-//          }
           this.$confirm('你确定要取消订单吗', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -888,7 +885,6 @@
             this.$http.post('/ycRest/cancelRestOrder', {id: id}).then(res => {
               let resData = res.data
               let {restOrder} = resData.data
-//              this.$store.commit('removeActiveOrder')
               this.$store.commit('removeActiveOrderMap')
               if (!this.isNewPage) {
                 this.$store.commit('removeOneById', id)
@@ -897,11 +893,7 @@
                 message: '取消订单成功',
                 type: 'success'
               })
-              this.$store.dispatch('orderCancel', {order: restOrder}).then(newOrder => {
-//                if (newOrder.isPrint) {
-//                  this.printService.add(newOrder)
-//                }
-              })
+              this.$store.dispatch('orderCancel', {order: restOrder}).then(newOrder => {})
             }).catch(err => {
               console.error('取消订单操作报错', err)
             })

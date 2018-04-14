@@ -24,6 +24,10 @@
 <script type="text/ecmascript-6">
 
   export default{
+    props: {
+      invoiceCode: String,
+      invoiceNo: String
+    },
     data () {
       return {
         btnLoading: false,
@@ -77,7 +81,14 @@
       }
     },
     activated () {
+//      console.log('------11111---------', this.invoiceCode, this.invoiceNo)
       this.$refs['ruleForm'].resetFields()
+      if (this.invoiceCode && this.invoiceNo) {
+        this.ruleForm = {
+          invoiceCode: this.invoiceCode,
+          invoiceNo: this.invoiceNo
+        }
+      }
     }
   }
 </script>
