@@ -61,7 +61,6 @@ export function hotDownload (savePath, json) {
       })
       res.on('error', err => ev.emit('error', err.message))
       res.on('data', chunk => {
-        console.log(chunk, '怎么肥事')
         loadFile.write(chunk)
         loaded += chunk.length
         ev.emit('data', loaded / totalSize)
