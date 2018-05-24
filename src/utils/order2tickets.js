@@ -24,12 +24,16 @@ let order2tickets = {
     if (order.isOnlyTpl) {
       this.toTickets(order, cb)
     } else {
+      let url
+      if (order.isFreeOrder) {
+        url = '/ycRetail/printShopOrder'
+      }
       this.getPrintDataNew(order, (err, data) => {
         if (err) {
           return cb(err)
         }
         this.toTickets(data, cb)
-      })
+      }, url)
     }
   },
   toTickets: function (data, cb) {
@@ -46,7 +50,7 @@ let order2tickets = {
     console.error('对象中没有printList都发过来了-_-!')
     return cb(null, [])
   },
-  getPrintDataNew (obj, cb) {
+  getPrintDataNew (obj, cb, url = '/ycRest/newPrintRestOrder') {
     let params = {orderId: obj.id, printNum: 1}
     if (obj.printSingleType) {
       params.type = obj.printSingleType
@@ -54,7 +58,7 @@ let order2tickets = {
     if (obj.params) {
       Object.assign(params, obj.params)
     }
-    Vue.http.post('/ycRest/newPrintRestOrder', params).then(res => {
+    Vue.http.post(url, params).then(res => {
       let resData = res.data
       if (resData.retCode === 0) {
         cb(null, res.data.data)

@@ -1,5 +1,6 @@
 <template>
-  <div class="grid-x">
+  <el-container class="main">
+  <div class="grid-x" style="width:100%;">
     <div class="small-offset-3 small-5">
       <el-form  :rules="rules"  ref="ruleForm" :model="ruleForm" label-width="80px">
         <el-form-item label="开票金额" prop="proAmount">
@@ -40,6 +41,7 @@
 
     </div>
   </div>
+  </el-container>
 </template>
 <style rel="stylesheet/scss" lang="scss">
 
@@ -83,28 +85,30 @@
       },
       routeTo () {
         console.log(this.$route.path)
-        if (this.$route.path.indexOf('/mainBook') > -1) {
-          return this.$router.replace('/mainBook/redInvoice')
-        }
-        if (this.$route.path.indexOf('/mainMall') > -1) {
-          return this.$router.replace('/mainMall/redInvoice')
-        }
-        if (this.$route.path.indexOf('/mainCus') > -1) {
-          return this.$router.replace('/mainCus/redInvoice')
-        }
-        return this.$router.replace('/main/redInvoice')
+        this.$router.push('/index/invoiceWrap/redInvoice')
+//        if (this.$route.path.indexOf('/mainBook') > -1) {
+//          return this.$router.replace('/mainBook/redInvoice')
+//        }
+//        if (this.$route.path.indexOf('/mainMall') > -1) {
+//          return this.$router.replace('/mainMall/redInvoice')
+//        }
+//        if (this.$route.path.indexOf('/mainCus') > -1) {
+//          return this.$router.replace('/mainCus/redInvoice')
+//        }
+//        return this.$router.replace('/main/redInvoice')
       },
       routeList () {
-        if (this.$route.path.indexOf('/mainBook') > -1) {
-          return this.$router.replace('/mainBook/invoiceList')
-        }
-        if (this.$route.path.indexOf('/mainMall') > -1) {
-          return this.$router.replace('/mainMall/invoiceList')
-        }
-        if (this.$route.path.indexOf('/mainCus') > -1) {
-          return this.$router.replace('/mainCus/invoiceList')
-        }
-        return this.$router.replace('/main/invoiceList')
+        this.$router.push('/index/invoiceWrap/invoiceList')
+//        if (this.$route.path.indexOf('/mainBook') > -1) {
+//          return this.$router.replace('/mainBook/invoiceList')
+//        }
+//        if (this.$route.path.indexOf('/mainMall') > -1) {
+//          return this.$router.replace('/mainMall/invoiceList')
+//        }
+//        if (this.$route.path.indexOf('/mainCus') > -1) {
+//          return this.$router.replace('/mainCus/invoiceList')
+//        }
+//        return this.$router.replace('/main/invoiceList')
       },
       onSubmit (formName) {
         this.$refs[formName].validate((valid) => {

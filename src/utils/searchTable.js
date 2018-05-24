@@ -86,7 +86,9 @@ export default {
   },
   activated () {
     this.activatedBefore()
-    this.pageInit()
-    this.getPageData()
+    if (this.url) {
+      this.pageInit()
+      this.getPageData()
+    }
   }
 }

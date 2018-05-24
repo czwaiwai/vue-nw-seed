@@ -28,3 +28,14 @@ export function orderSignOne (order) {
   }
   return order
 }
+// 零售订单转化
+export function freeOrderSign (list) {
+  return list.map(item => {
+    item.id = item.id || item.orderId
+    item.isPrint = false
+    item.isOrder = true
+    item.isFreeOrder = true
+    return item
+  })
+}
+

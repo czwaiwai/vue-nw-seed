@@ -58,11 +58,8 @@
          }, 1000)
        }
      } else {
-       console.log('怎么回事')
        _print(item.printerName, pageWidth, pageHeight)
-       console.log('怎么回事2')
        setTimeout(next, 1000)
-       console.log('怎么回事3')
      }
    }, callback)
  }

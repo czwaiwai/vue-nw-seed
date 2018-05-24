@@ -22,7 +22,7 @@
       <button @click="openPathDefault">打开path默认程序</button>
       <button @click="openEXE">打开程序</button>
       <button @click="openPathEXE">打开path程序</button>
-
+      <button @click="testSql">sql数据库测试</button>
     </div>
 </template>
 <style rel="stylesheet/scss"  lang="scss">
@@ -70,6 +70,26 @@
     },
     components: {},
     methods: {
+      testSql () {
+        console.log(process.arch)
+        var sqlite3 = require('sqlite3').verbose()
+        console.log(sqlite3)
+        var db = new sqlite3.Database('data.db')
+        db.serialize(function () {
+          db.run('CREATE TABLE lorem (info TEXT)')
+          var stmt = db.prepare('INSERT INTO lorem VALUES (?)')
+          for (var i = 0; i < 10; i++) {
+            stmt.run('Ipsum ' + i)
+          }
+          stmt.finalize()
+          db.each('SELECT rowid AS id, info FROM lorem', function (err, row) {
+            if (err) {
+              console.log(err)
+            }
+            console.log(row.id + ':' + row.info)
+          })
+        })
+      },
       openFolder () {
         Shell.showItemInFolder(this.url)
       },

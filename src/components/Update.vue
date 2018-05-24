@@ -6,8 +6,8 @@
     </section>
     <section class="update-container text-center" style="padding:40px;" v-if="info">
       <h2>新版本 <small>版本号: {{info.version}}</small></h2>
-      <button type="button" v-if="!info.isHot" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="autoDownload">自动更新</button>
-      <button type="button" v-if="info.isHot" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="hotUpdate">立即更新</button>
+      <button type="button"  class="button" v-if="!info.isHot && progress < 100" :disabled="progress >= 0 || !saveAsName" @click="autoDownload">自动更新</button>
+      <button type="button"  class="button" v-if="info.isHot && progress < 100" :disabled="progress >= 0 || !saveAsName" @click="hotUpdate">立即更新</button>
       <!--<button type="button" class="button" v-if="progress < 100" :disabled="progress >= 0 || !saveAsName" @click="showFileDialog">立即更新</button>-->
       <button type="button  " v-if="progress < 0 && info.canWait" class="button secondary" @click="updateLate">稍后再更</button>
       <input type="file" class="hidden" ref="fileInput" :nwsaveas="saveAsName" @change="startDownload">

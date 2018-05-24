@@ -92,6 +92,8 @@
   import getConfig from '../utils/getConfig'
   import {clearLogs} from '../utils/clearLogs'
   import {clearApplicationFile} from '../utils/checkAndFilePath'
+  import {setConf} from '../utils/storeConfig'
+  var {htmlSet} = require('../utils/htmlPrinter')
   export default {
     data () {
       return {
@@ -145,7 +147,7 @@
             this.$http.post('/ycRest/getPrintTpl').then(res => {
               this.isLoading = false
               let resData = res.data
-              let {printTpl, orderLoopSecond, bookList, xcodeList, shopInfo, shopInfoList} = resData.data
+              let {printTpl, orderLoopSecond, bookList, xcodeList, shopInfo, htmlPrint, shopInfoList} = resData.data
               this.$store.commit('setLoopTime', orderLoopSecond)
               this.$store.commit('setTpl', printTpl)
               this.$store.commit('setShopUser', UserInfo.fnShopAssist)
@@ -159,6 +161,7 @@
                 if (this.appJson.version) {
                   clearApplicationFile(this.appJson.name + '-' + this.appJson.version + '.exe')
                 }
+                setConf('shopId', shopInfo.id)
               } else {
                 if (restShop) {
                   this.$store.commit('setShop', restShop)
@@ -170,7 +173,10 @@
                   this.$store.commit('setShop', bookShop)
                 }
               }
-              console.log(shopInfoList)
+              if (htmlPrint) {
+                console.log('设置html打印模板', 'htmlSet')
+                htmlSet.set(htmlPrint)
+              }
               this.$store.commit('setShopInfoList', shopInfoList)
               if (bookList) {
                 this.$store.commit('setBookList', bookList)
@@ -184,11 +190,18 @@
 //                this.$router.push('/mainMall/assistantOpLog')
 //                this.$router.push('/mainBook/bookAssistantOpLogType1')
 //                this.$router.push('/Main/newOrder')
+//                this.$router.push('/index/main/newOrder')
+                console.log(belongShopType, '--belongShopType---')
+
                 switch (belongShopType) {
-                  case 11: this.$router.push('/Main/newOrder'); break
-                  case 12: this.$router.push('/mainCus/buffetMode'); break
-                  case 21: this.$router.push('/mainBook/bookAssistantOpLogType1'); break
-                  case 31: this.$router.push('/mainMall/assistantOpLog'); break
+                  case 11: this.$router.push('/index/main/newOrder'); break
+                  case 12: this.$router.push('/index/mainCus/buffetMode'); break
+                  case 21: this.$router.push('/index/mainBook/bookAssistantOpLogType1'); break
+                  case 31: if (this.$store.getters.shop.autoBuy === 1) {
+                    this.$router.push('/index/freeGo/freeNewOrder')
+                  } else {
+                    this.$router.push('/index/mainMall/assistantOpLog')
+                  };break
                   default: this.$message.error('没有分配权限登录')
                 }
               } else {

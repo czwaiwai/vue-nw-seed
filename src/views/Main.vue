@@ -1,14 +1,5 @@
 <template>
   <el-container class="main">
-    <el-header style="height:44px;">
-      <div class="grid-x">
-        <div class="logo cell small-6">飞常赞餐饮系统 v{{appVersion}} ({{shop.restName}})</div>
-        <div class="cell small-6 text-right" style="line-height:44px;">
-          <span class="logo_time">{{currentTime}}</span>
-          <span class="light fs12 label" style="">{{shopUser.saleName}}[{{shopUser.mobile}}]</span>
-          <a @click="exitClickHandler" style="margin:0" class="button small alert" href="javascript:void(0)" >退出系统</a></div>
-      </div>
-    </el-header>
     <el-container>
       <el-aside class="el-container  is-vertical" width="400px" style="max-width:400px;">
         <div class="food_mode_quick flex_item" style="width:400px;">
@@ -29,7 +20,7 @@
             <div class="grid-x ">
               <div class="cell small-6">下单时间：<span class="fs14">{{activeOrd.buildTime && activeOrd.buildTime.substr(5) }}</span>
               </div>
-              <div class="cell small-6 bold">合计：{{activeOrd.fnActPayAmount | currency}}</div>
+              <div class="cell small-6 bold">合计：{{activeOrd.fnActPayAmount | currency}}<span v-if="activeOrd.adjType===1"  class="fs12 text-alert" style="color:#f56c6c">[免单]</span></div>
             </div>
             <div class="grid-x ">
               <div class="cell small-12">发票状态：<span class="fs14">{{invoiceStatus[activeOrd.invoiceStatus] }}</span>
@@ -43,7 +34,12 @@
           <el-table ref="singleTable" size="small" :data="activeOrderData" highlight-current-row
                     @current-change="handleCurrentChange" style="width:400px;">
             <!--<el-table-column property="status" label="状态"></el-table-column>-->
-            <el-table-column property="restProName" label="菜品名称" ></el-table-column>
+            <el-table-column  label="菜品名称" >
+              <template slot-scope="scope">
+                <span class="">{{scope.row.restProName}} <span v-if="scope.row.attr" >[{{scope.row.attr}}]</span></span>
+              </template>
+            </el-table-column>
+            <!--<el-table-column property="restProName" label="菜品名称" ></el-table-column>-->
             <el-table-column property="buyCount" label="数量" width="60"></el-table-column>
             <el-table-column property="perCash" label="单价" width="80"></el-table-column>
             <el-table-column property="amount" label="小计" width="80"></el-table-column>
@@ -81,7 +77,7 @@
         </div>
       </el-aside>
       <el-container>
-        <div class="unit_header padding15-h">{{$route.meta.title}}</div>
+        <div class="unit_header padding15-h">{{$route.meta.title}} {{$dev?$route.path:''}}</div>
         <el-main>
           <!--<div class="scroll_content">-->
           <keep-alive>
@@ -129,7 +125,7 @@
         </el-footer>
       </el-container>
     </el-container>
-
+    <!--<router-view></router-view>-->
 
     <el-dialog title="打卡" :visible.sync="workDialogVisible" width="600px">
       <div>
@@ -164,21 +160,6 @@
     </el-dialog>
 
     <el-dialog title="日报预览" :visible.sync="dayDialogVisible" width="600px">
-      <!--<div class="block padding-bottom15">-->
-        <!--<span class="demonstration">日期</span>-->
-        <!--<el-date-picker-->
-          <!--v-model="dateRange"-->
-          <!--type="datetimerange"-->
-          <!--time-arrow-control-->
-          <!--@change="dayPaperChange"-->
-          <!--range-separator="至"-->
-          <!--start-placeholder="开始日期"-->
-          <!--end-placeholder="结束日期">-->
-        <!--</el-date-picker>-->
-      <!--</div>-->
-      <!--<div>-->
-        <!--{{dateRange[0] | mydate('-')}}-->
-      <!--</div>-->
       <div class="day_paper">
         <h5>日报</h5>
         <p>店铺：{{shop.restName}}</p>
@@ -201,18 +182,6 @@
 
 
     <el-dialog title="交班单" :visible.sync="handoverDialogVisible" width="600px">
-      <!--<div class="block padding-bottom15">-->
-        <!--<span class="demonstration">日期</span>-->
-        <!--<el-date-picker-->
-          <!--v-model="dateRange"-->
-          <!--type="datetimerange"-->
-          <!--@change="handoverChange"-->
-          <!--time-arrow-control-->
-          <!--range-separator="至"-->
-          <!--start-placeholder="开始日期"-->
-          <!--end-placeholder="结束日期">-->
-        <!--</el-date-picker>-->
-      <!--</div>-->
       <div>日期：<label style="display:inline-block">{{ dateRange[1] | mydate('-') }}</label></div>
       <div class="handover">
         <div class="grid-container full">
@@ -377,12 +346,7 @@
 <script type="text/ecmascript-6">
   import moment from 'moment'
   import { App } from 'nw.gui'
-  import { getLocalPrinters } from '../utils/getLocalPrinters'
-  import roundTime from '../utils/roundTime'
   import { mapGetters } from 'vuex'
-  import bus from '../utils/bus'
-  import uploadLogs from '../utils/uploadLogs'
-  import getConfig from '../utils/getConfig'
   import { amount as amountRule, mobile, passWd } from '../utils/elemFormRules'
   import {clearLogs} from '../utils/clearLogs'
   import {currency} from '../utils/utils'
@@ -391,7 +355,8 @@
   import changeAmtModal from '../components/changeAmtModal/'
   import backVegetablesModal from '../components/backVegetablesModal'
   import rePrintModal from '../components/rePrintModal/'
-  let timer
+
+//  let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
     data () {
@@ -598,6 +563,9 @@
       freeOrderDisable () {
         if (this.activeOrder) {
 //          console.log(this.activeOrder, 'activeOrder')
+          if (this.activeOrder.adjType && this.activeOrder.adjType === 1) {
+            return true
+          }
           let buildTime = moment(this.activeOrder.buildTime).format('YYYY-MM-DD')
           if (buildTime === now) {
             return false
@@ -627,14 +595,49 @@
       // 免单
       async freeOrderHandler () {
         console.log('免单')
-        let action = await this.$confirm('免单操作需要更高的操作权限', '提示')
-        if (action === 'confirm') {
-          let user = await loginModal()
-          if (user) {
-            user.isFree = 1
-            console.log(user, 'user')
-//            this.cashDoneHandle(user)
-//            this.$message.success('免单成功~')
+        if (this.activeOrder) {
+          let id = this.activeOrder.id
+          let payStatus = this.activeOrder.status
+          let action = await this.$confirm('免单操作需要更高的操作权限', '提示')
+          if (action === 'confirm') {
+            let user = await loginModal()
+            if (user) {
+              user.isFree = 1
+//            参数：saleId（授权人Id）、psd（授权人密码）、id（订单id）、adjOpuser（店员Id）。
+              let res = await this.$http.post('/ycRest/freeSingle', Object.assign(user, {id: id, adjOpuser: this.shopUser.saleId}))
+              console.log(res)
+              console.log(user, 'user')
+              let resData = res.data
+              let {restOrder} = resData.data
+              if (payStatus === 9) {
+                this.$store.commit('setActiveOrder', restOrder)
+                this.$store.dispatch('isExsitPirntOrder', {order: restOrder}).then((bool) => {
+                  this.$message({
+                    message: '免单成功,点击确认线下付款完成订单',
+                    type: 'success'
+                  })
+                  if (bool) {
+                    this.$store.commit('updatePrintOrderMap', restOrder)
+                  }
+                  if (!this.isNewPage) {
+                    console.log('不是当前newOrder页面更新订单状态')
+                    this.$store.commit('updateOne', restOrder)
+                  }
+                })
+              } else {
+                this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
+                  this.$message({
+                    message: '免单成功',
+                    type: 'success'
+                  })
+                  if (this.isNewPage) {
+                    this.$store.commit('removeOne', newOrder)
+                  } else {
+                    this.$store.commit('updateOne', newOrder)
+                  }
+                })
+              }
+            }
           }
         }
       },
@@ -699,14 +702,6 @@
           })
         }
       },
-      //  显示补打
-//      rePrintClickHandler () {
-//        console.log('-----------------------显示补打')
-//        if (this.isActiveOrder()) {
-//          this.tmpOrder = Object.assign({}, this.activeOrder)
-//          this.rePrintVisible = true
-//        }
-//      },
       // 手动补打
       toSinglePrint (type, btnName, newType) {
         if (this.isActiveOrder()) {
@@ -758,20 +753,6 @@
           }).catch(() => {})
         }
       },
-//      sendInvoice () {
-//        if (this.isActiveOrder()) {
-//          let id = this.activeOrder.id
-//          this.invoiceBtn = true
-//          this.$http.post('/rest/applyInvoice', {restOrderId: id}).then(function () {
-//            setTimeout(() => {
-//              this.invoiceBtn = false
-//              this.$message.success('发票信息已经发送至打印机')
-//            }, 1000)
-//          }).catch(e => {
-//            this.invoiceBtn = false
-//          })
-//        }
-//      },
       rePrintConfirmHandler () {
         this.rePrintVisible = false
       },
@@ -963,7 +944,6 @@
           this.hitRecordTable = resData.data
         })
       },
-
       hitDateChange (val) {
         let curr = moment(val).format('YYYY-MM-DD')
         this.workClickRecordHandler(curr)
@@ -1001,35 +981,6 @@
         }
 //      /ycRest/correctAmout
       },
-//      changeAmtConfirm (formName) {
-//        console.log('-----------------------确认改价')
-//        this.$refs[formName].validate(valid => {
-//          if (valid) {
-//            this.btnLoading = true
-//            let params = Object.assign({id: this.tmpOrder.id, adjOpuser: this.shopUser.saleId}, this.changeAmtForm)
-//            this.$http.post('/ycRest/correctAmout', params).then((res) => {
-//              this.btnLoading = false
-//              let resData = res.data
-//              let {restOrder} = resData.data
-//              this.$message.success('改价成功')
-//              this.$store.commit('setActiveOrder', restOrder)
-//              this.$store.dispatch('isExsitPirntOrder', {order: restOrder}).then((bool) => {
-//                console.log(bool, '哈哈哈')
-//                if (bool) {
-//                  this.$store.commit('updatePrintOrderMap', restOrder)
-//                }
-//                if (!this.isNewPage) {
-//                  console.log('不是当前newOrder页面更新订单状态')
-//                  this.$store.commit('updateOne', restOrder)
-//                }
-//              })
-//              this.changeAmtVisible = false
-//            }).catch(() => {
-//              this.btnLoading = false
-//            })
-//          }
-//        })
-//      },
       // 退单显示
       backAmtClickHandler () {
         console.log('-----------------------退单显示')
@@ -1052,39 +1003,6 @@
           })
         }
       },
-//      backAmtConfirm (formName) {
-//        console.log('-----------------------退单确认')
-//        this.$refs[formName].validate(async valid => {
-//          if (valid) {
-//            this.btnLoading = true
-//            try {
-//              let res = {}
-//              if (this.shop.refundNeedRight === 1) {
-//                res = await loginModal({})
-//              }
-//              this.$http.post('/ycRest/refundRestOrder', Object.assign(this.backAmtForm, res)).then((res) => {
-//                this.btnLoading = false
-//                let resData = res.data
-//                let {restOrder} = resData.data
-//                this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
-//                  this.backAmtVisible = false
-//                  if (this.isPrintedPage) {
-//                    this.$store.commit('removeOne', newOrder)
-//                  }
-//                  if (this.isHistoryPage) {
-//                    this.$store.commit('updateOne', newOrder)
-//                  }
-//                })
-//              }, err => {
-//                console.log(err)
-//                this.btnLoading = false
-//              })
-//            } catch (e) {
-//              this.btnLoading = false
-//            }
-//          }
-//        })
-//      },
       //  退菜显示
       async backCaiClickHandler () {
         console.log('-----------------------退菜')
@@ -1127,48 +1045,6 @@
           })
         }
       },
-//      tuiCaiBtnHandle (index, item) {
-//        item.tuiNum ++
-//        if (item.tuiNum === item.buyCount) {
-//          item.btnDisabled = true
-//        }
-//      },
-//      backCaiConfirm (formName) {
-//        console.log('-----------------------退菜确定')
-//        this.$refs[formName].validate(valid => {
-//          if (valid) {
-//            this.btnLoading = true
-//            let tuiArr = this.backCaiList.map(item => {
-//              if (item.tuiNum) {
-//                return item.id + ';' + item.tuiNum
-//              }
-//            })
-//            this.backCaiForm.detailInfos = tuiArr.join('|')
-//            if (!this.backCaiForm.detailInfos) {
-//              return this.$message.error('请选择要退的菜品')
-//            }
-//            this.$http.post('/ycRest/retreatFood', this.backCaiForm).then(res => {
-//              this.btnLoading = false
-//              let resData = res.data
-//              let {restOrder, isAllRefund} = resData.data
-//              this.$store.dispatch('orderBack', {order: restOrder}).then(newOrder => {
-//                this.backCaiVisible = false
-//                this.$message({
-//                  message: '退菜成功',
-//                  type: 'success'
-//                })
-//                if (this.isPrintedPage && isAllRefund) {
-//                  this.$store.commit('removeOne', newOrder)
-//                } else {
-//                  this.$store.commit('updateOne', newOrder)
-//                }
-//              })
-//            }).catch(() => {
-//              this.btnLoading = false
-//            })
-//          }
-//        })
-//      },
       //  日报显示
       showDayClickHandler () {
         console.log('-----------------------日报显示')
@@ -1200,7 +1076,6 @@
       },
       printDayPaper () {
         console.log('-----------------------打印日报')
-        console.log(bus)
 //        let dayPaperData = Object.assign({tplName: 'dayPaper', restName: this.shop.restName}, {isOnlyTpl: true, printList: this.tmpPrintList})
 //        this.printService.add(dayPaperData)
         this.$store.dispatch('addPrintObj', {printList: this.tmpPrintList})
@@ -1272,257 +1147,15 @@
             }
           })
         }).catch(() => {})
-      },
-      upLogs (date) {
-        console.log('-----------------------拉取日志')
-        if (date) {
-          uploadLogs(this, this.shop.id, date)
-        }
-      },
-      upStatus (content, title) {
-        this.$http.post('/feeback/save', {
-          title: title || '查看内容',
-          content: content
-        })
-      },
-      // 轮询检查数据
-      roundFn () {
-        let netFix = (function () {
-          let times = 0
-          return {
-            isOk (cb) {
-              if (times > 0) {
-                cb && cb()
-              }
-              times = 0
-            },
-            clear () {
-              times = 0
-            },
-            toTry (cb) {
-              if (times < 30) {
-                times++
-                setTimeout(() => cb(true, times), 3000)
-              } else {
-                cb(false, times)
-              }
-            }
-          }
-        })()
-        let ids = ''
-        let lastPrintIds = ''
-        this.round = roundTime((next) => {
-          var paramObj = {
-            id: '',
-            page: 1,
-            status: 1,
-            pageSize: 50,
-            tableNum: '',
-            orderIdOrName: '',
-            userMobile: '',
-            qryType: 0,
-            restShopId: this.shop.id,
-            startDate: this.now,
-            endDate: this.now,
-            lastIds: ids,
-            lastPrintIds: lastPrintIds
-          }
-          this.$http.post('/ycRest/restOrderList', paramObj).then(res => {
-            netFix.isOk(() => {
-              console.info('网络重连成功')
-              this.$message.success('网络重连成功!')
-            })
-            let data = res.data.data
-            if (!data) {
-              this.upStatus('轮询中/ycRest/restOrderList返回了空的对象' + JSON.stringify(res), 'pc轮询错误')
-              return next()
-            }
-            try {
-              if (data.noticeMsg) {
-                this.$notify.warning({
-                  title: '消息提示',
-                  message: data.noticeMsg,
-                  duration: 0
-                })
-              }
-              lastPrintIds = ''
-              if (data.printList) {
-                console.log('添加额外的打印内容')
-                let tmpArr = data.printList.map(item => item.pkey)
-                lastPrintIds = tmpArr.join(';')
-                this.$store.dispatch('addPrintObj', {printList: data.printList})
-              }
-              if (data.updPrinterStatus) {
-                console.log('拉取打印信息')
-                let content = '打印机状态：' + this.printService.getPrintState()
-                content += '打印机中的队列：' + JSON.stringify(this.printService.showList())
-                content += '本地打印机信息：' + JSON.stringify(getLocalPrinters())
-                this.upStatus(content, '查看当前店打印机队列状态')
-              }
-              if (data.updLog) {
-                console.info('正在拉取日志')
-                this.upLogs(data.updLog)
-              }
-              if (data.orderLoopSecond) {
-                console.log('重新设置轮询间隔', data.orderLoopSecond)
-                this.round.setTime(data.orderLoopSecond)
-                this.$store.commit('setLoopTime', data.orderLoopSecond)
-              }
-            } catch (e) {
-              console.error(e)
-            }
-
-            let {restOrderList} = data
-            ids = ''
-            if (restOrderList && restOrderList.length > 0) {
-              let tmpIds = []
-              restOrderList.forEach(item => {
-                tmpIds.push(item.id + ',' + item.printMore + ',' + item.printMoreSeq)
-              })
-              ids = tmpIds.join(';')
-              this.$store.dispatch('pushActionMap', {list: restOrderList}).then((newData) => {
-                console.log('我不是空数组', JSON.stringify(newData))
-                console.log('当前是自动打印状态为：', this.isAuto)
-                if (this.isAuto && newData.length > 0) {
-                  this.printService.add(newData)
-                }
-              })
-            }
-            next()
-          }, err => {
-            console.error('错误：', err)
-            if (err === '请先登录') {
-              next(false)
-            } else {
-              netFix.toTry((bool, times) => {
-                if (!bool) {
-                  this.$confirm('尝试连接失败，是否继续检测', '提示', {
-                    confirmButtonText: '是',
-                    cancelButtonText: '重新登录',
-                    type: 'warning'
-                  }).then(() => {
-                    next(true) // 为轮询是否就继续
-                  }).catch(() => {
-                    next(false)
-                    netFix.clear()
-                    this.$router.replace({name: 'Login'})
-                  })
-                } else {
-                  next(bool)
-                  this.$message.error('网络断开正在重连中' + times)
-                  console.error('错误：' + '网络断开正在重连中' + times)
-                }
-              })
-            }
-          }).catch(err => {
-            console.log('怎么回事')
-            console.error('错误：轮询catch', err)
-          })
-        }, this.loopTime || 10000, false)
-        this.round.start()
-        console.log('轮询已正常启动')
-      },
-      listenService () {
-        let self = this
-        this.printService = this.$store.getters.printService
-        this.printService.setUser(this.user)
-        this.printService.listen({
-          start () {
-            console.log('----------打印已经开始了---------------')
-          },
-          before (obj) {
-            console.log(obj)
-            if (obj.isOrder) {
-              console.log('--------正在开始打印的订单Obj:', obj.id, '------------')
-              console.log('--------', obj && obj.vOrderNo, '--------------')
-            } else {
-              console.log('--------普通打印')
-            }
-          },
-          after (obj) {
-            if (obj.isOrder) {
-              try {
-                if (obj.isAutoChange) {
-                  self.$store.commit('clearActiveOrder')
-                }
-                self.$store.commit('setFinshPrintOrder', obj)
-//              self.$store.commit('removeOrder', obj)
-                self.$store.commit('removeOrderMap', obj)
-              } catch (e) {
-                console.log(e)
-              }
-              console.log('---------------------结束打印的订单Obj:', obj.id)
-              console.log('---------------------', obj && obj.vOrderNo)
-            } else {
-              console.log('正在进行普通打印')
-            }
-          },
-          error (err, obj, next) {
-            console.error(err, '错误：打印机的时候报错了赶紧来看看')
-            console.log(obj)
-            let vNo = ''
-            if (obj.isOrder) {
-              vNo = '订单：' + obj.vOrderNo
-            }
-            self.$confirm(vNo + '打印出错是否继续', '提示', {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              closeOnClickModal: false,
-              type: 'warning'
-            }).then(() => {
-              console.log('店员点击了true' + vNo)
-              next(true) // 为轮询是否就继续
-            }).catch(() => {
-              console.log('店员点击了false' + vNo)
-              next(false)
-            })
-            self.$http.post('/feeback/save', {
-              title: '打印回调内错误',
-              content: '出现的错误：' + JSON.stringify(err) + '错误对象' + JSON.stringify(obj)
-            })
-          },
-          //  这个对象放弃打印
-          giveup (obj) {
-            console.log('错误：----------这个订单被放弃了:', obj.id)
-          },
-          done () {
-            console.log('-----------打印已经完成--------------')
-          }
-        })
       }
     },
     components: {},
     created () {
-      // 获取当前PC端版本
-      getConfig.then((json) => {
-        this.appVersion = json.version
-      })
-      // 初始化打印数据
-      this.$store.commit('printInit', {
-        vue: this,
-        shop: this.shop,
-        shopPrint: this.shopPrint,
-        user: this.user
-      })
-      this.listenService()
+      this.printService = this.$store.getters.printService
       console.log(this.printService, 'printService')
-      if (!this.$isXP) {
-        console.log('getLocalPrinters()', getLocalPrinters())
-      }
-      //  轮询
-      if (this.shop.restType !== 2) {
-        this.roundFn()
-      }
-      timer = setInterval(() => {
-        this.currentTime = moment().format('YYYY年MM月DD日 HH:mm:ss')
-      }, 1000)
     },
     destroyed () {
-      if (this.round) {
-        console.log(this.round, 'stop---执行')
-        this.round.stop()
-      }
-      clearInterval(timer)
+      this.$store.commit('clearActiveOrder')
     }
   }
 </script>

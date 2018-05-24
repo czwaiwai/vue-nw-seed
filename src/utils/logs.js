@@ -2,12 +2,12 @@
  * Created by Administrator on 2017/12/20 0020.
  */
 var log4js = require('log4js')
-var os = require('os')
+// var os = require('os')
 var fs = require('fs')
 var path = require('path')
-var homePath = os.homedir()
-var tmpPath = path.join(homePath, '/tmp')
-
+// var homePath = os.homedir()
+// var tmpPath = path.join(homePath, '/tmp')
+var tmpPath = process.cwd()
 // var exists = fs.existsSync(tmpPath)
 // if (!exists) {
 //   fs.mkdir(tmpPath, function (err) {

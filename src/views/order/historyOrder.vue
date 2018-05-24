@@ -44,7 +44,7 @@
         <a class="order_item" :class="itemClass(item)"  @click="activeClickHandler(item)"  href="javascript:void(0)" >
           <p class="text-center">{{item.orderType==='pay'?'支付凭证':item.tableNum}}</p>
           <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
-          <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span>  <span style="padding-left:20px">￥{{item.fnActPayAmount | currency}}</span></p>
+          <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span>  <span style="padding-left:15px">￥{{item.fnActPayAmount | currency}}</span> <span v-if="item.adjType===1"  class="fs12 " >[免]</span></p>
           <p class="fs14 text-center"><span class="label" :class="statusClass(item.status)" >{{itemStatus(item.status)}}</span></p>
         </a>
       </div>

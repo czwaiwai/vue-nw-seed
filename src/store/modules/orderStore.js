@@ -3,7 +3,7 @@
  */
 import OrderSave from '../../utils/orderSave'
 import {currency} from '../../utils/utils'
-import {orderSign, orderSignOne} from '../../utils/orderFormat'
+import {orderSign, orderSignOne, freeOrderSign} from '../../utils/orderFormat'
 var isAuto = true
 if (process.env.NODE_ENV === 'development') {
   isAuto = true
@@ -82,6 +82,7 @@ export default {
       active.cashNeedPay = currency(active.fnActPayAmount - active.cashMoney)
       // state.activeOrder.cashNeedPay =
     },
+    // 自助点餐添加商品到订单
     setActiveOrderFood (state, foodObj) {
       if (!state.activeOrder) return
       if (!state.activeOrder.fnAttach) state.activeOrder.fnAttach = []
@@ -97,6 +98,7 @@ export default {
         return before + (item.buyCount * item.perCash)
       }, 0)
     },
+    // 自助点餐减少订单中的商品
     reFoodActiveOrder (state, foodObj) {
       if (!state.activeOrder) return
       if (!state.activeOrder.fnAttach) state.activeOrder.fnAttach = []
@@ -245,6 +247,7 @@ export default {
         printOrder.isPrinting = false
       }
     },
+    // 从printerOrders中找出移除并添加进历史订单中
     removeOrder (state, order) {
       let index = state.printOrders.findIndex(item => item.id === order.id)
       if (state.hisOrderIds.indexOf(order.id) === -1) {
@@ -272,6 +275,7 @@ export default {
         state.printOrders = Array.from(state.printOrdersMap.values())
       }
     },
+    // 从待打印列表中找出activeOrder 并移除
     removeActiveOrder (state) {
       if (state.activeOrder) {
         let index = state.printOrders.findIndex(item => item.id === state.activeOrder.id)
@@ -304,6 +308,20 @@ export default {
     },
     clearActiveOrder (state, order) {
       state.activeOrder = null
+    },
+    // 零售相关操作-------------------------
+    // 添加到零售历史记录
+    freePushHis (state, order) {
+      if (state.hisOrderIds.indexOf(order.id) === -1) {
+        state.hisOrderIds.push(order.id)
+      }
+    },
+    freeRemoveOrder (state, order) {
+      let index = state.printOrders.findIndex(item => item.id === order.id)
+      if (state.hisOrderIds.indexOf(order.id) === -1) {
+        state.hisOrderIds.push(order.id)
+      }
+      state.printOrders.splice(index, 1)
     }
   },
   actions: {
@@ -326,6 +344,13 @@ export default {
     isExsitPirntOrder ({state}, {order}) {
       let index = state.printOrders.findIndex(item => item.id === order.id)
       return index > -1
+    },
+    // 免单操作
+    orderFee ({state, commit}, {order}) {
+      let newOrder = orderSignOne(order)
+      commit('removeActiveOrderMap')
+      console.log('免单：是否打印过这个订单', newOrder.isPrint)
+      return newOrder
     },
     orderBack ({state, commit}, {order}) {
       order.isBack = true
@@ -460,6 +485,22 @@ export default {
       })
       // let others = state.printOrders.filter(item => item.isAutoChange)
       return printData
+    },
+    // // 零售打印相关action
+    freePushAction ({getters, state, commit}, {list}) {
+      let newList = freeOrderSign(list)  // 获得新订单
+      // 剔除已在历史记录中的订单
+      let newData = newList.filter(item => {
+        return state.hisOrderIds.indexOf(item.id) === -1
+      })
+      // 添加到打印待打印
+      commit('orderPush', newData)
+      return newData
+    },
+    // 添加到已打印
+    freeAddHisAction ({getters, state, commit}, {order}) {
+      commit('freePushHis', order)
+      return 'success'
     }
   }
 }

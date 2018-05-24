@@ -7,7 +7,7 @@
           <a class="order_item" :class="{'no_pay':item.status==9}" @click="activeClickHandler(item)" href="javascript:void(0)">
             <p class="text-center">{{item.orderType==='pay'?'支付凭证':item.tableNum}}</p>
             <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
-            <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span><span style="padding-left:20px">￥{{item.fnActPayAmount | currency}}</span></p>
+            <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span><span style="padding-left:15px">￥{{item.fnActPayAmount | currency}} <span v-if="item.adjType===1"  class="fs12 " >[免]</span></span></p>
             <p class="fs14 text-center"><span v-show="item.isPrint" class="label success">已打印</span><span class="label alert">{{itemStatus(item.status)}}</span></p>
           </a>
         </div>
@@ -26,7 +26,7 @@
     padding:5px;
     cursor:pointer;
     color:#FFF;
-    border:1px dashed #FFF;
+    border:1px dashed transparent;
   }
   i.el-icon-close:hover{
     border:1px dashed #FFF;

@@ -4,6 +4,10 @@
 //  const printer = require('printer')
 var ChnPrinter = require('chn-escpos')
 var printHelper = require('./printHelper')
+var {htmlValidPrint} = require('./htmlPrinter')
+// var chromePrint = require('./chromePrint')
+import chromePrint from './chromePrint'
+
 printHelper(ChnPrinter)
 var crypto = require('crypto')
 var md5 = function (str) {
@@ -125,7 +129,7 @@ let printFactory = {
     }
   },
   //  发送由订单拆分出来的小票
-  send (tickets, cb) {
+  send (tickets, cb, shop) {
     let self = this
     this.createPrinter(function (err, priArr) {
       if (err) {
@@ -133,7 +137,31 @@ let printFactory = {
       }
       console.log(priArr)
       console.log('tickets', tickets)
-      self.printProcess(tickets, priArr, cb)
+      if (shop && shop.printType === 2) { // 调用printhtml.exe命令进行打印
+        console.log('调用printhtml.exe命令进行打印-------')
+        self.printExec(tickets, cb)
+      } else if (shop && shop.printType === 1) { // 浏览器打印
+        console.log('使用chrome浏览器进行打印------------')
+        self.printBrower(tickets, cb)
+      } else { // 使用原生c模块node-printer 进行打印
+        console.log('使用node-printer进行打印------------')
+        self.printProcess(tickets, priArr, cb)
+      }
+    })
+  },
+  printExec (tickets, cb) {
+    htmlValidPrint(tickets, function (err) {
+      if (err) return cb(err)
+      return cb(null, 'Print successed')
+    })
+  },
+  printBrower (tickets, cb) {
+    tickets.forEach(item => {
+      item.content = item.tpl
+    })
+    chromePrint(tickets, function () {
+      console.log('Print Successed')
+      cb(null, 'Print successed')
     })
   },
   //  转换称列表形式

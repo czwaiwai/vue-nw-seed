@@ -1,14 +1,5 @@
 <template>
   <el-container class="main">
-    <el-header style="height:44px;">
-      <div class="grid-x">
-        <div class="logo cell small-6">飞常赞餐饮系统 v{{appVersion}} ({{shop.restName}})</div>
-        <div class="cell small-6 text-right" style="line-height:44px;">
-          <span class="logo_time">{{currentTime}}</span>
-          <span class="light fs12 label" style="">{{shopUser.saleName}}[{{shopUser.mobile}}]</span>
-          <a @click="exitClickHandler" style="margin:0" class="button small alert" href="javascript:void(0)" >退出系统</a></div>
-      </div>
-    </el-header>
     <el-container>
       <el-aside class="el-container  is-vertical" width="340px" style="max-width:340px;">
         <div class="food_mode_quick flex_item" style="width:340px;">
@@ -49,7 +40,11 @@
           </div>
           <el-table ref="singleTable" size="small" :data="activeOrderData" highlight-current-row
                     @current-change="handleCurrentChange" style="width:340px;">
-            <el-table-column property="restProName" label="菜品名称" ></el-table-column>
+            <el-table-column  label="菜品名称" >
+              <template slot-scope="scope">
+                <span class="">{{scope.row.restProName}} <span v-if="scope.row.attr" >[{{scope.row.attr}}]</span></span>
+              </template>
+            </el-table-column>
             <el-table-column property="buyCount" label="数量" width="45"></el-table-column>
             <el-table-column property="perCash" label="单价" width="70"></el-table-column>
             <el-table-column property="amount" label="小计" width="70"></el-table-column>
@@ -323,17 +318,11 @@
 <script type="text/ecmascript-6">
   import moment from 'moment'
   import { App } from 'nw.gui'
-//  import roundTime from '../utils/roundTime'
-  import { getLocalPrinters } from '../utils/getLocalPrinters'
   import { mapGetters } from 'vuex'
-//  import bus from '../utils/bus'
   import scanner from '../utils/scanner'
   import { amount as amountRule, mobile, passWd } from '../utils/elemFormRules'
-  import uploadLogs from '../utils/uploadLogs'
-  import getConfig from '../utils/getConfig'
   import {clearLogs} from '../utils/clearLogs'
   import {currency} from '../utils/utils'
-  let timer
   let now = moment(new Date()).format('YYYY-MM-DD')
   import loginModal from '@/components/loginModal/'
   import backAmtModal from '../components/backAmtModal/'
@@ -1200,112 +1189,17 @@
             }
           })
         }).catch(() => {})
-      },
-      upLogs (date) {
-        console.log('-----------------------拉取日志')
-        if (date) {
-          uploadLogs(this, this.shop.id, date)
-        }
-      },
-      upStatus (content, title) {
-        this.$http.post('/feeback/save', {
-          title: title || '查看内容',
-          content: content
-        })
       }
     },
     created () {
-      let self = this
-
-      getConfig.then((json) => {
-        this.appVersion = json.version
-      })
       this.scan = scanner(this.scanerRes)
-      this.$store.commit('printInit', {
-        vue: this,
-        shop: this.shop,
-        shopPrint: this.shopPrint,
-        user: this.user
-      })
-      this.printService = this.$store.getters.printService
-      this.printService.setUser(this.user)
-      this.printService.listen({
-        start () {
-          console.log('----------打印已经开始了---------------')
-        },
-        before (obj) {
-          console.log(obj)
-          if (obj.isOrder) {
-            console.log('--------正在开始打印的订单Obj:', obj.id, '------------')
-            console.log('--------', obj && obj.vOrderNo, '--------------')
-          } else {
-            console.log('--------普通打印')
-          }
-        },
-        after (obj) {
-          if (obj.isOrder) {
-            try {
-              if (obj.isAutoChange) {
-                self.$store.commit('clearActiveOrder')
-              }
-              self.$store.commit('setFinshPrintOrder', obj)
-//              self.$store.commit('removeOrder', obj)
-              self.$store.commit('removeOrderMap', obj)
-            } catch (e) {
-              console.log(e)
-            }
-            console.log('---------------------结束打印的订单Obj:', obj.id)
-            console.log('---------------------', obj && obj.vOrderNo)
-          } else {
-            console.log('正在进行普通打印')
-          }
-        },
-        error (err, obj, next) {
-          console.error(err, '错误：打印机的时候报错了赶紧来看看')
-          console.log(obj)
-          let vNo = ''
-          if (obj.isOrder) {
-            vNo = '订单：' + obj.vOrderNo
-          }
-          self.$confirm(vNo + '打印出错是否继续', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            closeOnClickModal: false,
-            type: 'warning'
-          }).then(() => {
-            console.log('店员点击了true' + vNo)
-            next(true) // 为轮询是否就继续
-          }).catch(() => {
-            console.log('店员点击了false' + vNo)
-            next(false)
-          })
-          self.$http.post('/feeback/save', {
-            title: '打印回调内错误',
-            content: '出现的错误：' + JSON.stringify(err) + '错误对象' + JSON.stringify(obj)
-          })
-        },
-        //  这个对象放弃打印
-        giveup (obj) {
-          console.log('错误：----------这个订单被放弃了:', obj.id)
-        },
-        done () {
-          console.log('-----------打印已经完成--------------')
-        }
-      })
-      console.log(this.printService, 'printService')
-      if (!this.$isXP) {
-        console.log('getLocalPrinters()', getLocalPrinters())
-      }
-      timer = setInterval(() => {
-        this.currentTime = moment().format('YYYY年MM月DD日 HH:mm:ss')
-      }, 1000)
     },
     destroyed () {
-      if (this.round) {
-        console.log(this.round, 'stop---执行')
-        this.round.stop()
+      if (this.scn) {
+        this.scan.stop()
+        this.scan = null
       }
-      timer && clearInterval(timer)
+      this.$store.commit('clearActiveOrder')
     }
   }
 </script>

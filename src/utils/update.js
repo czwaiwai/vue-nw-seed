@@ -18,7 +18,7 @@ export function getUpdateJson (noCache, paramObj) {
   // if (!noCache && tmpUpdateJson) return new Promise((resolve, reject) => resolve(tmpUpdateJson))
   if (!noCache && tmpUpdateJson) return Promise.resolve(tmpUpdateJson)
   let params = '&' + qs.stringify(paramObj)
-  return window.fetch(manifest.manifestUrl + '?' + new Date().getTime() + params, options)
+  return window.fetch(manifest.manifestUrl + '?time=' + new Date().getTime() + params, options)
     .then(resp => resp.json())
     .then(json => {
       tmpUpdateJson = json

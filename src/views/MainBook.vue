@@ -1,15 +1,16 @@
 <template>
   <el-container class="main">
-    <el-header style="height:44px;">
-      <div class="grid-x">
-        <div class="logo cell small-6">飞常赞书店系统 v{{appVersion}} ({{shop.name}})</div>
-        <div class="cell small-6 text-right" style="line-height:44px;">
-          <span class="logo_time">{{currentTime}}</span>
-          <span class="light fs12 label" style="">{{shopUser.saleName}}[{{shopUser.mobile}}]</span>
-          <a @click="exitClickHandler" style="margin:0" class="button small alert" href="javascript:void(0)" >退出系统</a></div>
-      </div>
-    </el-header>
+    <!--<el-header style="height:44px;">-->
+      <!--<div class="grid-x">-->
+        <!--<div class="logo cell small-6">飞常赞书店系统 v{{appVersion}} ({{shop.name}})</div>-->
+        <!--<div class="cell small-6 text-right" style="line-height:44px;">-->
+          <!--<span class="logo_time">{{currentTime}}</span>-->
+          <!--<span class="light fs12 label" style="">{{shopUser.saleName}}[{{shopUser.mobile}}]</span>-->
+          <!--<a @click="exitClickHandler" style="margin:0" class="button small alert" href="javascript:void(0)" >退出系统</a></div>-->
+      <!--</div>-->
+    <!--</el-header>-->
     <el-container>
+      <!--
       <el-aside class="nav_aside flex_box flex_direction_column" style="background:#545C64"  >
         <div class="flex_item"  :style="!isShowMenu?'width:200px;':'width:auto'">
           <el-menu
@@ -56,6 +57,10 @@
               <i class="el-icon-news"></i>
               <span slot="title">飞常赞用户收款</span>
             </el-menu-item>
+            <el-menu-item  index="/mainBook/planeSync"  v-if="shop.airUpload===1 || user.userId === 100023"  >
+              <i class="el-icon-news"></i>
+              <span slot="title">机场数据同步</span>
+            </el-menu-item>
           </el-menu>
         </div>
         <div class="aside-footer " style="padding:0;background:#545C64"  >
@@ -76,6 +81,7 @@
           </el-menu>
         </div>
       </el-aside>
+      -->
       <el-container class="is-vertical">
         <div class="unit_header padding15-h">{{$route.meta.title}} {{$dev?$route.path:''}}</div>
         <el-main>
@@ -108,40 +114,40 @@
   }
 </style>
 <script type="text/ecmascript-6">
-  import { mapGetters } from 'vuex'
-  import SysMethods from '../utils/sysMenthod'
+//  import { mapGetters } from 'vuex'
+//  import SysMethods from '../utils/sysMenthod'
   export default {
-    mixins: [SysMethods],
+//    mixins: [SysMethods],
     data () {
       return {
       }
     },
-    computed: {
-      ...mapGetters({
-        'isLogin': 'isLogin',
-        'user': 'user',
-        'isAuto': 'isAuto',
-        'printTpl': 'printTpl',
-        'shop': 'shop',
-        'shopUser': 'shopUser',
-        'shopPrint': 'shopPrint',
-        'printOrders': 'printOrders',
-        'activeOrder': 'activeOrder',
-        'loopTime': 'loopTime'
-      })
-    },
+//    computed: {
+//      ...mapGetters({
+//        'isLogin': 'isLogin',
+//        'user': 'user',
+//        'isAuto': 'isAuto',
+//        'printTpl': 'printTpl',
+//        'shop': 'shop',
+//        'shopUser': 'shopUser',
+//        'shopPrint': 'shopPrint',
+//        'printOrders': 'printOrders',
+//        'activeOrder': 'activeOrder',
+//        'loopTime': 'loopTime'
+//      })
+//    },
     components: {
     },
     methods: {
     },
     created () {
       // 初始化打印数据
-      this.$store.commit('printInit', {
-        vue: this,
-        shop: this.shop,
-        shopPrint: this.shopPrint,
-        user: this.user
-      })
+//      this.$store.commit('printInit', {
+//        vue: this,
+//        shop: this.shop,
+//        shopPrint: this.shopPrint,
+//        user: this.user
+//      })
     }
   }
 </script>

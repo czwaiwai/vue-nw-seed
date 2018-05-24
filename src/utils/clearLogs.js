@@ -3,9 +3,10 @@
  */
 const fs = require('fs')
 const path = require('path')
-const os = require('os')
+// const os = require('os')
 const moment = require('moment')
-let tmpPath = path.resolve(os.homedir(), 'tmp')
+// let tmpPath = path.resolve(os.homedir(), 'tmp')
+let tmpPath = process.cwd()
 export function clearLogs (beforeDays = 7) {
   fs.readdir(tmpPath, function (err, files) {
     if (err) {

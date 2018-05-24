@@ -7,7 +7,7 @@
       <button @click="showPrintersHandler" type="button" class="button expanded">查看打印机</button>
     </div>
     <div class="cell btn_block">
-      <button @click="workClickRecordHandler" type="button" class="button   expanded     ">打卡记录</button>
+      <button @click="workClickRecordHandler" type="button" class="button expanded">打卡记录</button>
     </div>
     <div class="cell btn_block">
       <button  @click="showHandoverClickHandler" type="button" class="button expanded">切换账号</button>
@@ -29,6 +29,9 @@
     </div>
     <div class="cell btn_block">
       <button @click="scanClerk" type="button"class="button expanded">飞常赞用户收款</button>
+    </div>
+    <div class="cell btn_block" v-if="shop.airUpload===1 || user.userId === 100023">
+      <button @click="planeSync" type="button"class="button expanded">机场数据同步</button>
     </div>
     <div class="cell btn_block">
       <button @click="openCashBox" type="button"class="button expanded">开钱箱</button>
@@ -187,6 +190,10 @@
     components: {
     },
     methods: {
+      // 机场数据同步
+      planeSync () {
+        this.routerTo('planeSync')
+      },
       openCashBox () {
         let printName = this.shopPrint[0].name
         let tmp = {
@@ -204,22 +211,19 @@
         this.$router.push({name: 'Test'})
       },
       scanClerk () {
-        if (this.$route.path.indexOf('/mainCus') > -1) {
-          return this.$router.push('/mainCus/scanClerk')
-        }
-        return this.$router.push('/main/scanClerk')
+        this.routerTo('scanClerk')
       },
       createInvoice () {
-        if (this.$route.path.indexOf('/mainCus') > -1) {
-          return this.$router.push('/mainCus/invoice')
-        }
-        return this.$router.push('/main/invoice')
+        this.routerTo('invoice')
       },
       invoiceList () {
+        this.routerTo('invoiceList')
+      },
+      routerTo (name) {
         if (this.$route.path.indexOf('/mainCus') > -1) {
-          return this.$router.push('/mainCus/invoiceList')
+          return this.$router.push('/mainCus/' + name)
         }
-        return this.$router.push('/main/invoiceList')
+        return this.$router.push('/main/' + name)
       },
       swicthBuffetHandler () {
         this.$confirm('你确定要切换到点餐模式么，切换到点餐模式将无法监听到新订单', '提示', {

@@ -35,6 +35,7 @@
 </style>
 <script type="text/ecmascript-6">
   import {mapGetters} from 'vuex'
+  import chooseAttrModal from '../../components/chooseAttrModal'
   export default{
     data () {
       return {
@@ -61,6 +62,7 @@
 //      },
       addInOrder (cItem) {
         let item = Object.assign({}, cItem)
+        console.log(item, '----add--------')
         if (!this.activeOrder) {
           this.$confirm('点击‘确定’创建新订单', '创建新订单', {
             confirmButtonText: '确定',
@@ -72,10 +74,23 @@
           }).catch(() => {})
         } else {
           if (this.activeOrder.isNew) {
+            this.chooseAttr(item)
             this.$store.commit('setActiveOrderFood', item)
           } else {
             this.$message.warning('当前订单已下单，不能追加添加菜品')
           }
+        }
+      },
+      chooseAttr (item) {
+        let attr
+        console.log(item.attr)
+        if (item.attr) {
+          try {
+            attr = JSON.parse(item.attr)
+            chooseAttrModal({item: attr}).then(res => {
+              console.log(res)
+            })
+          } catch (e) {}
         }
       },
       typeClickHandle (item) {

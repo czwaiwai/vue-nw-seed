@@ -2,14 +2,15 @@
  * Created by Administrator on 2017/12/20 0020.
  */
 var fs = require('fs')
-var os = require('os')
+// var os = require('os')
 var path = require('path')
 var blobStream = require('blob-stream')
 const zlib = require('zlib')
 const gzip = zlib.createGzip()
 // var moment = require('moment')
 // var Zip = require('node-native-zip')
-var tmpPath = path.join(os.homedir(), '/tmp')
+// var tmpPath = path.join(os.homedir(), '/tmp')
+var tmpPath = process.cwd()
 export default function uploadLogs (vue, shopId, date) {
   return new Promise((resolve, reject) => {
     // let nowDate = moment(new Date()).format('YYYYMMDD')

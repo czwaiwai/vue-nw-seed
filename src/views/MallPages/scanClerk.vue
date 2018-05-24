@@ -1,4 +1,9 @@
 <template>
+  <el-container class="main">
+    <el-container>
+      <el-container class="is-vertical">
+        <div class="unit_header padding15-h">{{$route.meta.title}} {{$dev?$route.path:''}} </div>
+        <el-main>
   <div >
     <div class="text-center padding-bottom15">
       <el-button @click="showScanHandle">获取用户信息</el-button>
@@ -88,6 +93,10 @@
       </span>
     </el-dialog>
   </div>
+        </el-main>
+      </el-container>
+    </el-container>
+  </el-container>
 </template>
 <style rel="stylesheet/scss" lang="scss">
   .quan_card {

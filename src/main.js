@@ -18,7 +18,8 @@ import 'element-ui/lib/theme-chalk/index.css'
 import getLogger from './utils/logs'
 import virKeyboard from './components/virKeyboard'
 import osType from './utils/osType'
-import chromePrint from './utils/chromePrint'
+// import chromePrint from './utils/chromePrint'
+var {htmlParallelPrint} = require('./utils/htmlPrinter')
 getLogger()
 osType(Vue)
 filter(Vue)
@@ -100,6 +101,13 @@ axios.interceptors.response.use(function (response) {
       }
       return Promise.reject(response.data.retMsg)
     }
+    if (response.data.retCode === -2) {
+      appVue.$alert('您的登录已失效', '提示', {
+        confirmButtonText: '重新登录',
+        type: 'error',
+        callback: action => appVue.$router.replace({name: 'Login'})
+      })
+    }
     let userInfo = null
     if (cfgInfo) {
       userInfo = cfgInfo.UserInfo
@@ -110,17 +118,26 @@ axios.interceptors.response.use(function (response) {
     if (userInfo) {
       store.commit('setUser', userInfo)
     }
-    let urlFilters = ['/ycRest/countProSaleData', '/ycRest/newPrintRestOrder', '/ycRest/restOrderList']
+    let urlFilters = ['/ycRest/countProSaleData', '/ycRest/newPrintRestOrder', '/ycRest/restOrderList', '/ycRetail/printShopOrder']
     let isAddPrint = urlFilters.every(item => {
       return response.config.url.indexOf(item) === -1
     })
     let shop = appVue.$store.getters.shop
     if (shop) {
-      if (shop.printType === 1 && isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
-        chromePrint(data.printList)
-      }
-      if (shop.printType !== 1 && isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
-        store.dispatch('addPrintObj', {printList: data.printList})
+      if (isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
+        htmlParallelPrint(data.printList)
+        // if (shop && shop.printType === 2) { // 调用printhtml.exe命令进行打印
+        //   console.log('main.js 调用printhtml.exe命令进行打印-------')
+        //   htmlParallelPrint(data.printList)
+        // } else if (shop && shop.printType === 1) { // 浏览器打印
+        //   console.log('main.js 使用chrome浏览器进行打印------------')
+        //   chromePrint(data.printList)
+        // } else { // 使用原生c模块node-printer 进行打印
+        //   console.log('main.js 使用node-printer进行打印------------')
+        //   if (shop.printType !== 1 && isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
+        //     store.dispatch('addPrintObj', {printList: data.printList})
+        //   }
+        // }
       }
     }
   }
@@ -165,9 +182,18 @@ Vue.config.errorHandler = (function () {
   }
 })()
 // for auto update
+import {getConf} from './utils/storeConfig'
 import { checkUpdate } from '@/utils/update.js'
-checkUpdate()
-
+// checkUpdate()
+getConf(function (json) {
+  if (json && json.shopId) {
+    checkUpdate({
+      shopId: json.shopId
+    })
+  } else {
+    checkUpdate()
+  }
+})
 /* eslint-disable no-new */
 let appVue = new Vue({
   el: '#app',

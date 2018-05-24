@@ -8,6 +8,8 @@ function orderSave (vue, restShop, webPrint, user) {
   let printTpl = this.$vue.$store.getters.printTpl
   this.orderList = []
   this.status = 'start'
+  this.shop = restShop
+  console.log(restShop, 'orderSave ------')
   this.myEvent = {
     start: this.loop,
     before: this.loop,
@@ -106,6 +108,7 @@ orderSave.prototype = {
   },
   sendProcess () {
     let self = this
+    console.log(this.shop, '---------------order Save shop---------------')
     this.status = 'waiting'
     let obj = this.orderList.shift()
     if (!obj) {
@@ -125,13 +128,14 @@ orderSave.prototype = {
       }
       // 发送到打印机
       if (tickets && tickets.length > 0) {
+        console.log(self.shop, '---------------order Save shop-111-------------')
         printFactory.send(tickets, function (err, msg) {
           if (err) {
             return self.myEvent.error(err, obj, self.errNext(obj))
           }
           self.myEvent.after(obj)
           self.finish2Continue()
-        })
+        }, self.shop)
       } else {
         console.error('空对象去打印无法打印')
         self.myEvent.after(obj)
