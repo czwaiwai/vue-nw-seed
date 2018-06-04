@@ -30,7 +30,7 @@
 <script type="text/ecmascript-6">
   import loginModal from '../loginModal/'
   export default{
-    prop: {
+    props: {
       shopAuth: Number,
       form: Object,
       list: []

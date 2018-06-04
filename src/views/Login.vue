@@ -154,8 +154,12 @@
               if (shopInfo) {
                 if (shopInfo.restName) {
                   shopInfo.name = shopInfo.restName
+                  this.$set(shopInfo, 'deskNoArr', restShop.fnAttach)
+                  // shopInfo.deskNoArr = restShop.fnAttach
                 }
+                // shopInfo.printType = 2 // 测试用
                 shopInfo.belongShopType = belongShopType
+                console.log('当前店铺的打印模式: ', shopInfo.printType)
                 this.$store.commit('setShop', shopInfo)
                 clearLogs(shopInfo.clientLogDays)
                 if (this.appJson.version) {
@@ -205,13 +209,25 @@
                   default: this.$message.error('没有分配权限登录')
                 }
               } else {
+                console.log('店铺进入的类别', belongShopType)
                 switch (belongShopType) {
-                  case 11: this.$router.push('/Main/newOrder'); break // 餐饮店
-                  case 12: this.$router.push('/mainCus/buffetMode'); break  // 自选店
-                  case 21: this.$router.push('/mainBook/bookAssistantOpLogType1'); break // 书店
-                  case 31: this.$router.push('/mainMall/assistantOpLog'); break // 线下商店
+                  case 11: this.$router.push('/index/main/newOrder'); break
+                  case 12: this.$router.push('/index/mainCus/buffetMode'); break
+                  case 21: this.$router.push('/index/mainBook/bookAssistantOpLogType1'); break
+                  case 31: if (this.$store.getters.shop.autoBuy === 1) {
+                    this.$router.push('/index/freeGo/freeNewOrder')
+                  } else {
+                    this.$router.push('/index/mainMall/assistantOpLog')
+                  };break
                   default: this.$message.error('没有分配权限登录')
                 }
+                // switch (belongShopType) {
+                //   case 11: this.$router.push('/Main/newOrder'); break // 餐饮店
+                //   case 12: this.$router.push('/mainCus/buffetMode'); break  // 自选店
+                //   case 21: this.$router.push('/mainBook/bookAssistantOpLogType1'); break // 书店
+                //   case 31: this.$router.push('/mainMall/assistantOpLog'); break // 线下商店
+                //   default: this.$message.error('没有分配权限登录')
+                // }
               }
             }).catch((e) => {
               console.error(e)

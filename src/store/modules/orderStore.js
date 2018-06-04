@@ -2,11 +2,20 @@
  * Created by waiwai on 17-12-7.
  */
 import OrderSave from '../../utils/orderSave'
-import {currency} from '../../utils/utils'
+import {currency, amountFix} from '../../utils/utils'
 import {orderSign, orderSignOne, freeOrderSign} from '../../utils/orderFormat'
 var isAuto = true
 if (process.env.NODE_ENV === 'development') {
   isAuto = true
+}
+function isSame (aItem, bItem) {
+  let aIds = aItem.subItems.sort((a, b) => a.id - b.id).reduce((before, sItem) => {
+    return before + sItem.id + '' + sItem.num
+  }, '')
+  let bIds = bItem.subItems.sort((a, b) => a.id - b.id).reduce((before, sItem) => {
+    return before + sItem.id + '' + sItem.num
+  }, '')
+  return aIds === bIds
 }
 export default {
   state: {
@@ -82,16 +91,39 @@ export default {
       active.cashNeedPay = currency(active.fnActPayAmount - active.cashMoney)
       // state.activeOrder.cashNeedPay =
     },
+    // 自助点餐tableNo
+    setActiveTableNO (state, deskObj) {
+      if (!state.activeOrder) return
+      if (!deskObj) return
+      state.activeOrder.tableId = deskObj.id
+      state.activeOrder.tableNum = deskObj.tableNum
+    },
     // 自助点餐添加商品到订单
     setActiveOrderFood (state, foodObj) {
       if (!state.activeOrder) return
       if (!state.activeOrder.fnAttach) state.activeOrder.fnAttach = []
-      let foundOne = state.activeOrder.fnAttach.find(item => item.id === foodObj.id)
+      let foundOne = state.activeOrder.fnAttach.find(item => {
+        if (item.id === foodObj.id && item.attr === foodObj.attr) {
+          // 比较判断子商品是否属于统一的对象
+          if (item.subItems && foodObj.subItems && isSame(item, foodObj)) {
+            return true
+          }
+          // 不存在子商品的说明是同一对象
+          if (!item.subItems && !item.subItems) {
+            return true
+          }
+        } else {
+          return false
+        }
+      })
+      // 判断foodObj 是否存在且一致
+      // console.log(foodObj.attr, 'fooObj.attr')
       if (foundOne) {
         foundOne.buyCount++
-        foundOne.amount = foundOne.buyCount * foundOne.perCash
+        foundOne.amount = amountFix(foundOne.buyCount * foundOne.perCash)
         console.log(foundOne)
       } else {
+        foodObj.amount = amountFix(foodObj.buyCount * foodObj.perCash)
         state.activeOrder.fnAttach.push(foodObj)
       }
       state.activeOrder.fnActPayAmount = state.activeOrder.fnAttach.reduce((before, item) => {
@@ -230,6 +262,7 @@ export default {
         console.log('更新后的state，printOrders', state.printOrders)
       }
     },
+    // 更新待打印列表的值
     updatePrintOrderMap (state, order) {
       if (order.isOrder === undefined) {
         orderSignOne(order)
@@ -285,6 +318,7 @@ export default {
         state.activeOrder = null
       }
     },
+    // 从待打印列表中找出activeOrder 并移除
     removeActiveOrderMap (state) {
       if (state.activeOrder) {
         if (state.printOrdersMap.has(state.activeOrder.id)) {
@@ -373,9 +407,9 @@ export default {
       console.log('------setAndRemoreActive', JSON.stringify(order))
       let newOrder = orderSignOne(order)
       // commit('removeActiveOrder', newOrder)
-      commit('removeActiveOrderMap')
+      commit('removeActiveOrderMap') // 从待打印列表中找出activeOrder 并移除
       // commit('updatePrintOrder', newOrder)
-      commit('updatePrintOrderMap', newOrder)
+      commit('updatePrintOrderMap', newOrder) // 更新待打印列表的值
       return newOrder
     },
     //  查看订单是否在打印列表
@@ -477,11 +511,19 @@ export default {
       commit('orderPushMap', {newData, inViewArr, inHisArr})
       // 筛选出用户现金下单的
       let printData = newData.filter(item => {
-        if (item.assistantOp === 0 && item.status === 9) {
-          return false
-        } else {
+        // assistantOp === 0 顾客  暂不出单
+        // assistantOp === 1 点单员  立即出单
+        // assistantOp === 2 收银员  暂不出单
+        if (item.assistantOp === 1 && item.status === 9) { // 点单员点单且申请线下付款 返回true 立即打单
           return true
+        } else {
+          return false
         }
+        // if (item.assistantOp === 0 && item.status === 9) {
+        //   return false
+        // } else {
+        //   return true
+        // }
       })
       // let others = state.printOrders.filter(item => item.isAutoChange)
       return printData

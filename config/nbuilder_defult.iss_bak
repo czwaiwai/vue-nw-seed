@@ -1,0 +1,638 @@
+#define MyAppName "defultName"
+#define MyAppExeName"defultName"
+#define MyAppVersion "1.0.0"
+#define MyAppPublisher "defultMyAppPublisher"
+#define MyAppURL "defultMyAppURL"
+#define MyAppStartGroupName "defultStartGroupName"
+                 
+[Setup]
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppVerName={#MyAppName}
+AppPublisher={#MyAppPublisher}
+AppId={{D455C5BF-6C93-4BE9-BEB5-defultAppid}
+DefaultDirName={pf}\defultfile
+DefaultGroupName={#MyAppStartGroupName}
+OutputDir=.
+OutputBaseFilename=defultOutputBaseFilename
+SetupIconFile=logo\logo.ico
+UninstallIconFile=logo\logo.ico
+VersionInfoVersion={#MyAppVersion}
+VersionInfoTextVersion={#MyAppVersion}
+VersionInfoDescription=《{#MyAppName}》  安装程序
+versioninfocopyright={#MyAppPublisher}  出品
+VersionInfoProductName={#MyAppName}
+VersionInfoProductTextVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}  版权所有
+DisableReadyPage=yes
+DisableProgramGroupPage=yes
+DirExistsWarning=no
+DisableDirPage=yes
+
+Compression=lzma
+[Messages]
+BeveledLabel=Copyright(C){#MyAppPublisher}
+SetupWindowTitle={#MyAppName}
+
+[Icons]
+Name: C:\ProgramData\Microsoft\Windows\Start Menu\Programs\{#MyAppStartGroupName}\{#MyAppName}\{#MyAppName}; Filename: {app}\main.exe; WorkingDir: {app}; Check: StartMenu;
+Name: C:\ProgramData\Microsoft\Windows\Start Menu\Programs\{#MyAppStartGroupName}\{#MyAppName}\卸载  {#MyAppName}; Filename:{uninstallexe}; WorkingDir: {app}; Check: StartMenu;
+
+Name: {commondesktop}\{#MyAppName}; Filename: {app}\main.exe; WorkingDir: {app}; Check: desktop;
+
+[Files]
+Source: {tmp}\*; DestDir: {tmp}; Flags: dontcopy solidbreak ; Attribs: hidden system
+Source: "nwjs\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Code]
+type
+  TBtnEventProc = procedure (h:HWND);
+  TPBProc = function(h:hWnd;Msg,wParam,lParam:Longint):Longint;
+
+Const
+
+  MyCursor1 = 101;
+  MyCursor2 = 102;
+  Radius  = 9;
+  GWL_EXSTYLE = (-20);
+  GCL_STYLE = (-26);
+  CS_DROPSHADOW = $20000;
+
+  WM_SYSCOMMAND = $0112;
+
+  BtnClickEventID      = 1;
+  BtnMouseEnterEventID = 2;
+
+function ImgLoad(Wnd :HWND; FileName :PAnsiChar; Left, Top, Width, Height :integer; Stretch, IsBkg :boolean) :Longint; external 'ImgLoad@{tmp}\botva2.dll stdcall delayload';
+procedure ImgSetVisibility(img :Longint; Visible :boolean); external 'ImgSetVisibility@{tmp}\botva2.dll stdcall delayload';
+procedure ImgApplyChanges(h:HWND); external 'ImgApplyChanges@{tmp}\botva2.dll stdcall delayload';
+procedure ImgSetPosition(img :Longint; NewLeft, NewTop, NewWidth, NewHeight :integer); external 'ImgSetPosition@files:botva2.dll stdcall';
+procedure ImgSetTransparent(img:Longint; Value:integer); external 'ImgSetTransparent@{tmp}\botva2.dll stdcall delayload';
+procedure ImgRelease(img :Longint); external 'ImgRelease@{tmp}\botva2.dll stdcall delayload';
+procedure gdipShutdown;  external 'gdipShutdown@{tmp}\botva2.dll stdcall delayload';
+function WrapBtnCallback(Callback: TBtnEventProc; ParamCount: Integer): Longword; external 'wrapcallback@{tmp}\innocallback.dll stdcall delayload';
+function BtnCreate(hParent:HWND; Left,Top,Width,Height:integer; FileName:PAnsiChar; ShadowWidth:integer; IsCheckBtn:boolean):HWND;  external 'BtnCreate@{tmp}\botva2.dll stdcall delayload';
+procedure BtnSetText(h:HWND; Text:PAnsiChar);  external 'BtnSetText@{tmp}\botva2.dll stdcall delayload';
+procedure BtnSetVisibility(h:HWND; Value:boolean); external 'BtnSetVisibility@{tmp}\botva2.dll stdcall delayload';
+procedure BtnSetFont(h:HWND; Font:Cardinal); external 'BtnSetFont@{tmp}\botva2.dll stdcall delayload';
+procedure BtnSetFontColor(h:HWND; NormalFontColor, FocusedFontColor, PressedFontColor, DisabledFontColor: Cardinal); external 'BtnSetFontColor@{tmp}\botva2.dll stdcall delayload';
+procedure BtnSetEvent(h:HWND; EventID:integer; Event:Longword); external 'BtnSetEvent@{tmp}\botva2.dll stdcall delayload';
+procedure BtnSetCursor(h:HWND; hCur:Cardinal); external 'BtnSetCursor@{tmp}\botva2.dll stdcall delayload';
+procedure BtnSetEnabled(h:HWND; Value:boolean); external 'BtnSetEnabled@{tmp}\botva2.dll stdcall delayload';
+function GetSysCursorHandle(id:integer):Cardinal; external 'GetSysCursorHandle@{tmp}\botva2.dll stdcall delayload';
+function BtnGetChecked(h:HWND):boolean; external 'BtnGetChecked@{tmp}\botva2.dll stdcall delayload';
+procedure BtnSetChecked(h:HWND; Value:boolean); external 'BtnSetChecked@{tmp}\botva2.dll stdcall delayload';
+procedure CreateFormFromImage(h:HWND; FileName:PAnsiChar); external 'CreateFormFromImage@{tmp}\botva2.dll stdcall delayload';
+function SetWindowLong(Wnd: HWnd; Index: Integer; NewLong: Longint): Longint; external 'SetWindowLongA@user32.dll stdcall';
+function PBCallBack(P:TPBProc;ParamCount:integer):LongWord; external 'wrapcallback@files:innocallback.dll stdcall';
+function CallWindowProc(lpPrevWndFunc: Longint; hWnd: HWND; Msg: UINT; wParam, lParam: Longint): Longint; external 'CallWindowProcA@user32.dll stdcall';
+procedure ImgSetVisiblePart(img:Longint; NewLeft, NewTop, NewWidth, NewHeight : integer); external 'ImgSetVisiblePart@files:botva2.dll stdcall';
+function SetLayeredWindowAttributes(hwnd:HWND; crKey:Longint; bAlpha:byte; dwFlags:longint ):longint;
+  external 'SetLayeredWindowAttributes@user32 stdcall';
+function SetClassLong(hWnd: HWND; nlndex: integer; dwNewLong: integer ): integer; external 'SetClassLongA@user32 stdcall';
+function GetClassLong(IntPtr:hwnd;nIndex:integer ):integer; external 'GetClassLongA@user32 stdcall';
+function CreateRoundRectRgn(p1, p2, p3, p4, p5, p6: Integer): THandle; external 'CreateRoundRectRgn@gdi32 stdcall';
+function SetWindowRgn(hWnd: HWND; hRgn: THandle; bRedraw: Boolean): Integer; external 'SetWindowRgn@user32 stdcall';
+function ReleaseCapture(): Longint; external 'ReleaseCapture@user32.dll stdcall';
+
+procedure ShapeForm(aForm: TForm; edgeSize: integer);
+var
+  FormRegion:LongWord;
+begin
+  FormRegion:=CreateRoundRectRgn(0,0,aForm.Width,aForm.Height,edgeSize-6,edgeSize-6);
+  SetWindowRgn(aForm.Handle,FormRegion,True);
+end;
+var
+
+CancelImage: Longint;
+CancelForm: TSetupForm;
+OKButton: TButton;
+
+CancelCloseBtn: HWND;
+IconI:HWND;
+
+MinBtn:HWND;
+
+OKBtn,CancelFormBtn:HWND;
+
+WizardFormImage: Longint;
+pbImg,pbbgImg: Longint;
+
+CancelBtn,backBtn,Startbtn,NextBtn,nextbtn1,DirBrowseBtn,Finbtn: HWND;
+
+A2Check: HWND;
+
+Label1,Label4,Label5:tlabel;
+
+Edit1:Tedit;
+WelTx2,PrLabel,PrLabel1:Tlabel;
+
+FreeMB,TotalMB: Cardinal;
+PBOldProc : Longint;
+
+IsFrameDragging : boolean;
+dx,dy : integer;
+Frame : TForm;
+
+function PBProc(h:hWnd;Msg,wParam,lParam:Longint):Longint;
+var
+  pr,i1,i2 : Extended;
+  w : integer;
+begin
+  Result:=CallWindowProc(PBOldProc,h,Msg,wParam,lParam);
+  if (Msg=$402) and (WizardForm.ProgressGauge.Position>WizardForm.ProgressGauge.Min) then begin
+    i1:=WizardForm.ProgressGauge.Position-WizardForm.ProgressGauge.Min;
+    i2:=WizardForm.ProgressGauge.Max-WizardForm.ProgressGauge.Min;
+    pr:=i1*100/i2;
+    PrLabel.Caption:='('+IntToStr((Round(pr)))+'%)';
+    w:=Round(451*pr/100);
+    ImgSetPosition(pbImg,26,360,w,16);
+    ImgSetVisiblePart(pbImg,0,0,w,16);
+    ImgApplyChanges(WizardForm.Handle);
+  end;
+end;
+
+function NumToStr(Float: Extended): string;
+begin
+  Result:=Format('%.2n', [Float]);
+end;
+function MbOrTB(Float: Extended): string;
+begin
+  if Float<1024 then Result:=NumToStr(Float)+' MB'
+  else if (Float/1024)<1024 then Result:=NumToStr(Float/1024)+' GB'
+  else if (Float/(1024*1024))<1024 then Result:=NumToStr(Float/(1024*1024))+' TB'
+end;
+procedure GetFreeSpaceCaption(Sender: TObject);
+begin
+  WizardForm.DirEdit.Text:=WizardForm.DirEdit.Text;
+  if GetSpaceOnDisk(ExtractFileDrive(WizardForm.DirEdit.Text),True,FreeMB,TotalMB) then
+  begin
+    WelTx2.Font.Color :=clSilver;
+    WelTx2.Caption:= ExpandConstant('/可用空间：') + MbOrTB(FreeMB) ;
+    BtnSetEnabled(NextBtn,true)
+  end else
+  begin
+    WelTx2.Font.Color:=clRed
+    WelTx2.Caption:= '安装路径错误或者空间不足';
+    if WelTx2.Caption='安装路径错误或者空间不足'then
+    begin
+    BtnSetEnabled(NextBtn,false)
+   end
+ end
+end;
+
+procedure WizardMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ReleaseCapture
+  SendMessage(WizardForm.Handle, WM_SYSCOMMAND, $F012, 0)
+end;
+
+procedure WizardFormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  IsFrameDragging:=True;
+  dx:=X;
+  dy:=Y;
+end;
+
+procedure WizardFormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  IsFrameDragging:=False;
+  WizardForm.Show;
+end;
+
+procedure WizardFormMouseMove(Sender: TObject; Shift: TShiftState; X,Y: Integer);
+begin
+  if IsFrameDragging then begin
+    WizardForm.Left:=WizardForm.Left+X-dx;
+    WizardForm.Top:=WizardForm.Top+Y-dy;
+    Frame.Left:=WizardForm.Left-10;
+    Frame.Top:=WizardForm.Top-10;
+  end;
+end;
+procedure frameFormMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  WizardForm.Show;
+end;
+
+procedure WizardFormcc;
+begin
+    WizardForm.OnMouseDown:=@WizardFormMouseDown;
+    WizardForm.OnMouseUp:=@WizardFormMouseUp;
+    WizardForm.OnMouseMove:=@WizardFormMouseMove;
+end;
+
+procedure CreateFrame;
+begin
+  IsFrameDragging:=False;
+  Frame:=TForm.Create(nil);;
+  Frame.BorderStyle:=bsNone;
+  CreateFormFromImage(Frame.Handle,ExpandConstant('{tmp}\background_boder.png'));
+  with TLabel.Create(Frame) do begin
+    Parent:=Frame;
+    AutoSize:=false;
+    Left:=0;
+    Top:=0;
+    Width:=Frame.CLientWidth;
+    Height:=Frame.ClientHeight;
+    OnMouseDown:=@frameFormMouseUp;
+  end;
+  WizardForm.Left:=Frame.Left+10;
+  WizardForm.Top:=Frame.Top+10;
+  Frame.Show;
+end;
+
+procedure NextBtnClick(hBtn:HWND);
+begin
+WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\background_set.png'),(-10),(-10),607,457,True,True);
+WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\set_file_background.png'),26,273,446,36,True,True);
+BtnSetVisibility(backBtn,true);BtnSetVisibility(NextBtn,false);
+BtnSetVisibility(Startbtn,false);BtnSetVisibility(DirBrowseBtn,true);
+BtnSetVisibility(MinBtn,false);
+BtnSetVisibility(nextbtn1,true);
+BtnSetVisibility(A2Check,true);
+
+Edit1.show;Label4.show;
+Label5.show;
+
+WelTx2.show;
+ImgApplyChanges(WizardForm.Handle);
+end;
+
+procedure backBtnClick(hBtn:HWND);
+begin
+WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\background_start.png'),(-10),(-10),607,457,True,True);
+BtnSetVisibility(backBtn,false);BtnSetVisibility(Startbtn,true);
+BtnSetVisibility(NextBtn,true);BtnSetVisibility(DirBrowseBtn,false);
+BtnSetVisibility(MinBtn,True);BtnSetVisibility(nextbtn1,false);
+WelTx2.hide;
+
+Edit1.hide;Label4.hide;
+
+Label5.hide;
+BtnSetVisibility(A2Check,false);
+
+ImgApplyChanges(WizardForm.Handle)
+end;
+
+procedure NextBtn1Click(hBtn:HWND);
+begin
+WizardForm.NextButton.Click;
+end;
+
+procedure EditdirOnClick(hBtn:HWND);
+begin
+WizardForm.DirBrowseButton.Click;
+Edit1.Text:=WizardForm.DirEdit.Text;
+end;
+
+procedure Editchanged(Sender: TObject);
+begin
+WizardForm.DirEdit.Text:=Edit1.Text;
+end;
+
+procedure MinBtnOnClick(hBtn:HWND);
+begin
+SendMessage(WizardForm.Handle,WM_SYSCOMMAND,61472,0);
+end;
+
+procedure CancelFormMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  ReleaseCapture
+  SendMessage(CancelForm.Handle, WM_SYSCOMMAND, $F012, 0)
+end;
+
+procedure FinbtnClick(hBtn:HWND);
+begin
+WizardForm.NextButton.Click;
+end;
+
+procedure CancelCloseBtnOnClick(hBtn:HWND);
+begin
+CancelForm.close;
+end;
+
+procedure OKBtnOnClick(hBtn:HWND);
+begin
+OKButton.Click;
+end;
+
+procedure CancelBtnOnClick(hBtn:HWND);
+begin
+CancelForm.close;
+end;
+
+procedure CancelbtnClick(hBtn:HWND);
+begin
+  WizardForm.CancelButton.Click;
+end;
+
+procedure label4click(sender :TObject);
+begin
+BtnSetChecked(A2Check, not BtnGetChecked(A2Check));
+end;
+
+Function desktop(): Boolean;
+begin
+  if BtngetChecked(A2Check) = True then
+  Result :=BtngetChecked(A2Check)
+end;
+
+Function StartMenu(): Boolean;
+begin
+  if BtngetChecked(A2Check) = True then
+  Result :=BtngetChecked(A2Check)
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+if PageID=wpSelectComponents then
+  result := true;
+end;
+
+procedure InitializeWizard();
+begin
+ExtractTemporaryFile('set_file_btn.png');
+ExtractTemporaryFile('start_set_btn.png');
+ExtractTemporaryFile('CheckButton.png');
+ExtractTemporaryFile('set_return_btn.png');
+ExtractTemporaryFile('quit_cancel_btn.png');
+ExtractTemporaryFile('start_install_btn.png');
+ExtractTemporaryFile('set_install_btn.png');
+ExtractTemporaryFile('title_min_btn.png');
+ExtractTemporaryFile('title_clase_btn.png');
+ExtractTemporaryFile('background_boder.png');
+ExtractTemporaryFile('background_start.png');
+ExtractTemporaryFile('background_set.png');
+ExtractTemporaryFile('background_install.png');
+ExtractTemporaryFile('background_finish.png');
+ExtractTemporaryFile('set_file_background.png');
+ExtractTemporaryFile('install_bar_background.png');
+ExtractTemporaryFile('install_bar_foreground.png');
+ExtractTemporaryFile('quit_confirm_btn.png');
+ExtractTemporaryFile('quit_background.png');
+ExtractTemporaryFile('quit_mark.png');
+ExtractTemporaryFile('finish_confirm_btn.png');
+
+WizardForm.BorderStyle:=bsnone
+WizardForm.Width:=587
+WizardForm.Height:=437
+WizardForm.OnMouseDown:=@WizardFormMouseDown;
+WizardFormcc;
+CreateFrame;
+
+WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\background_start.png'),(-10), (-10),WizardForm.ClientWidth,WizardForm.ClientHeight,True,True);
+
+WizardForm.OuterNotebook.Hide;
+WizardForm.Bevel.Hide;
+WizardForm.BeveledLabel.Width := 0
+WizardForm.BeveledLabel.Height := 0
+
+MinBtn:=BtnCreate(WizardForm.Handle,530,8,22,22,ExpandConstant('{tmp}\title_min_btn.png'),3,False);
+BtnSetEvent(MinBtn,BtnClickEventID,WrapBtnCallback(@MinBtnOnClick,1));
+
+CancelBtn:=BtnCreate(WizardForm.Handle,555,8,22,22,ExpandConstant('{tmp}\title_clase_btn.png'),1,False)
+BtnSetEvent(CancelBtn,BtnClickEventID,WrapBtnCallback(@CancelBtnClick,1));
+
+Label1 := TLabel.Create(WizardForm);
+Label1.Parent := WizardForm;
+Label1.Caption := '{#MyAppName}';
+Label1.Transparent := true;
+Label1.Font.Size:=10
+Label1.Font.Name:='SimHei'
+Label1.Font.Color:=clWhite
+Label1.Left := (15);
+Label1.Top := (10);
+
+Startbtn:=BtnCreate(WizardForm.Handle,190,330,210,59,ExpandConstant('{tmp}\start_install_btn.png'),1,False);
+BtnSetEvent(Startbtn,BtnClickEventID,WrapBtnCallback(@NextBtn1Click,1));
+
+NextBtn:=BtnCreate(WizardForm.Handle,470,400,91,14,ExpandConstant('{tmp}\start_set_btn.png'),1,False);
+BtnSetEvent(NextBtn,BtnClickEventID,WrapBtnCallback(@NextBtnClick,1));
+BtnSetFontColor(NextBtn,clBlack,clBlack,clBlack,clGray);
+
+WelTx2 := TLabel.Create(WizardForm);
+WelTx2.AutoSize:=False;
+WelTx2.SetBounds(86,245, ScaleX(500), ScaleY(17));
+WelTx2.Transparent:=True;
+WelTx2.Font.Color :=clSilver;
+WelTx2.Font.Size := 9
+WelTx2.Font.Name:= 'SimHei';
+WelTx2.Parent := WizardForm;
+if GetSpaceOnDisk(ExtractFileDrive(WizardForm.DirEdit.Text), True, FreeMB, TotalMB) then
+begin
+WelTx2.Caption:=ExpandConstant('/可用空间：') + MbOrTB(FreeMB);
+end;
+WizardForm.DirEdit.OnChange := @GetFreeSpaceCaption;
+
+Edit1 := TEdit.Create(WizardForm);
+Edit1.Parent := WizardForm;
+Edit1.Text := WizardForm.DirEdit.Text;
+Edit1.Font.Size:=9
+Edit1.Left := 35;
+Edit1.Top := 285;
+Edit1.Width :=340
+Edit1.Height  :=14
+Edit1.BorderStyle :=bsnone;
+Edit1.Font.Color:=clBlack
+Edit1.Font.Name:='SimHei'
+Edit1.OnChange:=@Editchanged;
+
+Label4 := TLabel.Create(WizardForm);
+Label4.Parent := WizardForm;
+Label4.Caption := '添加桌面快捷方式';
+Label4.Transparent := true;
+Label4.Font.Size:=9
+Label4.Font.Name:='SimHei'
+Label4.Font.Color:=$002A2A2A
+Label4.Left := 51;
+Label4.Top := 327;
+Label4.OnClick:=@label4click;
+
+Label5 :=TLabel.Create(WizardForm);
+Label5.Parent := WizardForm;
+Label5.Caption := '安装位置：';
+Label5.Transparent := true;
+Label5.Font.Size:=9
+Label5.Font.Name:='SimHei'
+Label5.Font.Color:=clWhite
+Label5.Left := 27;
+Label5.Top := 245;
+
+nextbtn1:=BtnCreate(WizardForm.Handle,395,389,95,29,ExpandConstant('{tmp}\set_install_btn.png'),1,False);
+BtnSetEvent(nextbtn1,BtnClickEventID,WrapBtnCallback(@NextBtn1Click,1));
+BtnSetFontColor(nextbtn1,clWhite,clWhite,clWhite,clWhite);
+
+DirBrowseBtn:=BtnCreate(WizardForm.Handle,470,273,94,36,ExpandConstant('{tmp}\set_file_btn.png'),1,False);
+BtnSetEvent(DirBrowseBtn,BtnClickEventID,WrapBtnCallback(@EditdirOnClick,1));
+BtnSetFontColor(DirBrowseBtn,Clblack,Clblack,Clblack,$B6B6B6);
+
+backBtn:=BtnCreate(WizardForm.Handle,498,389,64,29,ExpandConstant('{tmp}\set_return_btn.png'),1,False);
+BtnSetEvent(backBtn,BtnClickEventID,WrapBtnCallback(@backBtnClick,1));
+BtnSetFontColor(backBtn,clBlack,clBlack,clBlack,clGray);
+
+A2Check:=BtnCreate(WizardForm.Handle,30,324,15,15,ExpandConstant('{tmp}\CheckButton.png'),1,True);
+
+BtnSetChecked(A2Check,true);
+
+ImgApplyChanges(WizardForm.Handle);
+
+PrLabel:=TLabel.Create(WizardForm);
+PrLabel.Parent:=WizardForm;
+PrLabel.Left:=27+48;
+PrLabel.Top:=340;
+PrLabel.Transparent:=True;
+PrLabel.Font.Name:='SimHei';
+PrLabel1:=TLabel.Create(WizardForm);
+PrLabel1.Parent:=WizardForm;
+PrLabel1.Left:=27;
+PrLabel1.Top:=340;;
+PrLabel1.Caption:='正在安装';
+PrLabel1.Transparent:=True;
+PrLabel1.Font.Name:='SimHei';
+PBOldProc:=SetWindowLong(WizardForm.ProgressGauge.Handle,-4,PBCallBack(@PBProc,4));
+
+end;
+
+procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
+var
+  CancelLabel2: Tlabel;
+  CancelLabel3: Tlabel;
+begin
+  Cancel := False;
+  Confirm := False;
+  CancelForm := CreateCustomForm();
+  CancelForm.Width := ScaleX(375);
+  CancelForm.Height := ScaleY(167);
+  CancelForm.BorderStyle:=bsNone;
+  CancelForm.CenterInsideControl(WizardForm, False);
+  CancelForm.OnMouseDown:=@CancelFormMouseDown;
+  CancelImage:=ImgLoad(CancelForm.Handle,ExpandConstant('{tmp}\quit_background.png'),(0),(0),374,153,True,True);
+  IconI:=ImgLoad(CancelForm.Handle,ExpandConstant('{tmp}\quit_mark.png'),10,44,54,54,True,True);
+  ShapeForm(CancelForm, radius);
+
+  CancelCloseBtn:=BtnCreate(CancelForm.Handle,348,3,22,22,ExpandConstant('{tmp}\title_clase_btn.png'),3,False);
+  BtnSetEvent(CancelCloseBtn,BtnClickEventID,WrapBtnCallback(@CancelCloseBtnOnClick,1));
+
+  CancelLabel2:= TLabel.Create(CancelForm);
+  CancelLabel2.AutoSize:=False;
+  CancelLabel2.Font.Name :='SimHei'
+  CancelLabel2.Font.Size :=9
+  CancelLabel2.Font.Color:=clBlack
+  CancelLabel2.Parent:=CancelForm;
+  CancelLabel2.WordWrap := True;
+  CancelLabel2.SetBounds(ScaleX(73), ScaleY(63), ScaleY(225), ScaleY(50));
+  CancelLabel2.OnMouseDown:=@CancelFormMouseDown;
+  CancelLabel2.Transparent:=True;
+  CancelLabel2.Caption := '您确定要退出安装过程？';
+
+  CancelLabel3:= TLabel.Create(CancelForm);
+  CancelLabel3.Parent:=CancelForm;
+  CancelLabel3.Transparent:=True;
+  CancelLabel3.Font.Name :='SimHei'
+  CancelLabel3.Font.Size := 9
+  CancelLabel3.Font.Color:=clWhite
+  CancelLabel3.AutoSize:=False;
+  CancelLabel3.WordWrap := True;
+  CancelLabel3.SetBounds(ScaleX(10), ScaleY(5), ScaleY(250), ScaleY(50));
+  CancelLabel3.OnMouseDown:=@CancelFormMouseDown;
+  CancelLabel3.Caption := '提示';
+
+  OKButton := TButton.Create(CancelForm);
+  OKButton.Parent := CancelForm;
+  OKButton.ModalResult := mrOk;
+  OKButton.SetBounds(0, 0, 0, 0);
+
+  OKBtn:=BtnCreate(CancelForm.Handle,219,118,72,24,ExpandConstant('{tmp}\quit_confirm_btn.png'),1,False);
+  BtnSetEvent(OKBtn,BtnClickEventID,WrapBtnCallback(@OKBtnOnClick,1));
+  BtnSetFontColor(OKBtn,clBlack,clBlack,clBlack,$B6B6B6);
+
+  CancelFormBtn:=BtnCreate(CancelForm.Handle,219+74,118,72,24,ExpandConstant('{tmp}\quit_cancel_btn.png'),1,False);
+  BtnSetEvent(CancelFormBtn,BtnClickEventID,WrapBtnCallback(@CancelBtnOnClick,1));
+  BtnSetFontColor(CancelFormBtn,clBlack,clBlack,clBlack,$B6B6B6);
+
+  ImgApplyChanges(CancelForm.Handle);
+
+  if CancelForm.ShowModal = mrOK then
+  begin
+   Cancel := True;
+  end
+
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  WizardForm.NextButton.Width:=0;
+  WizardForm.NextButton.TabStop:=false
+  WizardForm.CancelButton.Width:=0;
+  WizardForm.CancelButton.TabStop:=false
+  WizardForm.BackButton.Width:=0;
+  WizardForm.BackButton.TabStop:=false
+  BtnSetVisibility(backBtn,false);BtnSetVisibility(DirBrowseBtn,false);
+  BtnSetVisibility(NextBtn,false);BtnSetVisibility(Startbtn,false);
+  BtnSetVisibility(A2Check,false);
+
+  BtnSetVisibility(MinBtn,True);
+  WelTx2.hide;
+  Edit1.hide;
+  PrLabel.hide;PrLabel1.hide;
+  Label4.hide;Label5.hide;
+
+
+  BtnSetVisibility(nextbtn1,false);
+  PrLabel.hide;PrLabel1.hide;
+if CurPageID = wpWelcome then
+  begin
+  WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\background_start.png'),(-10), (-10),607,457,True,True);
+
+  BtnSetVisibility(NextBtn,true)
+  BtnSetVisibility(Startbtn,true)
+  end
+if CurPageID = wpSelectDir then
+  begin
+  WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\background_set.png'),(-10),(-10),607,457,True,True);
+  WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\set_file_background.png'),26,273,446,36,True,True);
+  BtnSetVisibility(backBtn,true);BtnSetVisibility(NextBtn,false);
+  BtnSetVisibility(Startbtn,false);BtnSetVisibility(DirBrowseBtn,true);
+  BtnSetVisibility(MinBtn,false);
+  BtnSetVisibility(nextbtn1,true);
+  BtnSetVisibility(A2Check,true);
+
+  Edit1.show;WelTx2.show;
+  Label4.show;Label5.show;
+
+  ImgApplyChanges(WizardForm.Handle);
+  end;
+if CurPageID = wpInstalling then
+  begin
+  WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\background_install.png'),(-10), (-10),607,457,True,True);
+  pbbgImg:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\install_bar_background.png'),26,360,539,16,True,True);
+  pbImg:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\install_bar_foreground.png'),26,360,539,16,True,True);
+
+  PrLabel.show;PrLabel1.show;
+  end;
+if CurPageID = wpFinished then
+  begin
+  WizardFormImage:=ImgLoad(WizardForm.Handle,ExpandConstant('{tmp}\background_finish.png'),(-10), (-10),607,457,True,True);
+  Finbtn:=BtnCreate(WizardForm.Handle,190,330,210,59,ExpandConstant('{tmp}\finish_confirm_btn.png'),1,False)
+  BtnSetEvent(Finbtn,BtnClickEventID,WrapBtnCallback(@FinbtnClick,1));
+
+  BtnSetEvent(CancelBtn,BtnClickEventID,WrapBtnCallback(@FinbtnClick,1));
+  end;
+
+ImgApplyChanges(WizardForm.Handle);
+end;
+
+procedure DeinitializeSetup();
+begin
+gdipShutdown;
+if PBOldProc<>0 then SetWindowLong(WizardForm.ProgressGauge.Handle,-4,PBOldProc);
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+RCode: Integer;
+begin
+if (CurStep=ssDone)then
+     Exec(ExpandConstant('{app}\main.exe'), '', '', SW_SHOW, ewNoWait, RCode);
+end;

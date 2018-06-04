@@ -18,8 +18,8 @@ import 'element-ui/lib/theme-chalk/index.css'
 import getLogger from './utils/logs'
 import virKeyboard from './components/virKeyboard'
 import osType from './utils/osType'
-// import chromePrint from './utils/chromePrint'
-var {htmlParallelPrint} = require('./utils/htmlPrinter')
+import chromePrint from './utils/chromePrint'
+var {htmlValidPrint} = require('./utils/htmlPrinter')
 getLogger()
 osType(Vue)
 filter(Vue)
@@ -125,19 +125,23 @@ axios.interceptors.response.use(function (response) {
     let shop = appVue.$store.getters.shop
     if (shop) {
       if (isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
-        htmlParallelPrint(data.printList)
-        // if (shop && shop.printType === 2) { // 调用printhtml.exe命令进行打印
-        //   console.log('main.js 调用printhtml.exe命令进行打印-------')
-        //   htmlParallelPrint(data.printList)
-        // } else if (shop && shop.printType === 1) { // 浏览器打印
-        //   console.log('main.js 使用chrome浏览器进行打印------------')
-        //   chromePrint(data.printList)
-        // } else { // 使用原生c模块node-printer 进行打印
-        //   console.log('main.js 使用node-printer进行打印------------')
-        //   if (shop.printType !== 1 && isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
-        //     store.dispatch('addPrintObj', {printList: data.printList})
-        //   }
-        // }
+        // htmlValidPrint(data.printList)
+        if (shop && shop.printType === 2) { // 调用printhtml.exe命令进行打印
+          console.log('main.js 调用printhtml.exe命令进行打印-------')
+          htmlValidPrint(data.printList, (err, res) => {
+            if (err) {
+              console.error(err)
+            }
+          })
+        } else if (shop && shop.printType === 1) { // 浏览器打印
+          console.log('main.js 使用chrome浏览器进行打印------------')
+          chromePrint(data.printList)
+        } else { // 使用原生c模块node-printer 进行打印
+          console.log('main.js 使用node-printer进行打印------------')
+          if (shop.printType !== 1 && isAddPrint && data.printList instanceof Array && data.printList.length > 0) {
+            store.dispatch('addPrintObj', {printList: data.printList})
+          }
+        }
       }
     }
   }

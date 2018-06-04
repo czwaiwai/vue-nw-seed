@@ -192,6 +192,7 @@
           userRemark: '',
           fczPrzAmt: '',
           fczPrzRemark: '',
+          tableId: this.activeOrder.tableId,
           dicountAmt: this.activeOrder.cashMoney, // 减免金额
           derateAmt: this.activeOrder.cashRound, // 优惠券金额
           actPayAmt: this.payMoney, // 实付金额

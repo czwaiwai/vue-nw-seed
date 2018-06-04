@@ -46,7 +46,7 @@
 </style>
 <script type="text/ecmascript-6">
   export default{
-    prop: {
+    props: {
       exchangeType: {
         type: Number,
         default: 0

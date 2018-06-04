@@ -79,6 +79,9 @@
     },
     methods: {
       itemStatus (status) {
+        if ([7].indexOf(status) > -1) {
+          return '已完成'
+        }
         if ([5].indexOf(status) > -1) {
           return '退单'
         }

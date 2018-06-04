@@ -7,8 +7,8 @@ function orderSave (vue, restShop, webPrint, user) {
   this.$vue = vue
   let printTpl = this.$vue.$store.getters.printTpl
   this.orderList = []
+  this.shop = Object.assign({}, restShop)
   this.status = 'start'
-  this.shop = restShop
   console.log(restShop, 'orderSave ------')
   this.myEvent = {
     start: this.loop,

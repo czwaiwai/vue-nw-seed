@@ -164,7 +164,7 @@ export default new Router({
           path: 'printedOrder',
           name: 'CusPrintedOrder',
           meta: {
-            title: '已打印订单'
+            title: '已点订单'
           },
           component: CusPrintedOrder
         }, {
@@ -363,35 +363,6 @@ export default new Router({
           },
           component: ScanClerk
         }, {
-          path: 'freeGo',
-          name: 'FreeGo',
-          meta: {
-            title: '自助购订单'
-          },
-          component: FreeGo,
-          children: [{
-            path: 'freeNewOrder',
-            name: 'FreeNewOrder',
-            meta: {
-              title: '自助购订单'
-            },
-            component: FreeNewOrder
-          }, {
-            path: 'freeDayOrder',
-            name: 'FreeDayOrder',
-            meta: {
-              title: '自助购订单'
-            },
-            component: FreeDayOrder
-          }, {
-            path: 'freeHistoryOrder',
-            name: 'FreeHistoryOrder',
-            meta: {
-              title: '自助购订单'
-            },
-            component: FreeHistoryOrder
-          }]
-        }, {
           path: 'planeSync',
           name: 'PlaneSync',
           meta: {
@@ -475,343 +446,343 @@ export default new Router({
     },
     // --------------------------------------------------------
     // --------------------------------------------------------
-    {
-      path: '/main',
-      name: 'Main',
-      component: Main,
-      children: [{
-        path: 'otherFn',
-        name: 'OtherFn',
-        meta: {
-          title: '其他功能'
-        },
-        component: OtherFn
-      }, {
-        path: 'newOrder',
-        name: 'NewOrder',
-        meta: {
-          title: '新订单'
-        },
-        component: NewOrder
-      }, {
-        path: 'printedOrder',
-        name: 'PrintedOrder',
-        meta: {
-          title: '已打印订单'
-        },
-        component: PrintedOrder
-      }, {
-        path: 'historyOrder',
-        name: 'HistoryOrder',
-        meta: {
-          title: '历史订单'
-        },
-        component: HistoryOrder
-      }, {
-        path: 'test',
-        name: 'Test',
-        meta: {
-          title: '测试'
-        },
-        component: Test
-      }, {
-        path: 'buffetMode',
-        name: 'BuffetMode',
-        meta: {
-          title: '点餐模式'
-        },
-        component: BuffetMode
-      }, {
-        path: 'invoice',
-        name: 'Invoice',
-        meta: {
-          title: '电子发票开具'
-        },
-        component: Invoice
-      }, {
-        path: 'redInvoice',
-        name: 'RedInvoice',
-        props: (route) => ({invoiceCode: route.query.invoiceCode, invoiceNo: route.query.invoiceNo}),
-        meta: {
-          title: '电子发票红冲'
-        },
-        component: RedInvoice
-      }, {
-        path: 'invoiceList',
-        name: 'InvoiceList',
-        meta: {
-          title: '电子发票列表'
-        },
-        component: InvoiceList
-      }, {
-        path: 'scanClerk',
-        name: 'ScanClerk',
-        meta: {
-          title: '飞常赞用户收款'
-        },
-        component: ScanClerk
-      }, {
-        path: 'planeSync',
-        name: 'PlaneSync',
-        meta: {
-          title: '机场数据同步'
-        },
-        component: PlaneSync
-      }]
-    },
-    {
-      path: '/mainCus',
-      name: 'MainCus',
-      component: MainCus,
-      children: [{
-        path: 'buffetMode',
-        name: 'CusBuffetMode',
-        meta: {
-          title: '点餐模式'
-        },
-        component: BuffetMode
-      }, {
-        path: 'printedOrder',
-        name: 'CusPrintedOrder',
-        meta: {
-          title: '已打印订单'
-        },
-        component: CusPrintedOrder
-      }, {
-        path: 'historyOrder',
-        name: 'CusHistoryOrder',
-        meta: {
-          title: '历史订单'
-        },
-        component: HistoryOrder
-      }, {
-        path: 'otherFn',
-        name: 'CusOtherFn',
-        meta: {
-          title: '其他功能'
-        },
-        component: OtherFn
-      }, {
-        path: 'invoice',
-        name: 'Invoice',
-        meta: {
-          title: '电子发票开具'
-        },
-        component: Invoice
-      }, {
-        path: 'redInvoice',
-        name: 'RedInvoice',
-        props: (route) => ({invoiceCode: route.query.invoiceCode, invoiceNo: route.query.invoiceNo}),
-        meta: {
-          title: '电子发票红冲'
-        },
-        component: RedInvoice
-      }, {
-        path: 'invoiceList',
-        name: 'InvoiceList',
-        meta: {
-          title: '电子发票列表'
-        },
-        component: InvoiceList
-      }, {
-        path: 'scanClerk',
-        name: 'ScanClerk',
-        meta: {
-          title: '飞常赞用户收款'
-        },
-        component: ScanClerk
-      }, {
-        path: 'planeSync',
-        name: 'PlaneSync',
-        meta: {
-          title: '机场数据同步'
-        },
-        component: PlaneSync
-      }]
-    },
-    {
-      path: '/mainBook',
-      name: 'MainBook',
-      component: MainBook,
-      children: [{
-        path: 'bookAssistantOpLogType1',
-        name: 'BookAssistantOpLogType1',
-        meta: {
-          title: '逸臣门店借书操作记录'
-        },
-        props: {type: 1},
-        component: BookAssistantOpLog
-      }, {
-        path: 'bookAssistantOpLogType2',
-        name: 'BookAssistantOpLogType2',
-        meta: {
-          title: '逸臣门店还书操作记录'
-        },
-        props: {type: 2},
-        component: BookAssistantOpLog
-      }, {
-        path: 'buyBookOrder',
-        name: 'BuyBookOrder',
-        meta: {
-          title: '逸臣门店租书订单'
-        },
-        component: BuyBookOrder
-      }, {
-        path: 'bookStockList',
-        name: 'BookStockList',
-        meta: {
-          title: '逸臣门店图书库存'
-        },
-        component: BookStockList
-      }, {
-        path: 'bookPosition',
-        name: 'BookPosition',
-        meta: {
-          title: '逸臣门店图书跟踪'
-        },
-        component: BookPosition
-      }, {
-        path: 'assBorrowCount',
-        name: 'AssBorrowCount',
-        meta: {
-          title: '店员租书情况'
-        },
-        component: AssBorrowCount
-      }, {
-        path: 'bookShopBorrowCount',
-        name: 'BookShopBorrowCount',
-        meta: {
-          title: '书店租书情况'
-        },
-        component: BookShopBorrowCount
-      }, {
-        path: 'invoice',
-        name: 'Invoice',
-        meta: {
-          title: '电子发票开具'
-        },
-        component: Invoice
-      }, {
-        path: 'redInvoice',
-        name: 'RedInvoice',
-        meta: {
-          title: '电子发票红冲'
-        },
-        component: RedInvoice
-      }, {
-        path: 'invoiceList',
-        name: 'InvoiceList',
-        meta: {
-          title: '电子发票列表'
-        },
-        component: InvoiceList
-      }, {
-        path: 'scanClerk',
-        name: 'ScanClerk',
-        meta: {
-          title: '飞常赞用户收款'
-        },
-        component: ScanClerk
-      }, {
-        path: 'planeSync',
-        name: 'PlaneSync',
-        meta: {
-          title: '机场数据同步'
-        },
-        component: PlaneSync
-      }]
-    },
-    {
-      path: '/mainMall',
-      name: 'MainMall',
-      component: MainMall,
-      children: [{
-        path: 'assistantOpLog',
-        name: 'AssistantOpLog',
-        meta: {
-          title: '逸臣门店支付核消记录'
-        },
-        component: AssistantOpLog
-      }, {
-        path: 'ycFczOrder',
-        name: 'YcFczOrder',
-        meta: {
-          title: '订单支付记录'
-        },
-        component: YcFczOrder
-      }, {
-        path: 'countShoppingBag',
-        name: 'CountShoppingBag',
-        meta: {
-          title: '购物袋赠送统计'
-        },
-        component: CountShoppingBag
-      }, {
-        path: 'invoice',
-        name: 'Invoice',
-        meta: {
-          title: '电子发票开具'
-        },
-        component: Invoice
-      }, {
-        path: 'redInvoice',
-        name: 'RedInvoice',
-        meta: {
-          title: '电子发票红冲'
-        },
-        component: RedInvoice
-      }, {
-        path: 'invoiceList',
-        name: 'InvoiceList',
-        meta: {
-          title: '电子发票列表'
-        },
-        component: InvoiceList
-      }, {
-        path: 'scanClerk',
-        name: 'ScanClerk',
-        meta: {
-          title: '飞常赞用户收款'
-        },
-        component: ScanClerk
-      }, {
-        path: 'freeGo',
-        name: 'FreeGo',
-        meta: {
-          title: '自助购订单'
-        },
-        component: FreeGo,
-        children: [{
-          path: 'freeNewOrder',
-          name: 'FreeNewOrder',
-          meta: {
-            title: '自助购订单'
-          },
-          component: FreeNewOrder
-        }, {
-          path: 'freeDayOrder',
-          name: 'FreeDayOrder',
-          meta: {
-            title: '自助购订单'
-          },
-          component: FreeDayOrder
-        }, {
-          path: 'freeHistoryOrder',
-          name: 'FreeHistoryOrder',
-          meta: {
-            title: '自助购订单'
-          },
-          component: FreeHistoryOrder
-        }]
-      }, {
-        path: 'planeSync',
-        name: 'PlaneSync',
-        meta: {
-          title: '机场数据同步'
-        },
-        component: PlaneSync
-      }]
-    },
+    // {
+    //   path: '/main',
+    //   name: 'Main',
+    //   component: Main,
+    //   children: [{
+    //     path: 'otherFn',
+    //     name: 'OtherFn',
+    //     meta: {
+    //       title: '其他功能'
+    //     },
+    //     component: OtherFn
+    //   }, {
+    //     path: 'newOrder',
+    //     name: 'NewOrder',
+    //     meta: {
+    //       title: '新订单'
+    //     },
+    //     component: NewOrder
+    //   }, {
+    //     path: 'printedOrder',
+    //     name: 'PrintedOrder',
+    //     meta: {
+    //       title: '已打印订单'
+    //     },
+    //     component: PrintedOrder
+    //   }, {
+    //     path: 'historyOrder',
+    //     name: 'HistoryOrder',
+    //     meta: {
+    //       title: '历史订单'
+    //     },
+    //     component: HistoryOrder
+    //   }, {
+    //     path: 'test',
+    //     name: 'Test',
+    //     meta: {
+    //       title: '测试'
+    //     },
+    //     component: Test
+    //   }, {
+    //     path: 'buffetMode',
+    //     name: 'BuffetMode',
+    //     meta: {
+    //       title: '点餐模式'
+    //     },
+    //     component: BuffetMode
+    //   }, {
+    //     path: 'invoice',
+    //     name: 'Invoice',
+    //     meta: {
+    //       title: '电子发票开具'
+    //     },
+    //     component: Invoice
+    //   }, {
+    //     path: 'redInvoice',
+    //     name: 'RedInvoice',
+    //     props: (route) => ({invoiceCode: route.query.invoiceCode, invoiceNo: route.query.invoiceNo}),
+    //     meta: {
+    //       title: '电子发票红冲'
+    //     },
+    //     component: RedInvoice
+    //   }, {
+    //     path: 'invoiceList',
+    //     name: 'InvoiceList',
+    //     meta: {
+    //       title: '电子发票列表'
+    //     },
+    //     component: InvoiceList
+    //   }, {
+    //     path: 'scanClerk',
+    //     name: 'ScanClerk',
+    //     meta: {
+    //       title: '飞常赞用户收款'
+    //     },
+    //     component: ScanClerk
+    //   }, {
+    //     path: 'planeSync',
+    //     name: 'PlaneSync',
+    //     meta: {
+    //       title: '机场数据同步'
+    //     },
+    //     component: PlaneSync
+    //   }]
+    // },
+    // {
+    //   path: '/mainCus',
+    //   name: 'MainCus',
+    //   component: MainCus,
+    //   children: [{
+    //     path: 'buffetMode',
+    //     name: 'CusBuffetMode',
+    //     meta: {
+    //       title: '点餐模式'
+    //     },
+    //     component: BuffetMode
+    //   }, {
+    //     path: 'printedOrder',
+    //     name: 'CusPrintedOrder',
+    //     meta: {
+    //       title: '已打印订单'
+    //     },
+    //     component: CusPrintedOrder
+    //   }, {
+    //     path: 'historyOrder',
+    //     name: 'CusHistoryOrder',
+    //     meta: {
+    //       title: '历史订单'
+    //     },
+    //     component: HistoryOrder
+    //   }, {
+    //     path: 'otherFn',
+    //     name: 'CusOtherFn',
+    //     meta: {
+    //       title: '其他功能'
+    //     },
+    //     component: OtherFn
+    //   }, {
+    //     path: 'invoice',
+    //     name: 'Invoice',
+    //     meta: {
+    //       title: '电子发票开具'
+    //     },
+    //     component: Invoice
+    //   }, {
+    //     path: 'redInvoice',
+    //     name: 'RedInvoice',
+    //     props: (route) => ({invoiceCode: route.query.invoiceCode, invoiceNo: route.query.invoiceNo}),
+    //     meta: {
+    //       title: '电子发票红冲'
+    //     },
+    //     component: RedInvoice
+    //   }, {
+    //     path: 'invoiceList',
+    //     name: 'InvoiceList',
+    //     meta: {
+    //       title: '电子发票列表'
+    //     },
+    //     component: InvoiceList
+    //   }, {
+    //     path: 'scanClerk',
+    //     name: 'ScanClerk',
+    //     meta: {
+    //       title: '飞常赞用户收款'
+    //     },
+    //     component: ScanClerk
+    //   }, {
+    //     path: 'planeSync',
+    //     name: 'PlaneSync',
+    //     meta: {
+    //       title: '机场数据同步'
+    //     },
+    //     component: PlaneSync
+    //   }]
+    // },
+    // {
+    //   path: '/mainBook',
+    //   name: 'MainBook',
+    //   component: MainBook,
+    //   children: [{
+    //     path: 'bookAssistantOpLogType1',
+    //     name: 'BookAssistantOpLogType1',
+    //     meta: {
+    //       title: '逸臣门店借书操作记录'
+    //     },
+    //     props: {type: 1},
+    //     component: BookAssistantOpLog
+    //   }, {
+    //     path: 'bookAssistantOpLogType2',
+    //     name: 'BookAssistantOpLogType2',
+    //     meta: {
+    //       title: '逸臣门店还书操作记录'
+    //     },
+    //     props: {type: 2},
+    //     component: BookAssistantOpLog
+    //   }, {
+    //     path: 'buyBookOrder',
+    //     name: 'BuyBookOrder',
+    //     meta: {
+    //       title: '逸臣门店租书订单'
+    //     },
+    //     component: BuyBookOrder
+    //   }, {
+    //     path: 'bookStockList',
+    //     name: 'BookStockList',
+    //     meta: {
+    //       title: '逸臣门店图书库存'
+    //     },
+    //     component: BookStockList
+    //   }, {
+    //     path: 'bookPosition',
+    //     name: 'BookPosition',
+    //     meta: {
+    //       title: '逸臣门店图书跟踪'
+    //     },
+    //     component: BookPosition
+    //   }, {
+    //     path: 'assBorrowCount',
+    //     name: 'AssBorrowCount',
+    //     meta: {
+    //       title: '店员租书情况'
+    //     },
+    //     component: AssBorrowCount
+    //   }, {
+    //     path: 'bookShopBorrowCount',
+    //     name: 'BookShopBorrowCount',
+    //     meta: {
+    //       title: '书店租书情况'
+    //     },
+    //     component: BookShopBorrowCount
+    //   }, {
+    //     path: 'invoice',
+    //     name: 'Invoice',
+    //     meta: {
+    //       title: '电子发票开具'
+    //     },
+    //     component: Invoice
+    //   }, {
+    //     path: 'redInvoice',
+    //     name: 'RedInvoice',
+    //     meta: {
+    //       title: '电子发票红冲'
+    //     },
+    //     component: RedInvoice
+    //   }, {
+    //     path: 'invoiceList',
+    //     name: 'InvoiceList',
+    //     meta: {
+    //       title: '电子发票列表'
+    //     },
+    //     component: InvoiceList
+    //   }, {
+    //     path: 'scanClerk',
+    //     name: 'ScanClerk',
+    //     meta: {
+    //       title: '飞常赞用户收款'
+    //     },
+    //     component: ScanClerk
+    //   }, {
+    //     path: 'planeSync',
+    //     name: 'PlaneSync',
+    //     meta: {
+    //       title: '机场数据同步'
+    //     },
+    //     component: PlaneSync
+    //   }]
+    // },
+    // {
+    //   path: '/mainMall',
+    //   name: 'MainMall',
+    //   component: MainMall,
+    //   children: [{
+    //     path: 'assistantOpLog',
+    //     name: 'AssistantOpLog',
+    //     meta: {
+    //       title: '逸臣门店支付核消记录'
+    //     },
+    //     component: AssistantOpLog
+    //   }, {
+    //     path: 'ycFczOrder',
+    //     name: 'YcFczOrder',
+    //     meta: {
+    //       title: '订单支付记录'
+    //     },
+    //     component: YcFczOrder
+    //   }, {
+    //     path: 'countShoppingBag',
+    //     name: 'CountShoppingBag',
+    //     meta: {
+    //       title: '购物袋赠送统计'
+    //     },
+    //     component: CountShoppingBag
+    //   }, {
+    //     path: 'invoice',
+    //     name: 'Invoice',
+    //     meta: {
+    //       title: '电子发票开具'
+    //     },
+    //     component: Invoice
+    //   }, {
+    //     path: 'redInvoice',
+    //     name: 'RedInvoice',
+    //     meta: {
+    //       title: '电子发票红冲'
+    //     },
+    //     component: RedInvoice
+    //   }, {
+    //     path: 'invoiceList',
+    //     name: 'InvoiceList',
+    //     meta: {
+    //       title: '电子发票列表'
+    //     },
+    //     component: InvoiceList
+    //   }, {
+    //     path: 'scanClerk',
+    //     name: 'ScanClerk',
+    //     meta: {
+    //       title: '飞常赞用户收款'
+    //     },
+    //     component: ScanClerk
+    //   }, {
+    //     path: 'freeGo',
+    //     name: 'FreeGo',
+    //     meta: {
+    //       title: '自助购订单'
+    //     },
+    //     component: FreeGo,
+    //     children: [{
+    //       path: 'freeNewOrder',
+    //       name: 'FreeNewOrder',
+    //       meta: {
+    //         title: '自助购订单'
+    //       },
+    //       component: FreeNewOrder
+    //     }, {
+    //       path: 'freeDayOrder',
+    //       name: 'FreeDayOrder',
+    //       meta: {
+    //         title: '自助购订单'
+    //       },
+    //       component: FreeDayOrder
+    //     }, {
+    //       path: 'freeHistoryOrder',
+    //       name: 'FreeHistoryOrder',
+    //       meta: {
+    //         title: '自助购订单'
+    //       },
+    //       component: FreeHistoryOrder
+    //     }]
+    //   }, {
+    //     path: 'planeSync',
+    //     name: 'PlaneSync',
+    //     meta: {
+    //       title: '机场数据同步'
+    //     },
+    //     component: PlaneSync
+    //   }]
+    // },
     {
       path: '/home',
       name: 'Home',

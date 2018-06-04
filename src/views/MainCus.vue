@@ -22,7 +22,7 @@
             <div class="grid-x ">
               <div class="cell small-6 fs14">下单时间：<span class="fs14">{{activeOrd.buildTime && activeOrd.buildTime.substr(5) }}</span>
               </div>
-              <div class="cell small-6 bold">合计：{{activeOrd.fnActPayAmount | currency}}</div>
+              <div class="cell small-6 bold">合计：{{activeOrd.fnActPayAmount | currency}}<span v-if="activeOrd.adjType===1"  class="fs12 text-alert" style="color:#f56c6c">[免单]</span></div>
             </div>
             <div class="grid-x ">
               <div class="cell small-12 fs14">发票状态：<span class="fs14">{{invoiceStatus[activeOrd.invoiceStatus] }}</span>
@@ -33,7 +33,7 @@
               <div class="cell small-12 fs14">订单备注：<span class="fs14">{{activeOrd.adjRemark}}</span>
               </div>
             </div>
-            <div class="grid-x ">
+            <div class="grid-x " v-if="activeOrd.userRemark">
               <div class="cell small-12 fs14">用户备注：<span class="fs14">{{activeOrd.userRemark }}</span>
               </div>
             </div>
@@ -43,11 +43,14 @@
             <el-table-column  label="菜品名称" >
               <template slot-scope="scope">
                 <span class="">{{scope.row.restProName}} <span v-if="scope.row.attr" >[{{scope.row.attr}}]</span></span>
+                <div v-if="scope.row.subItems">
+                  <p class="fs12" style="line-height: 1;transform: scale(0.85);margin-bottom:0;margin-left: -10px;color:#989898;" v-for="item in scope.row.subItems">{{item.name}}x{{item.num}}</p>
+                </div>
               </template>
             </el-table-column>
             <el-table-column property="buyCount" label="数量" width="45"></el-table-column>
-            <el-table-column property="perCash" label="单价" width="70"></el-table-column>
-            <el-table-column property="amount" label="小计" width="70"></el-table-column>
+            <el-table-column property="perCash" label="单价" width="65"></el-table-column>
+            <el-table-column property="amount" label="小计" width="65"></el-table-column>
             <el-table-column  v-if="activeOrd.isNew" label="操作" width="60">
               <template slot-scope="scope">
                 <el-button @click.native.prevent="deleteRow(scope.$index, scope.row)" type="danger" size="mini">-</el-button>
@@ -138,6 +141,7 @@
           <P>找零： <span class="bold" style="">{{activeOrder.cashMoneyBack | currency}}</span></P>
         </div>
         <div class="cell small-7" style="padding-left: 15px;">
+          <!--{{cashOrderVisible}}-->
           <div class="grid-x">
             <div class="small-9">
               <el-form :inline="true"  class="form-inline">
@@ -502,6 +506,7 @@
         'shopUser': 'shopUser',
         'shopPrint': 'shopPrint',
         'printOrders': 'printOrders',
+        'printService': 'printService',
         'activeOrder': 'activeOrder',
         'loopTime': 'loopTime'
       }),
@@ -603,6 +608,12 @@
       }
     },
     methods: {
+      guid () {
+        function S4 () {
+          return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
+        }
+        return ('' + S4() + S4() + S4() + S4() + S4() + S4() + S4() + S4())
+      },
       // 计算取整
       computeIntHandle () {
         let money = parseFloat(this.activeOrder.cashMoneyBack)
@@ -624,18 +635,27 @@
       getCartInfos () {
         let tmp = []
         this.activeOrder.fnAttach.forEach((item) => {
-          tmp.push(`${item.id};${item.buyCount};0;0;0;;;`)
+          if (item.subItems) {
+            let guid = this.guid()
+            tmp.push(`${item.id};${item.buyCount};${guid};0;0;${item.attr || ''};;`)  // 父商品
+            item.subItems.forEach(sub => {
+              // 设置提交的数据格式 item.id;数量;   item.guid;关联父产品id;关联父产品guid;attr口味备注;subPrintTag是否更随主商品;remark
+              tmp.push(`${sub.id};${sub.num};0;${item.id};${guid};${sub.attr || ''};${sub.fnSubPrintTag || ''};`)
+            })
+          } else {
+            tmp.push(`${item.id};${item.buyCount};0;0;0;${item.attr || ''};;`)
+          }
         })
         return tmp.join('|')
       },
-      createCartInfos () {
-        if (!this.activeOrder) return
-        let tmp = []
-        this.activeOrder.fnAttach.forEach(item => {
-          tmp.push(`${item.id};${item.buyCount};0;0;0;;`)
-        })
-        return tmp.join('|')
-      },
+      // createCartInfos () {
+      //   if (!this.activeOrder) return
+      //   let tmp = []
+      //   this.activeOrder.fnAttach.forEach(item => {
+      //     tmp.push(`${item.id};${item.buyCount};0;0;0;;`)
+      //   })
+      //   return tmp.join('|')
+      // },
       // 仅订单下单
       async orderDown (params) {
         let res = await this.$http.post('/ycRest/doOrder', params)
@@ -670,6 +690,7 @@
           if (action === 'confirm') {
             let params = {
               payType: 'offl',
+              tableId: this.activeOrder.tableId,
               restShopId: this.shop.id,
               payAmt: this.activeOrder.fnActPayAmount,
               restPerson: '',
@@ -819,8 +840,8 @@
             restPerson: '',
             isOfflinePay: 0,
             address: '',
-            tableId: 86,
-            cartInfos: this.createCartInfos(),
+            tableId: this.activeOrder.tableId,
+            cartInfos: this.getCartInfos(),
             couponId: '',
             fczPrzAmt: '',
             fczPrzRemark: ''
@@ -891,6 +912,8 @@
             shop: this.shop,
             activeOrder: Object.assign({}, this.activeOrder),
             printFn: function (order) {
+              console.log(order, '??补打???')
+              console.log(self.printService)
               self.printService.add(order)
             }
           })
@@ -1192,10 +1215,12 @@
       }
     },
     created () {
+      this.deskNoArr = this.shop.deskNoArr
+      console.log(this.deskNoArr)
       this.scan = scanner(this.scanerRes)
     },
     destroyed () {
-      if (this.scn) {
+      if (this.scan) {
         this.scan.stop()
         this.scan = null
       }

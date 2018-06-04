@@ -1,48 +1,60 @@
 <template>
   <el-container class="main">
     <el-container>
-      <el-aside class="el-container  is-vertical" width="400px" style="max-width:400px;">
-        <div class="food_mode_quick flex_item" style="width:400px;">
+      <el-aside class="el-container  is-vertical" width="340px" style="max-width:340px;">
+        <div class="food_mode_quick flex_item" style="width:340px;">
           <div class="padding">
             <!--<h5>快餐模式</h5>-->
             <div class="grid-x ">
-              <div class="cell small-6 bold">订单：{{activeOrd.vOrderNo}}</div>
-              <div class="cell small-6 bold">桌号：{{activeOrd.tableNum}}</div>
+              <div class="cell small-6 bold fs14">订单：{{activeOrd.vOrderNo}}</div>
+              <div class="cell small-6 bold  fs14">桌号：{{activeOrd.tableNum}}</div>
             </div>
             <div class="grid-x ">
-              <div class="cell small-6">人数：{{activeOrd.restPerson?activeOrd.restPerson+'位':'1位'}}</div>
-              <div class="cell small-6">下单人：{{activeOrd.assistantOp===1?'店员':'客户'}}</div>
+              <div class="cell small-6  fs14">人数：{{activeOrd.restPerson?activeOrd.restPerson+'位':'1位'}}</div>
+              <div class="cell small-6  fs14">下单人：{{activeOrd.assistantOp===1?'店员':'客户'}}</div>
             </div>
             <div class="grid-x ">
-              <div class="cell small-6">状态：{{ orderStatus[activeOrd.status]}}</div>
-              <div class="cell small-6">支付方式：<span class="fs13">{{payType[activeOrd.payType]}}</span></div>
+              <div class="cell small-6  fs14">状态：{{ orderStatus[activeOrd.status]}}</div>
+              <div class="cell small-6  fs14">支付方式：<span class="fs13">{{payType[activeOrd.payType]}}</span></div>
             </div>
             <div class="grid-x ">
-              <div class="cell small-6">下单时间：<span class="fs14">{{activeOrd.buildTime && activeOrd.buildTime.substr(5) }}</span>
+              <div class="cell small-6  fs14">下单时间：<span class="fs14">{{activeOrd.buildTime && activeOrd.buildTime.substr(5) }}</span>
               </div>
-              <div class="cell small-6 bold">合计：{{activeOrd.fnActPayAmount | currency}}<span v-if="activeOrd.adjType===1"  class="fs12 text-alert" style="color:#f56c6c">[免单]</span></div>
+              <div class="cell small-6  fs14 bold">合计：{{activeOrd.fnActPayAmount | currency}}<span v-if="activeOrd.adjType===1"  class="fs12 text-alert" style="color:#f56c6c">[免单]</span></div>
             </div>
             <div class="grid-x ">
-              <div class="cell small-12">发票状态：<span class="fs14">{{invoiceStatus[activeOrd.invoiceStatus] }}</span>
+              <div class="cell small-12  fs14">发票状态：<span class="fs14">{{invoiceStatus[activeOrd.invoiceStatus] }}</span>
               </div>
             </div>
-            <div class="grid-x ">
-              <div class="cell small-12">用户备注：<span class="fs14">{{activeOrd.userRemark }}</span>
+            <div class="grid-x " v-if="activeOrd.adjRemark">
+              <div class="cell small-12 fs14">订单备注：<span class="fs14">{{activeOrd.adjRemark}}</span>
+              </div>
+            </div>
+            <div class="grid-x " v-if="activeOrd.userRemark">
+              <div class="cell small-12 fs14">用户备注：<span class="fs14">{{activeOrd.userRemark }}</span>
               </div>
             </div>
           </div>
           <el-table ref="singleTable" size="small" :data="activeOrderData" highlight-current-row
-                    @current-change="handleCurrentChange" style="width:400px;">
+                    @current-change="handleCurrentChange" style="width:340px;">
             <!--<el-table-column property="status" label="状态"></el-table-column>-->
             <el-table-column  label="菜品名称" >
               <template slot-scope="scope">
                 <span class="">{{scope.row.restProName}} <span v-if="scope.row.attr" >[{{scope.row.attr}}]</span></span>
+                <div v-if="scope.row.subItems">
+                  <p class="fs12" style="line-height: 1;transform: scale(0.85);margin-bottom:0;margin-left: -10px;color:#989898;" v-for="item in scope.row.subItems">{{item.name}}x{{item.num}}</p>
+                </div>
               </template>
             </el-table-column>
             <!--<el-table-column property="restProName" label="菜品名称" ></el-table-column>-->
-            <el-table-column property="buyCount" label="数量" width="60"></el-table-column>
-            <el-table-column property="perCash" label="单价" width="80"></el-table-column>
-            <el-table-column property="amount" label="小计" width="80"></el-table-column>
+            <el-table-column property="buyCount" label="数量" width="45"></el-table-column>
+            <el-table-column property="perCash" label="单价" width="65"></el-table-column>
+            <el-table-column property="amount" label="小计" width="65"></el-table-column>
+            <el-table-column  v-if="activeOrd.isNew" label="操作" width="60">
+              <template slot-scope="scope">
+                <el-button @click.native.prevent="deleteRow(scope.$index, scope.row)" type="danger" size="mini">-</el-button>
+              </template>
+            </el-table-column>
           </el-table>
           <!--<div style="margin-top: 20px">-->
           <!--<el-button @click="setCurrent(tableData[1])">选中第二行</el-button>-->
@@ -67,11 +79,12 @@
               </div>
             </div>
             <!--<template v-if="shop.restType===2">-->
-              <!--<button @click="createOrderHandle" :disabled="createOrderDisabled" class="button  margin5 flex_item fs20 warn " style="max-width:128px;color:#FFF;">下单</button>-->
+            <!--<button @click="createOrderHandle" :disabled="createOrderDisabled" class="button  margin5 flex_item fs20 warn " style="max-width:128px;color:#FFF;">下单</button>-->
             <!--</template>-->
             <!--<template v-else >-->
-              <button v-show="activeOrd.btnStatus === 'payByCash'" @click="confirmPayCashHandler" class="button fcz margin5 flex_item fs20 alert " style="max-width:128px;color:#FFF;">确认线下付款</button>
-              <button v-show="['confirmOrder','orderDone'].indexOf(activeOrd.btnStatus) > -1" :disabled="confirmBtnDisable" @click="confirmOrderFinishHandler" class="button info margin5 flex_item fs20 alert " style="max-width:128px;color:#FFF;">确认订单完成</button>
+            <button v-show="!isCreatePage && activeOrd.btnStatus === 'payByCash'" @click="confirmPayCashHandler" class="button fcz margin5 flex_item fs16 alert " style="max-width:128px;color:#FFF;">确认线下付款</button>
+            <button v-show="isCreatePage" @click="createOrderHandle" :disabled="createOrderDisabled" class="button  margin5 flex_item fs20 warn " style="max-width:128px;color:#FFF;">下单</button>
+            <button v-show="!isCreatePage && ['confirmOrder','orderDone'].indexOf(activeOrd.btnStatus) > -1" :disabled="confirmBtnDisable" @click="confirmOrderFinishHandler" class="button info margin5 flex_item fs16 alert " style="max-width:128px;color:#FFF;">确认订单完成</button>
             <!--</template>-->
           </div>
         </div>
@@ -88,36 +101,36 @@
         <el-footer style="height:auto;padding:3px;">
           <div class="grid-container full">
             <div class="grid-x food_buttons">
-              <div class="cell small-3">
+              <div class="cell small-3" style="width:20%;">
                 <button @click="newOrderHandler" type="button"  class="button light  expanded   margin5   ">新订单<el-badge v-show="badgePrint" :value="badgePrint" style="height:12px;" ></el-badge></button>
               </div>
-              <div class="cell small-3">
+              <div class="cell small-3" style="width:20%;">
                 <button @click="printedOrderHandler"  type="button" class="button  light expanded  margin5   ">已打印单</button>
               </div>
-              <div class="cell small-3">
-                <button type="button" @click="showHandoverClickHandler" class="button light  expanded  margin5   ">交班</button>
-              </div>
-              <div class="cell small-3">
-                <button type="button" @click="workClickHandler" class="button light   expanded  margin5   ">打卡</button>
-              </div>
-              <!--<div class="cell small-2">-->
-                <!--<button type="button" class="button  warning expanded  margin5   ">结账</button>-->
-              <!--</div>-->
-            </div>
-            <div class="grid-x food_buttons">
-              <div class="cell small-3">
-                <button type="button" @click="moreFnClickHandler" class="button  light expanded  margin5   ">其他功能</button>
-              </div>
-              <div class="cell small-3">
+              <div class="cell small-3" style="width:20%;">
                 <button type="button" @click="histOrderHandler" class="button  light  expanded  margin5  ">历史订单</button>
               </div>
-              <div class="cell small-3">
+              <div class="cell small-3" style="width:20%;">
+                <button type="button"  @click="routeCreatePoint" class="button light  expanded  margin5   ">点菜</button>
+              </div>
+              <div class="cell small-3" style="width:20%;">
+                <button @click="orderCashHandle" type="button"  class="button orange  expanded   margin5   ">结账</button>
+              </div>
+            </div>
+            <div class="grid-x food_buttons">
+              <div class="cell small-3" style="width:20%;">
+                <button type="button" @click="moreFnClickHandler" class="button  light expanded  margin5   ">其他功能</button>
+              </div>
+              <div class="cell small-3" style="width:20%;">
+                <button type="button" @click="workClickHandler" class="button light   expanded  margin5   ">打卡</button>
+              </div>
+              <div class="cell small-3" style="width:20%;">
                 <button type="button" @click="showDayClickHandler" class="button  light expanded  margin5   ">日报</button>
               </div>
-              <!--<div class="cell small-3">-->
-                <!--<button type="button" @click="workClickRecordHandler" class="button light  expanded  margin5   ">打卡记录</button>-->
-              <!--</div>-->
-              <div class="cell small-3">
+              <div class="cell small-3" style="width:20%;">
+                <button type="button" @click="showHandoverClickHandler" class="button light  expanded  margin5   ">交班</button>
+              </div>
+              <div class="cell small-3" style="width:20%;">
                 <button type="button" @click="logoutClickHandle" class="button light  expanded  margin5   ">安全退出</button>
               </div>
             </div>
@@ -125,115 +138,91 @@
         </el-footer>
       </el-container>
     </el-container>
-    <!--<router-view></router-view>-->
-
-    <el-dialog title="打卡" :visible.sync="workDialogVisible" width="600px">
-      <div>
-        <el-radio v-model="hitCard" label="1" border>上班打卡</el-radio>
-        <el-radio v-model="hitCard" label="2" border>下班打卡</el-radio>
-        <el-radio v-model="hitCard" label="3" border>交班打卡</el-radio>
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="workDialogVisible = false">取 消</el-button>
-        <el-button type="primary" :loading="btnLoading" @click="hitCardClickHandler">确定</el-button>
-      </span>
-    </el-dialog>
-
-    <el-dialog title="补打" :visible.sync="rePrintVisible" width="600px">
-      <div class="text-center">
-        <template v-if="activeOrder && activeOrder.orderType === 'pay'">
-          <el-button @click="toSinglePrint(1,'zhiDisBtn','XF')" :loading = 'zhiDisBtn' >支付凭证</el-button>
-        </template>
-        <template v-else>
-          <el-button @click="toSinglePrint(1,'xiaoDisBtn','XF')" :loading = 'xiaoDisBtn' >消费单</el-button>
-          <el-button @click="toSinglePrint(2,'jieDisBtn','JZ')" :loading = 'jieDisBtn' >结账单</el-button>
-          <el-button @click="toSinglePrint(3,'chuDisBtn','CD')" :loading = 'chuDisBtn' >厨打单</el-button>
-
-          <el-button v-if="activeOrder && [0,-1,3].indexOf(activeOrder.invoiceStatus) > -1" @click="toSinglePrint(4,'invoiceBtn','INV')" :loading = 'invoiceBtn' >开发票单</el-button>
-          <el-button v-if="activeOrder && [2,4].indexOf(activeOrder.invoiceStatus) > -1" disabled >操作中..</el-button>
-          <el-button v-if="activeOrder && [1,5].indexOf(activeOrder.invoiceStatus) > -1" @click="sendCancelInvoice()" :loading = 'invoiceBtn' >发票红冲</el-button>
-        </template>
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="rePrintVisible = false">关闭</el-button>
-      </span>
-    </el-dialog>
-
-    <el-dialog title="日报预览" :visible.sync="dayDialogVisible" width="600px">
-      <div class="day_paper">
-        <h5>日报</h5>
-        <p>店铺：{{shop.restName}}</p>
-        <p>统计日期：{{dateRange[1] | mydate('-') }}</p>
-        <!--<p>统计结束日期：{{dateRange[1]}}</p>-->
-        <hr/>
-        <p>已支付：{{dayPaperData.count}}笔 <span style="float:right">实收金额：{{dayPaperData.actualAmt}}</span></p>
-        <hr/>
-        <p>现金支付：{{dayPaperData.actOfflpayAmt}}</p>
-        <p>线上支付：{{dayPaperData.actBankpayAmt}}</p>
-        <p>飞常赞支付：{{dayPaperData.actAcctpayAmt}}</p>
-        <hr/>
-        <p>此小票为日报，请妥善保管</p>
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="dayDialogVisible = false">取 消</el-button>
-        <el-button type="primary"  @click="printDayPaper">打印</el-button>
-      </span>
-    </el-dialog>
-
-
-    <el-dialog title="交班单" :visible.sync="handoverDialogVisible" width="600px">
-      <div>日期：<label style="display:inline-block">{{ dateRange[1] | mydate('-') }}</label></div>
-      <div class="handover">
-        <div class="grid-container full">
-          <div class="grid-x grid-margin-x">
-            <div class="cell small-4"><span class="handover_label">账单数：</span><span class="ho_text">{{dayPaperData.count}}</span></div>
-            <div class="cell small-4"><span class="handover_label">消费额：</span><span class="ho_text">{{dayPaperData.totalAmt}}</span></div>
-            <div class="cell small-4"><span class="handover_label">优惠券：</span><span class="ho_text">{{dayPaperData.couponAmt}}</span></div>
-          </div>
-          <div class="grid-x grid-margin-x">
-            <div class="cell small-4"><span class="handover_label">改价折扣金额：</span><span class="ho_text">{{dayPaperData.saveAmt}}</span></div>
-            <div class="cell small-4"><span class="handover_label">退款金额：</span><span class="ho_text">{{dayPaperData.refundAmt}}</span></div>
-            <div class="cell small-4"><span class="handover_label">实收金额：</span><span class="ho_text">{{dayPaperData.actualAmt}}</span>
+    <el-dialog title="结账" @open="cashOrderOpen"  :close-on-click-modal="false"  :visible.sync="cashOrderVisible" width="700px">
+      <div style="margin-top:-15px;" v-loading="payLoading" class="grid-x food_buttons">
+        <div v-if="activeOrder" class="cell small-5">
+          <p ><span class="inline-block text-right padding-right5"  style="width:70px;">消费额：</span>{{activeOrder.fnActPayAmount | currency}}</p>
+          <p class="alert" style="color:red;"><span class="inline-block  text-right padding-right5" style="width:70px;">-整单折：</span>{{ activeOrder.cashMoney | currency}} <span class="padding-left">折扣率：{{ activeOrder.cashDisc }}%</span></p>
+          <!--<p class="alert" style="color:red;"><span class="inline-block  text-right padding-right5" style="width:70px;">-折让额：</span>0.75 </p>-->
+          <p class="alert" ><span class="inline-block  text-right padding-right5" style="width:70px;">舍入额：</span>{{activeOrder.cashRound | currency}}</p>
+          <hr />
+          <p>=应收：<span class="bold" style="color:#333;">{{activeOrder.cashNeedPay | currency}}元</span></p>
+          <hr />
+          <P>找零： <span class="bold" style="">{{activeOrder.cashMoneyBack | currency}}</span></P>
+        </div>
+        <div class="cell small-7" style="padding-left: 15px;">
+          <!--{{cashOrderVisible}}-->
+          <div class="grid-x">
+            <div class="small-9">
+              <el-form :inline="true"  class="form-inline">
+                <el-form-item label="支付金额" class="no-margin">
+                  <el-input  ref="cashInput"  v-model="payMoney" placeholder="支付金额" style="text-align:right;width:206px;"></el-input>
+                </el-form-item>
+                <vir-keyboard  mode="bind" v-model="payMoney" :input="$refs.cashInput && $refs.cashInput.$el.querySelector('input')" style="width:280px;"></vir-keyboard>
+              </el-form>
+              <div style="border-top:1px solid #e3e3e3;margin-top:20px;">
+                <div class="text-center" style="margin: 20px 0">
+                  <el-button plain @click="$message.info('直接点击结账即为现金收款哦~')">现金</el-button>
+                  <el-button @click="wxPayClickHandle" type="success" plain>扫码收款</el-button>
+                  <!--<el-button @click="aliPayClickHandle" type="primary" plain>支付宝</el-button>-->
+                </div>
+              </div>
+            </div>
+            <div class="small-3">
+              <ul class="jie_btn_list" >
+                <li><el-button  @click="cashDoneHandle" type="primary">结账</el-button></li>
+                <li><el-button  @click="discountHandle">折扣</el-button></li>
+                <li><el-button  @click="feePayHandle">免单</el-button></li>
+                <!--<li><el-button  @click="computeIntHandle">取整</el-button></li>-->
+                <!--<li><el-button  @click="quanHandle" >礼券</el-button></li>-->
+                <!--<li><el-button  @click="discountVisible=true">折让</el-button></li>-->
+                <!--<li><el-button  @click="discountVisible=true">礼券</el-button></li>-->
+                <!--<li><el-button  @click="discountVisible=true">删除</el-button></li>-->
+                <!--<li><el-button  @click="discountVisible=true">退款</el-button></li>-->
+                <!--<li><el-button  @click="discountVisible=true">会员</el-button></li>-->
+                <li><el-button type="info" @click="cashOrderVisible=false" >取消</el-button></li>
+              </ul>
             </div>
           </div>
-          <div class="grid-x grid-margin-x">
-            <div class="cell small-4"><span class="handover_label">用餐人数：</span><span class="ho_text">{{dayPaperData.restPerson}}</span></div>
-          </div>
-        </div>
-        <div class="handover_all_amount">
-          <span class="handover_label">收款明细（{{dayPaperData.count}}笔)：</span><span class="alert  ho_text" style="color:red;">{{dayPaperData.actualAmt}}</span>
         </div>
       </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="handoverDialogVisible = false">取 消</el-button>
-        <el-button type="primary"  @click="printHandover">打印</el-button>
-      </span>
-    </el-dialog>
-
-    <el-dialog title="打卡记录" :visible.sync="hitRcodeVisible" width="600px">
-      <div class="block">
-        <span class="demonstration">日期选择</span>
-        <el-date-picker
-          v-model="hitDate"
-          type="date"
-          placeholder="选择日期" @change="hitDateChange">
-        </el-date-picker>
-      </div>
-      <div class="hit_record">
-        <el-table   height="250" :data="hitRecordTable">
-          <el-table-column type="index"  label="序号" width="50"></el-table-column>
-          <el-table-column property="saleName" label="姓名" width="100"></el-table-column>
-          <el-table-column property="buildTime" label="打卡时间"></el-table-column>
-          <el-table-column property="remark" label="打卡类型"></el-table-column>
-        </el-table>
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="hitRcodeVisible = false">关 闭</el-button>
-      </span>
     </el-dialog>
   </el-container>
 </template>
 <style rel="stylesheet/scss" type="text/scss" lang="scss">
+  .pay_sure_mask{
+    position: absolute;
+    height: 200px;
+    left: 0;
+    right: 0;
+    top: 40px;
+    z-index: 10000;
+    text-align: center;
+  }
+  .discount_wrap{
+    .title {
+      text-align:left;
+      font-weight:bold;
+    }
+    .small-4 + .small-4 {
+      padding-left:5px;
+    }
+    .small-4> button {
+      margin:0 0 5px 0;
+    }
+  }
+  .form-inline .no-margin {
+    margin-right:0 !important;
+  }
+  .form-inline .el-input__inner{
+    text-align:right;
+  }
+  .jie_btn_list{
+    list-style:none;
+    li {
+      margin-bottom:5px;
+    }
+  }
   .el-dialog .el-input{
     width:200px;
   }
@@ -347,17 +336,24 @@
   import moment from 'moment'
   import { App } from 'nw.gui'
   import { mapGetters } from 'vuex'
-  import { amount as amountRule, mobile, passWd } from '../utils/elemFormRules'
+  // import { amount as amountRule, mobile, passWd } from '../utils/elemFormRules'
   import {clearLogs} from '../utils/clearLogs'
   import {currency} from '../utils/utils'
-  import loginModal from '../components/loginModal/'
+  import scanner from '../utils/scanner'
+  let now = moment(new Date()).format('YYYY-MM-DD')
+  import loginModal from '@/components/loginModal/'
   import backAmtModal from '../components/backAmtModal/'
   import changeAmtModal from '../components/changeAmtModal/'
-  import backVegetablesModal from '../components/backVegetablesModal'
+  import backVegetablesModal from '../components/backVegetablesModal/'
+  import scanPayModal from '../components/scanPayModal/'
+  import scanInputPayModal from '../components/scanInputPayModal/'
+  import workModal from '../components/workModal/'
+  import dayModal from '../components/dayModal/'
+  import handoverModal from '../components/handoverModal/'
   import rePrintModal from '../components/rePrintModal/'
-
-//  let timer
-  let now = moment(new Date()).format('YYYY-MM-DD')
+  import discPercentModal from '../components/discPercentModal'
+  //  let timer
+  //   let now = moment(new Date()).format('YYYY-MM-DD')
   export default{
     data () {
       return {
@@ -370,81 +366,85 @@
         handoverData: {},
         //  打卡
         hitCard: 0,
-        rePrintVisible: false, // 补打显示
-        backCaiVisible: false,  //  退菜visible
-        hitRcodeVisible: false, //  打卡记录
-        workDialogVisible: false,
-        handoverDialogVisible: false,
-        dayDialogVisible: false, // 日报对话框
+        cashOrderVisible: false,  // 结账
+        // wxPayVisible: false, // 微信支付
+        // cashPayVisible: false, // 现金支付
+        // discountVisible: false, // 折扣显示
 
-        xiaoDisBtn: false,
-        jieDisBtn: false,
-        chuDisBtn: false,
-        zhiDisBtn: false,
-        invoiceBtn: false,
+        wxPayLoading: false,
+        payLoading: false,
+        // xiaoDisBtn: false,
+        // jieDisBtn: false,
+        // chuDisBtn: false,
+        // zhiDisBtn: false,
+        // invoiceBtn: false,
 
         hitDate: now,
         hitRecordTable: [], // 打卡记录
         currentTime: '',
         now: now,
+        payMoney: '',
         input: null, // 虚拟键盘使用
+        discPercentModel: '100', //  折扣率默认值
+        payStyleTitle: '微信支付', // 标题栏
+        payAuthNo: '', // 支付授权框
         //  用户验证
-        loginVisible: false, // 登录认证
-        loginAuthList: [],
-        loginForm: {
-          mobile: '',
-          pwd: ''
-        },
-        loginFormRules: {
-          mobile: [
-            {required: true, message: '手机号不能为空', trigger: 'blur'},
-            {validator: mobile, trigger: 'blur'}
-          ],
-          pwd: [
-            {required: true, message: '密码不能为空', trigger: 'blur'},
-            {validator: passWd, trigger: 'blur'}
-          ]
-        },
+        // loginVisible: false, // 登录认证
+        // loginAuthList: [],
+        // loginForm: {
+        //   mobile: '',
+        //   pwd: ''
+        // },
+        // loginFormRules: {
+        //   mobile: [
+        //     {required: true, message: '手机号不能为空', trigger: 'blur'},
+        //     {validator: mobile, trigger: 'blur'}
+        //   ],
+        //   pwd: [
+        //     {required: true, message: '密码不能为空', trigger: 'blur'},
+        //     {validator: passWd, trigger: 'blur'}
+        //   ]
+        // },
         //  改价form
-        changeAmtVisible: false,
-        changeAmtForm: {
-          adjAmt: '',
-          adjRemark: ''
-        },
-        changeAmtRules: {
-          adjAmt: [
-            {required: true, message: '金额不能为空', trigger: 'blur'},
-            {validator: amountRule, trigger: 'blur'}
-          ],
-          adjRemark: [
-            {required: true, message: '备注不能为空', trigger: 'blur'}
-          ]
-        },
+        // changeAmtVisible: false,
+        // changeAmtForm: {
+        //   adjAmt: '',
+        //   adjRemark: ''
+        // },
+        // changeAmtRules: {
+        //   adjAmt: [
+        //     {required: true, message: '金额不能为空', trigger: 'blur'},
+        //     {validator: amountRule, trigger: 'blur'}
+        //   ],
+        //   adjRemark: [
+        //     {required: true, message: '备注不能为空', trigger: 'blur'}
+        //   ]
+        // },
         //  退菜
-        backCaiForm: {
-          remark: ''
-        },
-        backCaiRules: {
-          remark: [
-            {required: true, message: '备注不能为空', trigger: 'blur'}
-          ]
-        },
+        // backCaiForm: {
+        //   remark: ''
+        // },
+        // backCaiRules: {
+        //   remark: [
+        //     {required: true, message: '备注不能为空', trigger: 'blur'}
+        //   ]
+        // },
         //   退单form
-        backAmtVisible: false,
-        backAmtForm: {
-          id: '',
-          refundAmt: '',
-          refundRemark: ''
-        },
-        backAmtRules: {
-          refundAmt: [
-            {required: true, message: '金额不能为空', trigger: 'blur'},
-            {validator: amountRule, trigger: 'blur'}
-          ],
-          refundRemark: [
-            {required: true, message: '备注不能为空', trigger: 'blur'}
-          ]
-        },
+        // backAmtVisible: false,
+        // backAmtForm: {
+        //   id: '',
+        //   refundAmt: '',
+        //   refundRemark: ''
+        // },
+        // backAmtRules: {
+        //   refundAmt: [
+        //     {required: true, message: '金额不能为空', trigger: 'blur'},
+        //     {validator: amountRule, trigger: 'blur'}
+        //   ],
+        //   refundRemark: [
+        //     {required: true, message: '备注不能为空', trigger: 'blur'}
+        //   ]
+        // },
         currentRow: null,
         isMoreFn: false,
         payType: {
@@ -473,7 +473,11 @@
           '4': '正在红冲',
           '5': '红冲失败',
           '-1': '红冲成功'
-        }
+        },
+        isCusMode: true,
+        isBuffet: true,
+        tmpOrder: null,
+        tmpData: null
       }
     },
     watch: {
@@ -489,6 +493,16 @@
           this.$store.commit('clearActiveOrder')
         }
         this.$store.commit('clearOrderList')
+      },
+      'activeOrder.cashNeedPay' (newVal, oldVal) {
+        if (newVal) {
+          this.payMoney = newVal + ''
+        }
+      },
+      'payMoney' (newVal) {
+        if (newVal && !isNaN(newVal)) {
+          this.$store.commit('changeActiveMoney', newVal)
+        }
       }
     },
     computed: {
@@ -510,58 +524,100 @@
         }
         return 0
       },
+      // 是否是新订单页
       isNewPage () {
         return this.$route.name === 'NewOrder'
       },
+      // 是否是已打印页
       isPrintedPage () {
         return this.$route.name === 'PrintedOrder'
       },
+      // 是否是历史记录页
       isHistoryPage () {
         return this.$route.name === 'HistoryOrder'
       },
+      // 是否在记录展示页
+      isShowPage () {
+        return this.$route.name === 'PrintedOrder' || this.$route.name === 'HistoryOrder'
+      },
+      // 是否在点餐模式页
+      isCreatePage () {
+        return this.$route.name === 'BuffetMode'
+      },
+      // 判断是否是点菜页面
+      // isPointPage () {
+      //   return this.$route.name === 'CusPrintedOrder'
+      // },
+      // 改价按钮是否禁用
       changeAmtDisabled () {
         return this.disableBtnBy(['onlyChangeAmt', 'payByCash'])
       },
+      //  cancelOrderDisabled () {
+      //    return this.disableBtnBy(['payByCash'])
+//      },
+      // 取消按钮是否禁用
       cancelOrderDisabled () {
-        return this.disableBtnBy(['payByCash'])
+        return this.disableBtnBy(['onlyChangeAmt', 'payByCash'])
       },
+      // 下单按钮是否禁用
+      createOrderDisabled () {
+        if (!this.activeOrder) {
+          return true
+        } else {
+          if (this.activeOrder.isNew) {
+            return false
+          } else {
+            return true
+          }
+        }
+      },
+      // 补打按钮是否禁用
       rePrintClickDisabled () {
-        if (this.activeOrder) {
+        if (this.activeOrder && !this.activeOrder.isNew) {
           return false
         }
         return true
       },
+      // 打印按钮是否禁用
       printClickDisabled () {
         if (this.activeOrder) {
-          if (!this.activeOrder.isPrint) {
+          if (!this.activeOrder.isPrint && !this.activeOrder.isNew) {
             return false
           }
         }
         return true
       },
+      // 退单按钮是否禁用
       backAmtDisabled () {
         if (this.activeOrder && this.activeOrder.status === 5) {
           return true
         }
         return this.disableBtnBy(['confirmOrder', 'orderDone'])
       },
+      // 退菜按钮是否禁用
       backCaiDisabled () {
         if (this.activeOrder && this.activeOrder.orderType === 'pay') {
           return true
         }
         return this.disableBtnBy(['confirmOrder', 'orderDone'])
       },
+      // 清空按钮是否禁用
       clearActiveDisable () {
         if (this.activeOrder) {
           return false
         }
         return true
       },
+      // 确认订单完成是否禁用
       confirmBtnDisable () {
         return this.disableBtnBy(['confirmOrder'])
       },
+      // 免单按钮是否禁用
       freeOrderDisable () {
         if (this.activeOrder) {
+          if (this.activeOrder.isNew) {
+            return true
+          }
 //          console.log(this.activeOrder, 'activeOrder')
           if (this.activeOrder.adjType && this.activeOrder.adjType === 1) {
             return true
@@ -589,6 +645,140 @@
       }
     },
     methods: {
+      // 切换到点餐页面
+      routeCreatePoint () {
+        this.$router.replace({name: 'BuffetMode'})
+      },
+      // 计算唯一id
+      guid () {
+        function S4 () {
+          return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
+        }
+        return ('' + S4() + S4() + S4() + S4() + S4() + S4() + S4() + S4())
+      },
+      // 计算取整
+      computeIntHandle () {
+        let money = parseFloat(this.activeOrder.cashMoneyBack)
+        let tmp = currency(money)
+        let arr = tmp.match(/\.(\d+)$/)
+        if (arr) {
+          let mulVal = 10
+          if (parseInt(arr[1]) % 10 === 0) {
+            mulVal = 1
+          }
+          this.$store.commit('changeActiveBackMoney', currency(Math.floor(money * mulVal) / mulVal))
+        }
+      },
+      // 剔除添加的商品
+      deleteRow (index, item) {
+        this.$store.commit('reFoodActiveOrder', item)
+      },
+      // 计算提交的值
+      getCartInfos () {
+        let tmp = []
+        this.activeOrder.fnAttach.forEach((item) => {
+          if (item.subItems) {
+            let guid = this.guid()
+            tmp.push(`${item.id};${item.buyCount};${guid};0;0;${item.attr || ''};;`)  // 父商品
+            item.subItems.forEach(sub => {
+              // 设置提交的数据格式 item.id;数量;   item.guid;关联父产品id;关联父产品guid;attr口味备注;subPrintTag是否更随主商品;remark
+              tmp.push(`${sub.id};${sub.num};0;${item.id};${guid};${sub.attr || ''};${sub.fnSubPrintTag || ''};`)
+            })
+          } else {
+            tmp.push(`${item.id};${item.buyCount};0;0;0;${item.attr || ''};;`)
+          }
+        })
+        return tmp.join('|')
+      },
+      // 仅订单下单
+      async orderDown (params) {
+        console.log('下单中')
+        let res = await this.$http.post('/ycRest/doOrder', params)
+        let resData = res.data
+        let {order} = resData.data
+        this.$store.commit('setActiveOrder', Object.assign({}, this.activeOrder, order, {isNew: false}))
+        return order
+      },
+      // 线下付款
+      async orderOfflPay (params, order) {
+        let res = await this.$http.post('/ycRest/doOfflPay', Object.assign({}, params, {orderId: order.id}))
+        let resData = res.data.data
+        // this.$message.success('下单成功')
+        this.cashOrderVisible = false
+        this.$store.dispatch('setAndRemoreActive', {order: resData.order}).then((newOrder) => {
+          if (!newOrder.isPrint) {
+//                  this.printService.add(newOrder)
+          } else {
+            this.$store.commit('clearActiveOrder')
+          }
+          if (!this.isNewPage) {
+            this.$store.commit('updateOne', newOrder)
+          }
+          this.$message({
+            message: '线下收款成功',
+            type: 'success'
+          })
+        })
+        // this.$store.commit('clearActiveOrder')
+        // if (this.isShowPage) {
+        //   this.$store.commit('updateOne', resData.order)
+        // }
+      },
+      // 线下支付结账 确定线下付款
+      async cashDoneHandle (userObj) {
+        console.log('确定线下付款')
+        if (this.isActiveOrder()) {
+          if (this.activeOrder.fnAttach && this.activeOrder.fnAttach === 0) {
+            return this.$message.warning('当前订单中没有商品')
+          }
+          if (!this.payMoney) {
+            return this.$message.warning('支付金额不能为空')
+          }
+          let action = await this.$confirm('确定已收到现金款', '提示')
+          if (action === 'confirm') {
+            let params = {
+              payType: 'offl',
+              tableId: this.activeOrder.tableId,
+              restShopId: this.shop.id,
+              payAmt: this.activeOrder.fnActPayAmount,
+              restPerson: '',
+              isOfflinePay: 1,
+              cartInfos: this.getCartInfos(),
+              address: '',
+              couponId: '',
+              userRemark: '',
+              fczPrzAmt: '',
+              fczPrzRemark: '',
+              dicountAmt: this.activeOrder.cashMoney, // 减免金额
+              derateAmt: this.activeOrder.cashRound, // 优惠券金额
+              actPayAmt: this.activeOrder.cashNeedPay, // 实付金额
+              cashDisc: this.activeOrder.cashDisc // 折扣率
+            }
+            if (userObj.isFree && userObj.isFree === 1) {
+              params = Object.assign({}, params, userObj)
+            }
+            this.payLoading = true
+            if (this.activeOrder.isNew) {
+              try {
+                let order = await this.orderDown(params)
+                await this.orderOfflPay(params, order)
+                this.payLoading = false
+              } catch (e) {
+                console.error(e)
+                this.payLoading = false
+              }
+            } else {
+              try {
+                await this.orderOfflPay(params, this.activeOrder)
+                this.payLoading = false
+              } catch (e) {
+                console.error(e)
+                this.payLoading = false
+              }
+            }
+          }
+        }
+      },
       inputFocus (e) {
         this.input = e.target
       },
@@ -641,6 +831,7 @@
           }
         }
       },
+      // 禁用按钮帮助方法
       disableBtnBy (arr) {
         if (this.activeOrder) {
           if (arr.indexOf(this.activeOrder.btnStatus) > -1) {
@@ -649,22 +840,27 @@
         }
         return true
       },
+      // 退出按钮
       exitClickHandler () {
+        console.log('点击了退出按钮')
         this.$confirm('你确定要退出系统么', '提示').then(() => {
+          console.log('成功退出')
           App.quit()
         })
       },
+      // 新订单按钮
       newOrderHandler () {
         this.$router.push({name: 'NewOrder'})
       },
-      // 已打印订单
+      // 已打印订单按钮
       printedOrderHandler () {
         this.$router.push({name: 'PrintedOrder'})
       },
-      // 历史订单
+      // 历史订单按钮
       histOrderHandler () {
         this.$router.replace({name: 'HistoryOrder'})
       },
+      // 判断是否选中订单
       isActiveOrder () {
         if (!this.activeOrder) {
           this.$message({
@@ -675,7 +871,7 @@
         }
         return true
       },
-      //  手动打印
+      //  打印按钮功能 ----------手动打印
       printClickHandler () {
         console.log('手动打印', this.activeOrder)
         if (this.isActiveOrder()) {
@@ -685,8 +881,7 @@
           this.printService.add(this.activeOrder)
         }
       },
-
-      //  显示补打
+      //  补打按钮功能 --------- 显示补打
       async rePrintClickHandler () {
         console.log('-----------------------显示补打')
         if (this.isActiveOrder()) {
@@ -702,61 +897,61 @@
           })
         }
       },
-      // 手动补打
-      toSinglePrint (type, btnName, newType) {
-        if (this.isActiveOrder()) {
-          this[btnName] = true
-          let order = Object.assign({}, this.tmpOrder, {printSingleType: newType})
-          console.log('手动补打', btnName)
-          this.printService.add(order)
-          setTimeout(() => {
-            this[btnName] = false
-          }, 1500)
-        }
-      },
+      // 手动补打 【应该废弃了】
+      // toSinglePrint (type, btnName, newType) {
+      //   if (this.isActiveOrder()) {
+      //     this[btnName] = true
+      //     let order = Object.assign({}, this.tmpOrder, {printSingleType: newType})
+      //     console.log('手动补打', btnName)
+      //     this.printService.add(order)
+      //     setTimeout(() => {
+      //       this[btnName] = false
+      //     }, 1500)
+      //   }
+      // },
       // 手动打印开发票单
-      // 手动红冲发票
-      sendCancelInvoice () {
-        if (this.isActiveOrder()) {
-          console.log('手动红冲发票')
-          let id = this.activeOrder.id
-          this.$prompt('请填写红冲原因', '发票红冲', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            inputPattern: /.+/,
-            inputErrorMessage: '红冲原因不能为空',
-            beforeClose: (action, instance, done) => {
-              if (action === 'confirm') {
-                instance.confirmButtonLoading = true
-                this.$http.post('/eleInvoice/nullifyFpBySa', {
-                  orderId: id,
-                  shopType: 1,
-                  redReason: instance.inputValue
-                }).then(res => {
-                  let resData = res.data
-                  let {result} = resData.data
-                  if (result && parseInt(result.code) === 1) {
-                    done()
-                    instance.confirmButtonLoading = false
-                  }
-                }).catch(() => {
-                  instance.confirmButtonLoading = false
-                })
-              } else {
-                done()
-              }
-            }
-          }).then(({action, value}) => {
-            if (action === 'confirm') {
-              this.$message.success('红冲成功')
-            }
-          }).catch(() => {})
-        }
-      },
-      rePrintConfirmHandler () {
-        this.rePrintVisible = false
-      },
-      //  确认订单完成
+      // 手动红冲发票 【应该也废弃了，抽象成组件了 rePrintModal中了】
+      // sendCancelInvoice () {
+      //   if (this.isActiveOrder()) {
+      //     console.log('手动红冲发票')
+      //     let id = this.activeOrder.id
+      //     this.$prompt('请填写红冲原因', '发票红冲', {
+      //       confirmButtonText: '确定',
+      //       cancelButtonText: '取消',
+      //       inputPattern: /.+/,
+      //       inputErrorMessage: '红冲原因不能为空',
+      //       beforeClose: (action, instance, done) => {
+      //         if (action === 'confirm') {
+      //           instance.confirmButtonLoading = true
+      //           this.$http.post('/eleInvoice/nullifyFpBySa', {
+      //             orderId: id,
+      //             shopType: 1,
+      //             redReason: instance.inputValue
+      //           }).then(res => {
+      //             let resData = res.data
+      //             let {result} = resData.data
+      //             if (result && parseInt(result.code) === 1) {
+      //               done()
+      //               instance.confirmButtonLoading = false
+      //             }
+      //           }).catch(() => {
+      //             instance.confirmButtonLoading = false
+      //           })
+      //         } else {
+      //           done()
+      //         }
+      //       }
+      //     }).then(({action, value}) => {
+      //       if (action === 'confirm') {
+      //         this.$message.success('红冲成功')
+      //       }
+      //     }).catch(() => {})
+      //   }
+      // },
+      // rePrintConfirmHandler () {
+      //   this.rePrintVisible = false
+      // },
+      //  确认订单完成按钮功能  确认订单完成
       confirmOrderFinishHandler () {
         console.log('-----------------------确认订单完成')
         if (this.isActiveOrder()) {
@@ -774,7 +969,6 @@
             return this.$http.post('/ycRest/checkDishes', params).then(res => {
               let resData = res.data
               console.log(resData)
-//              this.$store.commit('removeActiveOrder')
               this.$store.commit('removeActiveOrderMap')
               if (!this.isNewPage) {
                 this.$store.commit('removeOneById', params.id)
@@ -787,7 +981,7 @@
           }).catch((res) => {})
         }
       },
-      //  确定线下收款
+      //  确定线下收款功能
       confirmPayCashHandler () {
         console.log('-----------------------确定线下收款')
         if (this.isActiveOrder()) {
@@ -822,7 +1016,7 @@
           }).catch(() => {})
         }
       },
-      // 验证版取消订单
+      // 取消订单按钮
       async cancelOrderPwd () {
         if (this.isActiveOrder()) {
           let id = this.activeOrder.id
@@ -853,106 +1047,26 @@
           }
         }
       },
-      //  取消订单 [已弃用]
-      async cancelOrder () {
-        console.log('-----------------------取消订单')
-        if (this.isActiveOrder()) {
-          let id = this.activeOrder.id
-          this.$confirm('你确定要取消订单吗', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            this.$http.post('/ycRest/cancelRestOrder', {id: id}).then(res => {
-              let resData = res.data
-              let {restOrder} = resData.data
-              this.$store.commit('removeActiveOrderMap')
-              if (!this.isNewPage) {
-                this.$store.commit('removeOneById', id)
-              }
-              this.$message({
-                message: '取消订单成功',
-                type: 'success'
-              })
-              this.$store.dispatch('orderCancel', {order: restOrder}).then(newOrder => {})
-            }).catch(err => {
-              console.error('取消订单操作报错', err)
-            })
-          }).catch(() => {})
-        }
-      },
-      //  清空activeOrder
+      //  清空按钮功能 activeOrder
       clearActiveOrder () {
         this.$store.commit('clearActiveOrder')
       },
-      //  改价备注建议
-      suggestChangeAmt (queryStr, cb) {
-        cb([
-          {'value': '员工打折'},
-          {'value': '活动优惠'},
-          {'value': '产品质量问题'},
-          {'value': '系统测试'}
-        ])
-      },
-      suggestBackAmt (queryStr, cb) {
-        cb([
-          {'value': '员工折让'},
-          {'value': '产品质量'},
-          {'value': '顾客更换产品'},
-          {'value': '产品售完'},
-          {'value': '顾客赶时间退餐品'},
-          {'value': '测试订单'}
-        ])
-      },
+      // 【好像没什么用】
       setCurrent (row) {
         this.$refs.singleTable.setCurrentRow(row)
       },
-      //   上班打卡
-      workClickHandler () {
-        this.hitCard = 0
-        this.workDialogVisible = true
-        this.btnLoading = false
-      },
-      hitCardClickHandler () {
-        console.log('-----------------------打卡')
-        if (!this.hitCard) {
-          return this.$message.warning('请选择你要打的卡')
-        }
-        this.btnLoading = true
-        this.$http.post('/ycRest/assistantSign', {signType: this.hitCard}).then((res) => {
-          this.btnLoading = false
-          this.$message({
-            message: '你已打卡成功',
-            type: 'success'
-          })
-          this.workDialogVisible = false
-        }).catch(() => {
-          this.btnLoading = false
-        })
-      },
-      //  上班打卡记录
-      workClickRecordHandler (e) {
-        //  /ycRest/assistantSignRecord
-        console.log('-----------------------上班打卡记录')
-        this.hitDate = now
-        if (typeof e === 'string') {
-          this.hitDate = e
-        }
-        this.$http.post('/ycRest/assistantSignRecord', {buildTime: this.hitDate}).then(res => {
-          this.hitRcodeVisible = true
-          let resData = res.data
-          this.hitRecordTable = resData.data
-        })
-      },
-      hitDateChange (val) {
-        let curr = moment(val).format('YYYY-MM-DD')
-        this.workClickRecordHandler(curr)
-      },
+      // 【没有什么实际作用】
       handleCurrentChange (val) {
         console.log('选中', val)
         this.currentRow = val
       },
-      // 改价显示
+      //  打卡按钮功能 上班打卡
+      workClickHandler () {
+        console.log('上班打卡显示')
+        workModal()
+      },
+
+      // 改价按钮功能  显示
       changeAmtClickHandler () {
         console.log('-----------------------改价显示')
         if (this.isActiveOrder()) {
@@ -981,7 +1095,7 @@
         }
 //      /ycRest/correctAmout
       },
-      // 退单显示
+      // 退单按钮功能  显示
       backAmtClickHandler () {
         console.log('-----------------------退单显示')
         if (this.isActiveOrder()) {
@@ -1003,7 +1117,7 @@
           })
         }
       },
-      //  退菜显示
+      //  退菜按钮功能显示
       async backCaiClickHandler () {
         console.log('-----------------------退菜')
         if (this.isActiveOrder()) {
@@ -1045,84 +1159,204 @@
           })
         }
       },
-      //  日报显示
-      showDayClickHandler () {
+      //  日报按钮功能显示
+      async showDayClickHandler () {
         console.log('-----------------------日报显示')
-        this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id, returnType: 1, exchangeType: 3}).then(res => {
-          this.dayDialogVisible = true
-          let resData = res.data
-          let {data, saleBeginTime, saleEndTime, printList} = resData.data
-          this.dateRange = [saleBeginTime, saleEndTime]
-          this.tmpPrintList = printList
-          data.saleBeginTime = saleBeginTime
-          data.saleEndTime = saleEndTime
-          this.dayPaperData = data
-          console.log(resData, '日报--------', data)
+        let res = await this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id, returnType: 1, exchangeType: 3})
+        let resData = res.data
+        let {data, saleBeginTime, saleEndTime, printList} = resData.data
+        let newPrintList = await dayModal({
+          exchangeType: 3,
+          shopId: this.shop.id,
+          shopName: this.shop.restName,
+          dayData: data,
+          list: printList,
+          dateStart: saleBeginTime,
+          dateEnd: saleEndTime
         })
+        this.$message.success('操作成功，日报已往打印机')
+        this.$store.dispatch('addPrintObj', {printList: newPrintList})
       },
-      dayPaperChange (e) {
-        console.log('-----------------------日报修改日期')
-        let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
-        let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
-        this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, returnType: 1, restShopId: this.shop.id}).then(res => {
-          let resData = res.data
-          let {data, saleBeginTime, saleEndTime, printList} = resData.data
-          this.dateRange = [saleBeginTime, saleEndTime]
-          data.saleBeginTime = saleBeginTime
-          data.saleEndTime = saleEndTime
-          this.tmpPrintList = printList
-          this.dayPaperData = data
-        })
+      // 结账按钮功能
+      orderCashHandle () {
+        console.log('结账---------')
+        if (this.isActiveOrder()) {
+          // 新订单
+          if (this.activeOrder.isNew || [0, 9].indexOf(this.activeOrder.status) > -1) {
+            if (this.activeOrder.fnAttach && this.activeOrder.fnAttach.length === 0) {
+              return this.$message.warning('你还没有添加菜品')
+            }
+            this.$store.commit('setActiveOrderInfo', {
+              cashDisc: 100,
+              cashMoney: 0,
+              cashRound: 0,
+              cashMoneyBack: 0,
+              cashNeedPay: this.activeOrder.fnActPayAmount
+            })
+            this.payMoney = currency(this.activeOrder.fnActPayAmount)
+            this.cashOrderVisible = true
+          } else {
+            this.$message.warning('该订单已支付完成了！')
+          }
+        }
       },
-      printDayPaper () {
-        console.log('-----------------------打印日报')
-//        let dayPaperData = Object.assign({tplName: 'dayPaper', restName: this.shop.restName}, {isOnlyTpl: true, printList: this.tmpPrintList})
-//        this.printService.add(dayPaperData)
-        this.$store.dispatch('addPrintObj', {printList: this.tmpPrintList})
-        this.dayDialogVisible = false
+      // 结账页面打开触发open回调
+      cashOrderOpen () {
+        setTimeout(() => {
+          let el = this.$refs.cashInput && this.$refs.cashInput.$el.querySelector('input')
+          el.focus()
+          el.select()
+        }, 300)
       },
-      //  交办单日期变更
-      handoverChange () {
-        console.log('-----------------------交办单日期变更')
-        let saleBeginTime = moment(this.dateRange[0]).format('YYYY-MM-DD HH:mm:ss')
-        let saleEndTime = moment(this.dateRange[1]).format('YYYY-MM-DD HH:mm:ss')
-        this.$http.post('/ycRest/countProSaleData', {saleBeginTime, saleEndTime, restShopId: this.shop.id}).then(res => {
-          this.handoverDialogVisible = true
-          let resData = res.data
-          let {data, saleBeginTime, saleEndTime, printList} = resData.data
-          this.dateRange = [saleBeginTime, saleEndTime]
-          data.saleBeginTime = saleBeginTime
-          data.saleEndTime = saleEndTime
-          this.dayPaperData = data
-          this.tmpPrintList = printList
-          this.handoverData = resData.data
-        })
+      // 折扣按钮功能
+      async discountHandle () {
+        console.log('-------------------点击了折扣按钮')
+        let percent = await discPercentModal()
+        console.log(percent)
+        this.$store.commit('setActiveDiscount', percent)
+      },
+      // 扫码支付功能
+      async wxPayClickHandle (title) {
+        console.log('--------------------扫码收款按钮')
+        let self = this
+        if (this.activeOrder && this.payMoney) {
+          this.payStyleTitle = '扫码收款'
+          if (typeof title === 'string') {
+            this.payStyleTitle = title
+          }
+          let order = await scanPayModal({
+            shopId: this.shop.id,
+            payStyleTitle: this.payStyleTitle,
+            payAmt: this.activeOrder.cashNeedPay,
+            order: this.activeOrder,
+            cartInfos: this.getCartInfos(),
+            onClose: function (isChange) {
+              if (isChange) {
+                self.scanInputPay(title)
+              }
+            }
+          })
+          console.log(order)
+          this.cashOrderVisible = false
+          this.$message.success('下单成功')
+          this.$store.dispatch('setAndRemoreActive', {order: order}).then((newOrder) => {
+            if (!newOrder.isPrint) {
+//                  this.printService.add(newOrder)
+            } else {
+              this.$store.commit('clearActiveOrder')
+            }
+            if (!this.isNewPage) {
+              this.$store.commit('updateOne', newOrder)
+            }
+            this.$message({
+              message: '订单支付成功',
+              type: 'success'
+            })
+          })
+          // this.$store.commit('clearActiveOrder')
+          // if (this.isPointPage) {
+          //   this.$store.commit('updateOne', order)
+          // }
+        } else {
+          this.$message.warning('支付金额不能为空')
+        }
+      },
+      // 手动输入微信支付
+      async scanInputPay (title) {
+        console.log('--------------手动输入收款')
+        this.payStyleTitle = '扫码收款'
+        if (typeof title === 'string') {
+          this.payStyleTitle = title
+        }
+        if (this.activeOrder && this.payMoney) {
+          let order = await scanInputPayModal({
+            shopId: this.shop.id,
+            payStyleTitle: this.payStyleTitle,
+            payAmt: this.activeOrder.cashNeedPay,
+            activeOrder: this.activeOrder,
+            cartInfos: this.getCartInfos()
+          })
+          this.cashOrderVisible = false
+          // this.$message.success('下单成功')
+          this.$store.dispatch('setAndRemoreActive', {order: order}).then((newOrder) => {
+            if (!newOrder.isPrint) {
+//                  this.printService.add(newOrder)
+            } else {
+              this.$store.commit('clearActiveOrder')
+            }
+            if (!this.isNewPage) {
+              this.$store.commit('updateOne', newOrder)
+            }
+            this.$message({
+              message: '订单支付成功',
+              type: 'success'
+            })
+          })
+          // this.$store.commit('clearActiveOrder')
+          // if (this.isShowPage) {
+          //   this.$store.commit('updateOne', order)
+          // }
+        } else {
+          this.$message.warning('支付金额不能为空')
+        }
+      },
+      // 收款页面免单操作
+      async feePayHandle () {
+        console.log('--------------点击了收款页面的免单操作')
+        let action = await this.$confirm('免单操作需要更高的操作权限', '提示')
+        if (action === 'confirm') {
+          let user = await loginModal()
+          if (user) {
+            user.isFree = 1
+            this.cashDoneHandle(user)
+//            this.$message.success('免单成功~')
+          }
+        }
+      },
+      // 下单按钮功能呢
+      createOrderHandle () {
+        console.log('------------------点击了下单')
+        if (this.isActiveOrder()) {
+          let params = {
+            payType: 'offl',
+            userRemark: '',
+            restShopId: this.shop.id,
+            payAmt: this.activeOrder.fnActPayAmount,
+            restPerson: '',
+            isOfflinePay: 0,
+            address: '',
+            tableId: this.activeOrder.tableId,
+            cartInfos: this.getCartInfos(),
+            couponId: '',
+            fczPrzAmt: '',
+            fczPrzRemark: ''
+//            doOrderWay: 0 // 代表仅仅下单
+          }
+          this.$http.post('/ycRest/doOrder', params).then(res => {
+            let resData = res.data
+            let {order} = resData.data
+            this.$message.success(resData.retMsg)
+            this.$store.commit('clearActiveOrder', order)
+          })
+        }
       },
       //  交办单显示
-      showHandoverClickHandler () {
-        console.log('-----------------------交办单显示')
-        this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id, exchangeType: 3}).then(res => {
-          this.handoverDialogVisible = true
-          let resData = res.data
-          let {data, saleBeginTime, saleEndTime, printList} = resData.data
-          this.dateRange = [saleBeginTime, saleEndTime]
-          data.saleBeginTime = saleBeginTime
-          data.saleEndTime = saleEndTime
-          this.dayPaperData = data
-          this.tmpPrintList = printList
-          this.handoverData = resData.data
+      async showHandoverClickHandler () {
+        console.log('-----------------------点击了交办单显示')
+        let res = await this.$http.post('/ycRest/countProSaleData', {restShopId: this.shop.id})
+        let resData = res.data
+        let printList = await handoverModal({
+          exchangeType: 3,
+          shopId: this.shop.id,
+          handoverData: resData.data
         })
-      },
-      printHandover () {
-        console.log('-----------------------打印交班单')
-//        let handoverData = Object.assign({tplName: 'handover', restName: this.shop.restName}, this.handoverData)
-//        this.printService.add(handoverData)
-        this.$store.dispatch('addPrintObj', {printList: this.tmpPrintList})
-        this.handoverDialogVisible = false
-        this.btnLoading = false
+        this.$message.success('操作成功，交办单已往打印机')
+        this.$store.dispatch('addPrintObj', {printList})
         console.log('打印交班单')
       },
+      // 其他功能按钮功能
       moreFnClickHandler () {
+        console.log('---------------------点击了其他功能')
         if (this.$route.path === '/main/otherFn') {
           this.isMoreFn = false
           this.$router.back()
@@ -1131,8 +1365,9 @@
           this.$router.push({name: 'OtherFn'})
         }
       },
+      // 安全退出按钮功能
       logoutClickHandle () {
-        console.log('-----------------------退出登录')
+        console.log('-----------------------点击退出登录')
         this.$confirm('你确定要切换账号么', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -1152,9 +1387,18 @@
     components: {},
     created () {
       this.printService = this.$store.getters.printService
+      // 保存桌号
+      this.deskNoArr = this.shop.deskNoArr
+      console.log(this.deskNoArr)
+      // 初始扫码控件
+      this.scan = scanner(this.scanerRes)
       console.log(this.printService, 'printService')
     },
     destroyed () {
+      if (this.scan) {
+        this.scan.stop()
+        this.scan = null
+      }
       this.$store.commit('clearActiveOrder')
     }
   }

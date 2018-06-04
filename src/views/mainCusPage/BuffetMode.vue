@@ -9,7 +9,7 @@
     </div>
     <div v-if="currFoods" class="grid-x  small-up-3  medium-up-5 large-up-8" style="margin:0 -15px;padding-top:20px;">
       <div v-for="cItem in currFoods.fnAttach" :key="cItem.id" class="cell order_block">
-        <a class="order_item"  @click="addInOrder(cItem)" href="javascript:void(0)">
+        <a class="order_item"  @click="addInOrderNew(cItem)" href="javascript:void(0)">
           <p class="item_name text-center" >{{cItem.name}}</p>
           <p class="fs16 text-center" >￥{{cItem.cashAmt}}</p>
         </a>
@@ -35,11 +35,15 @@
 </style>
 <script type="text/ecmascript-6">
   import {mapGetters} from 'vuex'
+  import {amountFix} from '../../utils/utils'
   import chooseAttrModal from '../../components/chooseAttrModal'
+  import chooseDeskModal from '../../components/chooseDeskModal'
+  var tmpSortList = []
   export default{
     data () {
       return {
         sortList: [],
+        // tmpSortList: [],
         currFoods: null
       }
     },
@@ -60,9 +64,61 @@
 //        console.log(cItem)
 //        this.$store.commit('setActiveOrderFood', cItem)
 //      },
+      async addInOrderNew (cItem) {
+        // let item = Object.assign({}, cItem)
+        let desk
+        console.log(cItem, '----add--------')
+        if (!this.activeOrder) {
+          console.log(this.shop.deskNoArr, 'this.shop.deskNoArr')
+          if (this.shop.deskNoArr) {
+            desk = await chooseDeskModal({deskNoArr: this.shop.deskNoArr})
+          } else {
+            await this.$confirm('点击‘确定’创建新订单', '创建新订单', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'info'
+            })
+          }
+          this.$store.commit('createActiveOrder')
+          this.$store.commit('setActiveTableNO', desk)
+          let res = await this.chooseAttr(cItem)
+          let item = Object.assign({}, cItem)
+          if (res) {
+            if (res.list && res.list.length > 0) {
+              this.$set(item, 'subItems', res.list)
+            }
+            console.log(res, '选择的结果-------------')
+            if (res.attr) {
+              this.$set(item, 'attr', res.attr)
+            }
+            item.perCash = res.newAmt
+          }
+          this.$store.commit('setActiveOrderFood', item)
+          this.$store.commit('setActiveTableNO', desk)
+        } else {
+          if (this.activeOrder.isNew) {
+            let res = await this.chooseAttr(cItem)
+            let item = Object.assign({}, cItem)
+            if (res) {
+              if (res.list && res.list.length > 0) {
+                this.$set(item, 'subItems', res.list)
+              }
+              console.log(res, '选择的结果-------------')
+              if (res.attr) {
+                this.$set(item, 'attr', res.attr)
+              }
+              item.perCash = res.newAmt
+            }
+            this.$store.commit('setActiveOrderFood', item)
+          } else {
+            this.$message.warning('当前订单已下单，不能追加添加菜品')
+          }
+        }
+      },
       addInOrder (cItem) {
-        let item = Object.assign({}, cItem)
-        console.log(item, '----add--------')
+        // let item = Object.assign({}, cItem)
+        // let item = cItem
+        console.log(cItem, '----add--------')
         if (!this.activeOrder) {
           this.$confirm('点击‘确定’创建新订单', '创建新订单', {
             confirmButtonText: '确定',
@@ -70,33 +126,76 @@
             type: 'info'
           }).then(() => {
             this.$store.commit('createActiveOrder')
-            this.$store.commit('setActiveOrderFood', item)
+            this.chooseAttr(cItem).then(res => {
+              let item = Object.assign({}, cItem)
+              if (res) {
+                if (res.list && res.list.length > 0) {
+                  this.$set(item, 'subItems', res.list)
+                }
+                console.log(res, '选择的结果-------------')
+                if (res.attr) {
+                  this.$set(item, 'attr', res.attr)
+                }
+              }
+              this.$store.commit('setActiveOrderFood', item)
+            })
           }).catch(() => {})
         } else {
           if (this.activeOrder.isNew) {
-            this.chooseAttr(item)
-            this.$store.commit('setActiveOrderFood', item)
+            this.chooseAttr(cItem).then(res => {
+              let item = Object.assign({}, cItem)
+              if (res) {
+                if (res.list && res.list.length > 0) {
+                  this.$set(item, 'subItems', res.list)
+                }
+                console.log(res, '选择的结果-------------')
+                if (res.attr) {
+                  this.$set(item, 'attr', res.attr)
+                }
+              }
+              item.newAmt = res.newAmt
+              item.newAmount = amountFix(item.newAmt * item.num)
+              this.$store.commit('setActiveOrderFood', item)
+            })
           } else {
             this.$message.warning('当前订单已下单，不能追加添加菜品')
           }
         }
       },
-      chooseAttr (item) {
-        let attr
-        console.log(item.attr)
-        if (item.attr) {
-          try {
-            attr = JSON.parse(item.attr)
-            chooseAttrModal({item: attr}).then(res => {
-              console.log(res)
-            })
-          } catch (e) {}
+      async chooseAttr (item) {
+        let attachList
+        console.log(item.attachProlist, '------------attachProlist-----------')
+        console.log(item.attachPro, '----------attachPro--------------')
+        if (!item.attachProList && item.attachPro) {
+          let res = await this.$http.post('/rest/addAttachPro', {restProId: item.id})
+          let {attachProList} = res.data.data
+          item.attachProList = attachProList
+          attachList = attachProList
+        } else {
+          attachList = item.attachProList
+        }
+        // console.log(item.attr, '----------attr--------------')
+        // if (item.attr) {
+        //   try {
+        //     attr = JSON.parse(item.attr)
+        //   } catch (e) {}
+        // }
+        // console.log('attr', attr, attachList)
+        if (item.attr || item.attachPro) {
+          return await chooseAttrModal({item: item, attachList: attachList, shop: this.shop})
+        } else {
+          return ''
         }
       },
       typeClickHandle (item) {
         this.currFoods = item
       },
       async getFoodData () {
+        console.log(tmpSortList, 'tmpSortList')
+        if (tmpSortList && tmpSortList.length > 0) {
+          this.sortList = [...tmpSortList]
+          return this.sortList
+        }
         let data = await this.$http.get('/rest/showProductBySortList', {params: {shopId: this.shop.id}})
         let resData = data.data
         let {sortList} = resData.data
@@ -108,6 +207,7 @@
             sub.amount = sub.cashAmt
           })
         })
+        tmpSortList = [...sortList]
         this.sortList = sortList
       }
     },

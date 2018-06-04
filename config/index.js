@@ -47,8 +47,8 @@ module.exports = {
         // platforms: ['win32', 'win64', 'osx64'],
         platforms: ['win32'],
         version: '0.14.7',
-        // flavor: 'sdk',
-        flavor: 'normal',
+        flavor: 'sdk',
+        // flavor: 'normal',
         cacheDir: resolve('./node_modules/_nw-builder-cache/'),
         buildDir: resolve('./releases'),
         winIco: resolve('./build/setup_resources/logo.ico'),
@@ -87,8 +87,8 @@ module.exports = {
       '/api':{
         // target:'http://www.fcz360.com',//  官网
         // target:'http://192.168.2.108:88',//  钟老师电脑
-        //target:'http://192.168.2.105:80',// 小婷电脑
-        target:'http://192.168.2.113:88',//
+        target:'http://192.168.2.105:80',// 小婷电脑
+        // target:'http://192.168.2.113:88',//
         // target:'http://192.168.2.105:8080',//
         changeOrigin:true,
         pathRewrite: {
@@ -123,15 +123,16 @@ module.exports = {
           }
         }
       },
-      '/fczIM':{
-        // target:'ws://192.168.2.105',
-        target:'http://192.168.2.113:88',//钟老师电脑
-        changeOrigin:true,
-        pathRewrite:{
-          '^/fczIM':'/fczIM'
-        },
-        ws:true
-      }
+      // '/fczIM':{
+      //   target: 'wss://www.fcz360.com',
+      //   // target:'ws://192.168.2.105',
+      //   // target:'http://192.168.2.113:88',//钟老师电脑
+      //   changeOrigin:true,
+      //   pathRewrite:{
+      //     '^/fczIM':'/fczIM'
+      //   },
+      //   ws:true
+      // }
     },
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README

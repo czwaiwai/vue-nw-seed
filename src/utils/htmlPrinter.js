@@ -27,6 +27,7 @@ function getHtml (content) {
     *,html,body {
       padding:0;
       margin:0;
+      font-size:12px;
       font-family: 微软雅黑;
     }
     p {
@@ -41,10 +42,13 @@ function getHtml (content) {
   </style>
 </head>
 <body style="width:400px;">
+<div style="page-break-after:always;">
 ${content}
+</div>
 </body>
 </html>`
-  return html.replace(/\n/g, '')
+  console.log(html.replace(/\r\n/g, '').replace(/\n/g, ''))
+  return html.replace(/\r\n/g, '').replace(/\n/g, '')
 }
 
 function htmlPrint (item, callback) {

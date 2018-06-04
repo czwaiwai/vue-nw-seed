@@ -90,10 +90,11 @@
         this.visible = false
         this.wxPayVisible = false
         this.tmpData = null
-        this.$store.commit('clearActiveOrder')
-        if (this.isPointPage) {
-          this.$store.commit('updateOne', order)
-        }
+        this.callback(order)
+        // this.$store.commit('clearActiveOrder')
+        // if (this.isPointPage) {
+        //   this.$store.commit('updateOne', order)
+        // }
       },
       // 等待支付结果
       waitRes (order, data) {
@@ -176,6 +177,7 @@
             restShopId: this.shopId,
             payAmt: this.activeOrder.fnActPayAmount,
             restPerson: '',
+            tableId: this.activeOrder.tableId,
             isOfflinePay: 0,
             cartInfos: this.cartInfos,
             address: '',
@@ -195,6 +197,8 @@
             try {
               let order = await this.orderDown(params)
               params.orderId = params.refOrderId = order.id
+              Object.assign(this.activeOrder, order, {isNew: false})
+              console.log('this.activeOrder', this.activeOrder)
               await this.orderOnlinePay(params, order)
             } catch (e) {
               this.wxPayLoading = false

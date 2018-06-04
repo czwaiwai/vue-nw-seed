@@ -18,6 +18,7 @@
             background-color="#545c64"
             text-color="#fff"
             :collapse="isShowMenu"
+            :collapse-transition="false"
             router
             active-text-color="#ffd04b">
             <el-menu-item   index="/index/main/neworder" v-if="shop.belongShopType < 20" >
@@ -32,7 +33,7 @@
               <i class="iconfont icon-gouwu"></i>
               <span slot="title">自助购</span>
             </el-menu-item>
-            <el-submenu index="/index/mainBook"  v-if="shop.belongShopType === 21" >
+            <el-submenu index="/index/mainBook" v-if="shop.belongShopType === 21" >
               <template slot="title">
                 <i class="iconfont icon-dianpu"></i>
                 <span>书店管理</span>
@@ -78,6 +79,7 @@
             background-color="#545c64"
             text-color="#fff"
             :collapse="isShowMenu"
+            :collapse-transition="false"
             active-text-color="#FFF">
             <el-menu-item index="1" @click="isShowMenu=!isShowMenu" >
               <i class="iconfont icon-zhankai"></i>
@@ -110,6 +112,7 @@
     mixins: [SysMethods],
     data () {
       return {
+        isShowMenu: false,
         activeUrl: ''
       }
     },
@@ -154,8 +157,11 @@
                   self.$store.commit('clearActiveOrder')
                 }
                 self.$store.commit('setFinshPrintOrder', obj)
-//              self.$store.commit('removeOrder', obj)
-                self.$store.commit('removeOrderMap', obj)
+                if (obj.isFreeOrder) { //  添加到历史记录 同时移除订单
+                  self.$store.commit('freeRemoveOrder', obj)
+                } else {
+                  self.$store.commit('removeOrderMap', obj)
+                }
               } catch (e) {
                 console.log(e)
               }
@@ -212,13 +218,18 @@
       },
       socketData (cb) {
         let self = this
-        let url = `${wsUrl}${location.host}/fczIM/orderMgr?type=2&shopId=${self.shop.id}`
+        console.log(wsUrl)
+        let url = `${wsUrl}/fczIM/orderMgr?type=2&shopId=${self.shop.id}`
+        console.log(url, 'websock url')
+        // let url = `${wsUrl}${location.host}/fczIM/custClientWs`
+        // let url = `wss://www.fcz360.com/fczIM/orderMgr?type=2&shopId=${self.shop.id}`
         return (singleton(function () {
           return new WsHelper(url, cb)
         }))()
       },
       socketRun () { // 开启websocket
         // websocket
+        console.log('----------------------------------websocket已开启--------------------------------------------')
         this.socketData((event, ws) => {
           if (event.data === 'pong') return
           console.log(event, 'socket event')
@@ -228,7 +239,7 @@
           } catch (e) {
             return console.error(e)
           }
-          let {triggerEvent} = resData
+          let {triggerEvent, reConnect} = resData
           let {logId, shopOrderList} = resData.data
           let ids = ''
           if (triggerEvent === 'printNewOrder') {
@@ -247,10 +258,14 @@
               })
             }
           }
+          if (reConnect) {
+            ws.close()
+          }
         })
       },
       // 轮询检查数据
       roundFn () {
+        console.log('----------------------------------轮询已开启--------------------------------------------')
         let netFix = (function () {
           let times = 0
           return {
@@ -389,7 +404,11 @@
     },
     created () {
       // 当前店的字段
-      console.log(this.shop, 'shop -----')
+      console.log(JSON.stringify(this.shop), 'shop -----')
+      if (this.shop.belongShopType < 20) {
+        console.log('-------11111111--------')
+        this.isShowMenu = true
+      }
       this.activeUrl = this.$route.path
       // 初始化打印数据
       this.$store.commit('printInit', {
@@ -402,6 +421,7 @@
       if (!this.$isXP) {
         console.log('getLocalPrinters()', getLocalPrinters())
       }
+      console.log(this.shop.pushType, 'pushType-----------------------')
       switch (this.shop.pushType) {
         case 1: this.roundFn(); break  // 1轮询
         case 2: this.socketRun(); break // 2 websocket

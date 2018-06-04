@@ -45,7 +45,7 @@ const wsHelper = function (url, cb) {
 wsHelper.prototype.bind = function (cb) {
   var self = this
   this.ws.onopen = function () {
-    console.log(self.ws)
+    // console.log(self.ws)
     heartCheck.reset().start(self.ws)
     console.log('ws onopen')
   }

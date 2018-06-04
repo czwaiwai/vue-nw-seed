@@ -221,9 +221,9 @@
       },
       routerTo (name) {
         if (this.$route.path.indexOf('/mainCus') > -1) {
-          return this.$router.push('/mainCus/' + name)
+          return this.$router.push('/index/' + name)
         }
-        return this.$router.push('/main/' + name)
+        return this.$router.push('/index/' + name)
       },
       swicthBuffetHandler () {
         this.$confirm('你确定要切换到点餐模式么，切换到点餐模式将无法监听到新订单', '提示', {

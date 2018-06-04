@@ -21,7 +21,7 @@
   import { amount as amountRule } from '../../utils/elemFormRules'
   import loginModal from '../loginModal/'
   export default{
-    prop: {
+    props: {
       shopAuth: Number,
       form: Object
     },
