@@ -87,8 +87,8 @@ module.exports = {
       '/api':{
         // target:'http://www.fcz360.com',//  官网
         // target:'http://192.168.2.108:88',//  钟老师电脑
-        target:'http://192.168.2.105:80',// 小婷电脑
-        // target:'http://192.168.2.113:88',//
+        // target:'http://192.168.2.105:80',// 小婷电脑
+        target:'http://192.168.2.113:88',//
         // target:'http://192.168.2.105:8080',//
         changeOrigin:true,
         pathRewrite: {
@@ -123,16 +123,16 @@ module.exports = {
           }
         }
       },
-      // '/fczIM':{
-      //   target: 'wss://www.fcz360.com',
-      //   // target:'ws://192.168.2.105',
-      //   // target:'http://192.168.2.113:88',//钟老师电脑
-      //   changeOrigin:true,
-      //   pathRewrite:{
-      //     '^/fczIM':'/fczIM'
-      //   },
-      //   ws:true
-      // }
+      '/fczIM':{
+        // target: 'wss://www.fcz360.com',
+        // target:'ws://192.168.2.105',
+        target:'http://192.168.2.113:88',//钟老师电脑
+        changeOrigin:true,
+        pathRewrite:{
+          '^/fczIM':'/fczIM'
+        },
+        ws:true
+      }
     },
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README

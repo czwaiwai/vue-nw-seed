@@ -9,7 +9,7 @@ let order2tickets = {
     console.log(webPrint, restShop)
     this.TplFn = webTplFn(printTpl)
     this.user = user
-    console.log('得到的用户对象', this.user)
+    console.log('得到的用户对象', JSON.stringify(this.user))
     this.webPrint = webPrint
     this.restShop = restShop
   },

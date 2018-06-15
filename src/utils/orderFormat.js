@@ -38,4 +38,11 @@ export function freeOrderSign (list) {
     return item
   })
 }
+export function freeOrderOne (item) {
+  item.id = item.id || item.orderId
+  item.isPrint = false
+  item.isOrder = true
+  item.isFreeOrder = true
+  return item
+}
 

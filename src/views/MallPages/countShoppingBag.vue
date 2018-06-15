@@ -83,6 +83,9 @@
         console.log(count, orderCount, qurDate)
       },
       activatedBefore () {
+        if (this.xcodeList && this.xcodeList.length > 0) {
+          this.orderForm.xcodes = this.xcodeList[0].xcode
+        }
         this.setFormAttr(this.orderForm)
       }
     },

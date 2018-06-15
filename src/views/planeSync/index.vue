@@ -228,7 +228,7 @@
       },
       // 查询同步结果
       selectSyncResHandle () {
-        if (this.selectRange[0]) {
+        if (this.selectRange && this.selectRange.length > 0 && this.selectRange[0]) {
           this.$http.post('/ycSale/getUploadMsg', {beginTime: this.selectRange[0], endTime: this.selectRange[1]}).then(res => {
             console.log(res, '--------------------')
             let resData = res.data

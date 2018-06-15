@@ -11,7 +11,7 @@
             </div>
             <div class="grid-x ">
               <div class="cell small-6  fs14">人数：{{activeOrd.restPerson?activeOrd.restPerson+'位':'1位'}}</div>
-              <div class="cell small-6  fs14">下单人：{{activeOrd.assistantOp===1?'店员':'客户'}}</div>
+              <div class="cell small-6  fs14">下单人：{{[1,2].indexOf(activeOrd.assistantOp)>-1?'店员':'客户'}}</div>
             </div>
             <div class="grid-x ">
               <div class="cell small-6  fs14">状态：{{ orderStatus[activeOrd.status]}}</div>
@@ -705,7 +705,7 @@
         let resData = res.data.data
         // this.$message.success('下单成功')
         this.cashOrderVisible = false
-        this.$store.dispatch('setAndRemoreActive', {order: resData.order}).then((newOrder) => {
+        this.$store.dispatch('cashDownRomreOrderInNew', {order: resData.order}).then((newOrder) => {
           if (!newOrder.isPrint) {
 //                  this.printService.add(newOrder)
           } else {
@@ -762,17 +762,17 @@
               try {
                 let order = await this.orderDown(params)
                 await this.orderOfflPay(params, order)
-                this.payLoading = false
               } catch (e) {
                 console.error(e)
+              } finally {
                 this.payLoading = false
               }
             } else {
               try {
                 await this.orderOfflPay(params, this.activeOrder)
-                this.payLoading = false
               } catch (e) {
                 console.error(e)
+              } finally {
                 this.payLoading = false
               }
             }
@@ -983,7 +983,7 @@
       },
       //  确定线下收款功能
       confirmPayCashHandler () {
-        console.log('-----------------------确定线下收款')
+        console.log('-----------------------确定线下收款,confirmPayCashHandler')
         if (this.isActiveOrder()) {
           this.$confirm('确认线下收款' + this.activeOrder.fnActPayAmount + '元', '提示', {
             confirmButtonText: '确定',
@@ -1239,7 +1239,7 @@
           console.log(order)
           this.cashOrderVisible = false
           this.$message.success('下单成功')
-          this.$store.dispatch('setAndRemoreActive', {order: order}).then((newOrder) => {
+          this.$store.dispatch('cashDownRomreOrderInNew', {order: order}).then((newOrder) => {
             if (!newOrder.isPrint) {
 //                  this.printService.add(newOrder)
             } else {
@@ -1278,7 +1278,7 @@
           })
           this.cashOrderVisible = false
           // this.$message.success('下单成功')
-          this.$store.dispatch('setAndRemoreActive', {order: order}).then((newOrder) => {
+          this.$store.dispatch('cashDownRomreOrderInNew', {order: order}).then((newOrder) => {
             if (!newOrder.isPrint) {
 //                  this.printService.add(newOrder)
             } else {
@@ -1392,7 +1392,7 @@
       console.log(this.deskNoArr)
       // 初始扫码控件
       this.scan = scanner(this.scanerRes)
-      console.log(this.printService, 'printService')
+      // console.log(JSON.stringify(this.printService), 'printService')
     },
     destroyed () {
       if (this.scan) {

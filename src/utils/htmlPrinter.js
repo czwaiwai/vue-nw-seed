@@ -85,7 +85,7 @@ function htmlValidPrint (list, callback) {
   if (list.length === 1) {
     return htmlPrint(list[0], callback)
   } else {
-    return htmlParallelPrint(list, callback)
+    return htmlListPrint(list, callback)
   }
 }
 

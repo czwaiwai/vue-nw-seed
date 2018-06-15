@@ -9,7 +9,7 @@ function orderSave (vue, restShop, webPrint, user) {
   this.orderList = []
   this.shop = Object.assign({}, restShop)
   this.status = 'start'
-  console.log(restShop, 'orderSave ------')
+  console.log(JSON.stringify(this.shop), 'orderSave ------')
   this.myEvent = {
     start: this.loop,
     before: this.loop,
@@ -108,7 +108,7 @@ orderSave.prototype = {
   },
   sendProcess () {
     let self = this
-    console.log(this.shop, '---------------order Save shop---------------')
+    // console.log(this.shop, '---------------order Save shop---------------')
     this.status = 'waiting'
     let obj = this.orderList.shift()
     if (!obj) {
@@ -128,7 +128,7 @@ orderSave.prototype = {
       }
       // 发送到打印机
       if (tickets && tickets.length > 0) {
-        console.log(self.shop, '---------------order Save shop-111-------------')
+        // console.log(self.shop, '---------------order Save shop-111-------------')
         printFactory.send(tickets, function (err, msg) {
           if (err) {
             return self.myEvent.error(err, obj, self.errNext(obj))

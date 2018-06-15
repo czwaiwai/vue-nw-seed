@@ -151,6 +151,9 @@
         this.list = orderList
       },
       activatedBefore () {
+        if (this.xcodeList && this.xcodeList.length > 0) {
+          this.orderForm.xcode = this.xcodeList[0].xcode
+        }
         this.setFormAttr(this.orderForm)
       }
     },

@@ -5,9 +5,9 @@
         <div v-for="item in printOrders" :key="item.id" class="cell order_block">
           <i v-if="item.status!=9" @click="removeOnNewList(item)" class="el-icon-close"></i>
           <a class="order_item" :class="{'no_pay':item.status==9}" @click="activeClickHandler(item)" href="javascript:void(0)">
-            <p class="text-center">{{item.orderType==='pay'?'支付凭证':item.tableNum}}</p>
+            <p class="text-center">{{item.orderType==='pay'?'支付凭证':(item.tableNum?item.tableNum:'无桌号')}}</p>
             <p class="fs14">流水号：{{item.vOrderNo && item.vOrderNo.substr(-4)}}</p>
-            <p class="fs12"><span class="fs12" >{{item.assistantOp===1?'店员':'客户'}}</span><span style="padding-left:15px">￥{{item.fnActPayAmount | currency}} <span v-if="item.adjType===1"  class="fs12 " >[免]</span></span></p>
+            <p class="fs12"><span class="fs12" >{{item.assistantOp===1 || item.assistantOp===2?'店员':'客户'}}</span><span style="padding-left:15px">￥{{item.fnActPayAmount | currency}} <span v-if="item.adjType===1"  class="fs12 " >[免]</span></span></p>
             <p class="fs14 text-center"><span v-show="item.isPrint" class="label success">已打印</span><span class="label alert">{{itemStatus(item.status)}}</span></p>
           </a>
         </div>
@@ -69,8 +69,13 @@
     computed: {
       ...mapGetters({
         'isAuto': 'isAuto',
+        'shop': 'shop', // 店铺信息
         'printOrders': 'printOrders'
-      })
+      }),
+      // 是否开启轮询
+      isRoundOpen () {
+        return [1, 2, 3].indexOf(this.shop.pushType) === -1
+      }
     },
     methods: {
       removeOnNewList (item) {

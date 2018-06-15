@@ -3,7 +3,7 @@
  */
 import OrderSave from '../../utils/orderSave'
 import {currency, amountFix} from '../../utils/utils'
-import {orderSign, orderSignOne, freeOrderSign} from '../../utils/orderFormat'
+import {orderSign, orderSignOne, freeOrderSign, freeOrderOne} from '../../utils/orderFormat'
 var isAuto = true
 if (process.env.NODE_ENV === 'development') {
   isAuto = true
@@ -246,7 +246,7 @@ export default {
         })
       }
       // 更新printOrders
-      state.printOrders = Array.from(state.printOrdersMap.values())
+      state.printOrders = Array.from(state.printOrdersMap.values()).sort((a, b) => b.vOrderNo - a.vOrderNo)
     },
     setPrintOrder (state, order) {
       let printOrder = state.printOrders.find(item => item.id === order.id)
@@ -270,8 +270,30 @@ export default {
       if (state.printOrdersMap.has(order.id)) {
         state.printOrdersMap.set(order.id, order)
         // 更新printOrders
-        state.printOrders = Array.from(state.printOrdersMap.values())
+        state.printOrders = Array.from(state.printOrdersMap.values()).sort((a, b) => b.vOrderNo - a.vOrderNo)
       }
+    },
+    // 从新订单列表中移除订单
+    removeInPrintOrderMap (state, order) {
+      if (order.isOrder === undefined) {
+        orderSignOne(order)
+      }
+      // if (state.printOrdersMap.has(order.id)) {
+      //   state.printOrdersMap.delete(order.id)
+      // }
+      if (state.hisOrderIds.indexOf(order.id) === -1) {
+        state.hisOrderIds.push(order.id)
+      }
+      let index = state.printing.indexOf(order.id)
+      if (index > -1) {
+        state.printing.splice(index, 1)
+      }
+      state.printHistoryMap.set(order.id, `${order.printMore},${order.printMoreSeq}`)
+      if (state.printOrdersMap.has(order.id)) {
+        state.printOrdersMap.delete(order.id)
+        // 更新printOrders
+      }
+      state.printOrders = Array.from(state.printOrdersMap.values()).sort((a, b) => b.vOrderNo - a.vOrderNo)
     },
     setFinshPrintOrder (state, order) {
       let printOrder = state.printOrders.find(item => item.id === order.id)
@@ -305,7 +327,7 @@ export default {
       if (state.printOrdersMap.has(order.id) && order.status !== 9) {
         state.printOrdersMap.delete(order.id)
         // 更新printOrders
-        state.printOrders = Array.from(state.printOrdersMap.values())
+        state.printOrders = Array.from(state.printOrdersMap.values()).sort((a, b) => b.vOrderNo - a.vOrderNo)
       }
     },
     // 从待打印列表中找出activeOrder 并移除
@@ -324,7 +346,7 @@ export default {
         if (state.printOrdersMap.has(state.activeOrder.id)) {
           state.printOrdersMap.delete(state.activeOrder.id)
           // 更新printOrders
-          state.printOrders = Array.from(state.printOrdersMap.values())
+          state.printOrders = Array.from(state.printOrdersMap.values()).sort((a, b) => b.vOrderNo - a.vOrderNo)
         }
         state.activeOrder = null
       }
@@ -350,12 +372,27 @@ export default {
         state.hisOrderIds.push(order.id)
       }
     },
+    freeUpdateOne (state, order) {
+      let newOrder = freeOrderOne(order)
+      let index = state.listOrder.findIndex(item => item.orderId === newOrder.id)
+      if (index > -1) {
+        state.listOrder.splice(index, 1, newOrder)
+      }
+    },
+    freeRemoveById (state, orderId) {
+      let index = state.printOrders.findIndex(item => item.id === orderId)
+      if (index > -1) {
+        state.printOrders.splice(index, 1)
+      }
+    },
     freeRemoveOrder (state, order) {
       let index = state.printOrders.findIndex(item => item.id === order.id)
       if (state.hisOrderIds.indexOf(order.id) === -1) {
         state.hisOrderIds.push(order.id)
       }
-      state.printOrders.splice(index, 1)
+      if (index > -1) {
+        state.printOrders.splice(index, 1)
+      }
     }
   },
   actions: {
@@ -401,6 +438,13 @@ export default {
       // commit('removeActiveOrder')
       commit('removeActiveOrderMap')
       console.log('取消订单~ 订单是否打印过：', newOrder.isPrint)
+      return newOrder
+    },
+    // 结账后从新订单界面移除
+    cashDownRomreOrderInNew ({state, commit}, {order}) {
+      let newOrder = orderSignOne(order)
+      commit('removeActiveOrderMap') // 从选中订单中移除
+      commit('removeInPrintOrderMap', newOrder) // 从支付完成的订单中移除
       return newOrder
     },
     setAndRemoreActive ({state, commit}, {order}) {
@@ -464,7 +508,7 @@ export default {
           }
         }
       })
-      state.printOrders = Array.from(state.printOrdersMap.values()) // 更新显示界面
+      state.printOrders = Array.from(state.printOrdersMap.values()).sort((a, b) => b.vOrderNo - a.vOrderNo) // 更新显示界面
       return newData
     },
     pushAction ({getters, state, commit}, {list}) {
@@ -538,6 +582,14 @@ export default {
       // 添加到打印待打印
       commit('orderPush', newData)
       return newData
+    },
+    freeOrderBack ({state, commit}, {order}) {
+      order.isBack = true
+      let newOrder = freeOrderOne(order)
+      // commit('removeActiveOrder')
+      commit('freeRemoveById', newOrder.orderId)
+      console.log('退单退菜：是否打印过这个订单', newOrder.vOrderNo, newOrder.orderId)
+      return newOrder
     },
     // 添加到已打印
     freeAddHisAction ({getters, state, commit}, {order}) {

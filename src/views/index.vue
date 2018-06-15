@@ -2,7 +2,7 @@
   <el-container class="main">
     <el-header style="height:44px;">
       <div class="grid-x">
-        <div class="logo cell small-6">飞常赞餐饮系统 v{{appVersion}} ({{shop.restName || shop.name}})</div>
+        <div class="logo cell small-6">飞常赞商户管理系统 v{{appVersion}} ({{shop.restName || shop.name}})</div>
         <div class="cell small-6 text-right" style="line-height:44px;">
           <span class="logo_time">{{currentTime}}</span>
           <span class="light fs12 label" style="">{{shopUser.saleName}}[{{shopUser.mobile}}]</span>
@@ -22,13 +22,15 @@
             router
             active-text-color="#ffd04b">
             <el-menu-item   index="/index/main/neworder" v-if="shop.belongShopType < 20" >
-              <i class="iconfont icon-shouji"></i>
-              <span slot="title">订餐模式</span>
-            </el-menu-item>
-            <el-menu-item   index="/index/mainCus/buffetMode" v-if="shop.belongShopType < 20" >
               <i class="iconfont icon-diancan"></i>
-              <span slot="title">点餐模式</span>
+              <span slot="title">订餐模式</span>
+              <el-badge v-show="badgePrint"   class="index_badge" :value="badgePrint" style="height:12px;position: absolute; top: -6px;left: 32px;" ></el-badge>
             </el-menu-item>
+            <!--v-show="badgePrint"-->
+            <!--<el-menu-item   index="/index/mainCus/buffetMode" v-if="shop.belongShopType < 20" >-->
+              <!--<i class="iconfont icon-diancan"></i>-->
+              <!--<span slot="title">点餐模式</span>-->
+            <!--</el-menu-item>-->
             <el-menu-item v-if="shop.autoBuy===1" index="/index/freeGo/freeNewOrder" >
               <i class="iconfont icon-gouwu"></i>
               <span slot="title">自助购</span>
@@ -58,7 +60,7 @@
                 <el-menu-item index="/index/mainMall/countShoppingBag"  >购物袋统计</el-menu-item>
                 <!--<el-menu-item index="/index/mainMall/scanClerk"  >飞常赞用户收款</el-menu-item>-->
             </el-submenu>
-            <el-menu-item index="/index/invoiceWrap/invoice" >
+            <el-menu-item v-if="shop.eleInvoice === 1" index="/index/invoiceWrap/invoice" >
               <i class="iconfont icon-fapiao"></i>
               <span slot="title">电子发票</span>
             </el-menu-item>
@@ -128,11 +130,23 @@
         'printOrders': 'printOrders',
         'activeOrder': 'activeOrder', // 显示状态下的订单
         'loopTime': 'loopTime'
-      })
+      }),
+      badgePrint () {
+        if (this.printOrders) {
+          return this.printOrders.length
+        }
+        return 0
+      }
     },
     components: {
     },
     methods: {
+      guid () {
+        function S4 () {
+          return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
+        }
+        return ('' + S4() + S4() + S4() + S4() + S4() + S4() + S4() + S4())
+      },
       listenService () {
         let self = this
         this.printService = this.$store.getters.printService
@@ -224,14 +238,15 @@
         // let url = `${wsUrl}${location.host}/fczIM/custClientWs`
         // let url = `wss://www.fcz360.com/fczIM/orderMgr?type=2&shopId=${self.shop.id}`
         return (singleton(function () {
-          return new WsHelper(url, cb)
+          return new WsHelper(url, cb, self.guid())
         }))()
       },
       socketRun () { // 开启websocket
         // websocket
         console.log('----------------------------------websocket已开启--------------------------------------------')
-        this.socketData((event, ws) => {
-          if (event.data === 'pong') return
+        this.wsHelper = this.socketData((event, ws) => {
+          console.log(event.data, '----')
+          if (event.data.indexOf('pong') > -1) return
           console.log(event, 'socket event')
           let resData = null
           try {
@@ -430,6 +445,12 @@
         default: break
       }
       console.log(this.printService, 'printService')
+    },
+    destroyed () {
+      if (this.wsHelper) {
+        this.wsHelper.close()
+        this.wsHelper = null
+      }
     }
   }
 </script>

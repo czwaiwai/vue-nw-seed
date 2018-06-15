@@ -219,6 +219,7 @@
             params.orderId = params.refOrderId = this.activeOrder.id
             await this.orderOnlinePay(params, this.activeOrder)
           } catch (e) {
+            console.log(e)
             this.wxPayLoading = false
           } finally {
             cb && cb()

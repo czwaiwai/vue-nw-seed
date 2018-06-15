@@ -79,6 +79,9 @@
     },
     methods: {
       itemStatus (status) {
+        if ([9].indexOf(status) > -1) {
+          return '部分退款'
+        }
         if ([7].indexOf(status) > -1) {
           return '已完成'
         }
@@ -90,7 +93,7 @@
         }
       },
       statusClass (status) {
-        if ([4, 5].indexOf(status) > -1) {
+        if ([4, 5, 9].indexOf(status) > -1) {
           return ''
         }
         if ([7, 8, 1].indexOf(status) > -1) {
@@ -100,7 +103,7 @@
       },
       itemClass (item) {
         return {
-          no_pay: [0, 2, -1, 9].indexOf(item.status) > -1,
+          no_pay: [-1, 0, 2, 3].indexOf(item.status) > -1,
           is_print: (item.accountPrintCount + item.consumePrintCount + item.kitchenPrintCount) > 0
         }
       },

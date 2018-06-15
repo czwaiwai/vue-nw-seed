@@ -106,16 +106,17 @@
       toRedInvoice (item) {
         console.log(item)
         console.log('waht', item.invoiceCode)
-        if (this.$route.path.indexOf('/mainBook') > -1) {
-          return this.$router.replace({path: '/mainBook/redInvoice', query: {invoiceCode: item.blueInvoiceCode, invoiceNo: item.blueInvoiceNo}})
-        }
-        if (this.$route.path.indexOf('/mainMall') > -1) {
-          return this.$router.replace('/mainMall/redInvoice')
-        }
-        if (this.$route.path.indexOf('/mainCus') > -1) {
-          return this.$router.replace({path: '/mainCus/redInvoice', query: {invoiceCode: item.blueInvoiceCode, invoiceNo: item.blueInvoiceNo}})
-        }
-        return this.$router.replace('/main/redInvoice')
+        return this.$route.replace({name: 'RedInvoice', query: {invoiceCode: item.blueInvoiceCode, invoiceNo: item.blueInvoiceNo}})
+        // if (this.$route.path.indexOf('/mainBook') > -1) {
+        //   return this.$router.replace({path: '/mainBook/redInvoice', query: {invoiceCode: item.blueInvoiceCode, invoiceNo: item.blueInvoiceNo}})
+        // }
+        // if (this.$route.path.indexOf('/mainMall') > -1) {
+        //   return this.$router.replace('/mainMall/redInvoice')
+        // }
+        // if (this.$route.path.indexOf('/mainCus') > -1) {
+        //   return this.$router.replace({path: '/mainCus/redInvoice', query: {invoiceCode: item.blueInvoiceCode, invoiceNo: item.blueInvoiceNo}})
+        // }
+        // return this.$router.replace('/main/redInvoice')
       },
       async dropInvoice (item) {
         await this.$confirm('你确定要作废当前开票二维码么，作废后用户将无法通过得到的二维码开发票')

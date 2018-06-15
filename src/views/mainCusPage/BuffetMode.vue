@@ -70,7 +70,7 @@
         console.log(cItem, '----add--------')
         if (!this.activeOrder) {
           console.log(this.shop.deskNoArr, 'this.shop.deskNoArr')
-          if (this.shop.deskNoArr) {
+          if (this.shop.writeTableType === 1) {
             desk = await chooseDeskModal({deskNoArr: this.shop.deskNoArr})
           } else {
             await this.$confirm('点击‘确定’创建新订单', '创建新订单', {

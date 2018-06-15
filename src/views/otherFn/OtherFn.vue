@@ -18,9 +18,6 @@
     <div v-if="isTest || user.mobile=='13728905705'" class="cell btn_block">
       <button @click="testHandler" type="button" class="button expanded">测试</button>
     </div>
-    <div v-if="isTest " class="cell btn_block">
-      <button @click="swicthBuffetHandler" type="button"class="button expanded">切换点餐模式</button>
-    </div>
     <div class="cell btn_block">
       <button @click="createInvoice" type="button"class="button expanded">开电子发票</button>
     </div>
@@ -214,26 +211,16 @@
         this.routerTo('scanClerk')
       },
       createInvoice () {
-        this.routerTo('invoice')
+        this.routerTo('invoiceWrap/invoice')
       },
       invoiceList () {
-        this.routerTo('invoiceList')
+        this.routerTo('invoiceWrap/invoiceList')
       },
       routerTo (name) {
         if (this.$route.path.indexOf('/mainCus') > -1) {
           return this.$router.push('/index/' + name)
         }
         return this.$router.push('/index/' + name)
-      },
-      swicthBuffetHandler () {
-        this.$confirm('你确定要切换到点餐模式么，切换到点餐模式将无法监听到新订单', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.shop.restType = 2
-          this.$router.push({name: 'BuffetMode'})
-        }).catch(() => {})
       },
       //  上班打卡记录
       workClickRecordHandler (e) {

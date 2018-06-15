@@ -1,7 +1,7 @@
 {
   "name": "fcz_application",
   "appName": "飞常赞应用",
-  "version": "0.5.0",
+  "version": "0.5.3",
   "description": "飞常赞是广州逸臣商贸有限公司旗下孵化的第三方互联网平台，整合机场内餐饮、零售、休闲、娱乐等资源，打造以航延服务为核心的一体化解决方案。",
   "author": "深圳非常赞网络科技有限公司",
   "private": true,
@@ -103,7 +103,7 @@
   "main": "http://localhost:8081",
   "manifestUrl": "http://www.fcz360.com/appMgrUpgrade",
   "window": {
-    "title": "飞常赞商家管理平台",
+    "title": "飞常赞商户管理平台",
     "toolbar": false,
     "width": 850,
     "height": 500,
