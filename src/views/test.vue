@@ -23,6 +23,8 @@
       <button @click="openEXE">打开程序</button>
       <button @click="openPathEXE">打开path程序</button>
       <button @click="testSql">sql数据库测试</button>
+
+      <button @click="testPrint">test Print</button>
     </div>
 </template>
 <style rel="stylesheet/scss"  lang="scss">
@@ -70,6 +72,21 @@
     },
     components: {},
     methods: {
+      testPrint () {
+        let arr = [{ printName: '账单',
+          printTime: '06-19 13:49:39',
+          content: '<% setAlign:c %><% setSize:2 %>乐稻港式餐厅（电子发票）\r\n<% setSize:1 %>============================\r\n<% setAlign:l %><% setSize:1 %><% setStyle:NORMAL %>开票商家：广州逸臣贸易有限公司\r\n发票总金额：￥155.0\r\n日期：2018-06-19\r\n<% setSize:1 %><% setStyle:NORMAL %>------------------------------------\r\n<% setAlign:c %>微信扫一扫开电子发票 \n<% qrimage:http://weixin.qq.com/q/02VTmDJbpPdLk1iTzgNrcu %> \n<% setAlign:c %>失效日期：2018-07-19 \n\r\n<% setAlign:c %>打印时间：2018-06-19\r\n地址：广州市花都区白云国际机场候机楼一楼C8111店\r\n电话：020-36067837\r\n<% setAlign:c %>请保存好本小票',
+          // orderId: 3921400321082368,
+          pkey: '39214003210823680',
+          printMore: '',
+          printMoreSeq: 0,
+          printerName: '账单',
+          shopType: 0,
+          title: '电子发票',
+          orderId: 0 }]
+        console.log(arr)
+        this.$store.dispatch('addPrintObj', {printList: arr})
+      },
       testSql () {
         console.log(process.arch)
         var sqlite3 = require('sqlite3').verbose()

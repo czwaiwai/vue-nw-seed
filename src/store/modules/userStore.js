@@ -46,7 +46,7 @@ export default {
   actions: {
     logoutAction ({state, commit}) {
       commit('logout')
-      commit('printClose')
+      // commit('printClose')
     }
   }
 }

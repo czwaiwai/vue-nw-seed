@@ -44,6 +44,14 @@ orderSave.prototype = {
   setUser: function (user) {
     order2tickets.setUser(user)
   },
+  setShop: function (shop) {
+    this.shop = shop
+    order2tickets.setShop(shop)
+  },
+  setWebPrint: function (webPrint) {
+    order2tickets.setWebPrint(webPrint)
+    printFactory.init(webPrint, this.$vue)
+  },
   loop: function () {},
   add: function (obj2list) {
     if (Array.isArray(obj2list)) {

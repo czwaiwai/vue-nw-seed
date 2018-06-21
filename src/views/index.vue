@@ -329,7 +329,10 @@
             let data = res.data.data
             if (!data) {
               this.upStatus('轮询中/ycRest/restOrderList返回了空的对象' + JSON.stringify(res), 'pc轮询错误')
-              return next()
+              if (next.isValid) {
+                next() // 为轮询是否就继续
+              }
+              return
             }
             try {
               if (data.noticeMsg) {
@@ -382,11 +385,15 @@
                 }
               })
             }
-            next()
+            if (next.isValid) {
+              next()
+            }
           }, err => {
             console.error('错误：', err)
             if (err === '请先登录') {
-              next(false)
+              if (next.isValid) {
+                next(false)
+              }
             } else {
               netFix.toTry((bool, times) => {
                 if (!bool) {
@@ -395,14 +402,20 @@
                     cancelButtonText: '重新登录',
                     type: 'warning'
                   }).then(() => {
-                    next(true) // 为轮询是否就继续
+                    if (next.isValid) {
+                      next(true) // 为轮询是否就继续
+                    }
                   }).catch(() => {
-                    next(false)
+                    if (next.isValid) {
+                      next(false) // 为轮询是否就继续
+                    }
                     netFix.clear()
                     this.$router.replace({name: 'Login'})
                   })
                 } else {
-                  next(bool)
+                  if (next.isValid) {
+                    next(bool) // 为轮询是否就继续
+                  }
                   this.$message.error('网络断开正在重连中' + times)
                   console.error('错误：' + '网络断开正在重连中' + times)
                 }
@@ -447,6 +460,11 @@
       console.log(this.printService, 'printService')
     },
     destroyed () {
+      if (this.round) {
+        console.log(this.round, 'stop---执行')
+        this.round.stop()
+        this.round = null
+      }
       if (this.wsHelper) {
         this.wsHelper.close()
         this.wsHelper = null

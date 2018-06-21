@@ -138,7 +138,7 @@
               proId: this.defaultSelect
             }
           }
-          console.log(printList)
+          console.log(printList, '操作成功，内容已发往打印机=----')
         } catch (e) {
           console.error(e)
         } finally {

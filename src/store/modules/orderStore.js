@@ -183,7 +183,13 @@ export default {
     printInit (state, {vue, shop, shopPrint, user}) {
       console.log(state.printService, 'state.printService')
       if (!state.printService) {
+        console.log('不存在state.printService重新创建')
         state.printService = new OrderSave(vue, shop, shopPrint, user)
+      } else {
+        console.log('当前state.printService存在，设置shop，shopPrint，user的值')
+        state.printService.setUser(user)
+        state.printService.setWebPrint(shopPrint)
+        state.printService.setShop(shop)
       }
     },
     printClose (state) {

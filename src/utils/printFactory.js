@@ -31,6 +31,9 @@ let printFactory = {
   createPrinter (cb) {
     let i = 0
     let self = this
+    if (!Array.isArray(this.priArr)) {
+      return cb(new Error('this.priArr不是数组对象，请检查代码逻辑'))
+    }
     if (this.priArr.every(item => item.chnPrinter)) {
       cb(null, this.priArr)
     } else {
@@ -59,7 +62,7 @@ let printFactory = {
     let printTmp = arr[0]
     if (printTmp) {
       let chnObject = printTmp.chnPrinter
-      console.log(chnObject)
+      console.log(chnObject, 'printFactory --- chnPrinter')
       chnObject.myCompile(ticket.tpl, function (err) {
         if (err) {
           return cb(err)

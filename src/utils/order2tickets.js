@@ -17,6 +17,12 @@ let order2tickets = {
   getDefaultPrintName () {
     return this.webPrint[0].name
   },
+  setWebPrint (webPrint) {
+    this.setWebPrint = webPrint
+  },
+  setShop (restShop) {
+    this.restShop = restShop
+  },
   setUser (user) {
     this.user = user
   },
